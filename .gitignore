@@ -1,0 +1,17 @@
+# dependencies
+node_modules/
+.venv/
+
+# raw source data and warehouse are never committed
+data-raw/
+data-warehouse/
+
+# build output
+dist/
+
+# tooling artifacts
+.playwright-mcp/
+playwright-report/
+__pycache__/
+*.pyc
+.DS_Store

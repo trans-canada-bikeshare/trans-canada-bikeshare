@@ -2,7 +2,7 @@
 
 ## Status
 
-Not Started
+In Progress — branch `feature/001-source-column-audit`
 
 ## Lifecycle
 
@@ -69,6 +69,38 @@ headline metric set and spec 019.
 
 **Samples land in** gitignored `data-raw/audit/`. Checksums recorded here must
 match what spec 003's manifest later pins.
+
+### Progress against the goals (2026-07-28)
+
+`docs/source-audit.md` written. Verified by reading real files over HTTP range
+requests: BIXI 2021 and 2022 (the exact format break), BIXI 2025, Toronto 2017
+and 2025. Vancouver carried from the sister project's mapping of 34 headers
+across 102 files.
+
+| Goal | State |
+| --- | --- |
+| Headers recorded verbatim | Met for every era read |
+| Nine canonical fields per system | Met for every era read |
+| Era boundaries | BIXI break located exactly; Toronto endpoints read, 2018–2024 unread |
+| **E-bike yes/no per system** | **Met** — Vancouver yes, Toronto yes (`Bike_Model`), Montreal no |
+| Timestamp format and precision | Formats and precision met with samples; **timezone basis unverified** |
+| Station coordinates | Recorded per system; GBFS shape unread |
+| Licence per system | Findings recorded; **none confirmed** |
+| SHA-256 per sampled file | **Not met — deviation, see below** |
+| Observed / inferred tagging | Met |
+| **Go/no-go per headline metric** | **Met** |
+
+**Deviation to resolve:** range reads never materialize a whole file, so
+per-file checksums could not be computed. The audit defers them to spec 003.
+That is a real departure from the spec as written — either accept it and amend
+001's criteria, or download the sampled files in full to satisfy it.
+
+**Headline finding:** e-bike share and membership mix **cannot** be three-city
+comparisons. Montreal publishes no bike type in any era and drops `is_member`
+at the 2022 break. Also: 13.3% of scanned BIXI 2025 trips have no recorded end,
+and BIXI's page states no licence at all — which contradicts `LICENSE`.
+
+**Not ready for `/feature test`.** Five goals are partial and one is unmet.
 
 ## History
 

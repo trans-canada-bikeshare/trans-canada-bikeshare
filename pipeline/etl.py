@@ -166,8 +166,24 @@ def reader_expr(path: Path, sheet: str | None = None) -> str:
             return f"read_xlsx('{quoted}', all_varchar = true)"
         esc = sheet.replace("'", "''")
         return f"read_xlsx('{quoted}', all_varchar = true, sheet = '{esc}')"
-    # ignore_errors keeps a single ragged row from killing a 3 GB file; the
-    # count difference is recorded as a drop, never hidden.
+    # ignore_errors keeps one ragged row from killing a 3 GB file.
+    #
+    # KNOWN GAP, stated plainly because an earlier version of this comment
+    # claimed the opposite: rows discarded here are counted NOWHERE. The
+    # funnel in run_clean starts at rows_landed, so anything the reader drops
+    # never enters it and is invisible to the quality report's claim that
+    # "every row that entered the pipeline is either kept or dropped for a
+    # named reason". That claim is true only below rows_landed.
+    #
+    # Measured extent: ~25,515 Toronto and ~5,800 Vancouver rows, all
+    # INVALID ENCODING — cp1252 bytes in station names. The loss is
+    # station-biased rather than random: Vancouver's
+    # "0069 šxʷƛ̓ənəq Xwtl'e7énḵ Square" drops from ~944 trips in May to 1 in
+    # June, and Toronto's cluster on "25 York St – Union Station South".
+    #
+    # Tracked in docs/roadmap.md. The fix is a per-file encoding fallback plus
+    # a reconciliation gate comparing source record counts to landed counts;
+    # until that lands, do not describe the funnel as complete.
     return (
         f"read_csv('{quoted}', header = true, all_varchar = true, "
         "sample_size = -1, ignore_errors = true, null_padding = true)"

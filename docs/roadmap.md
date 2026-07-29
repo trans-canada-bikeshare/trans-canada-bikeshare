@@ -166,6 +166,24 @@ monthly-refresh runbook.
 
 ---
 
+## Known gaps, carried
+
+Recorded here rather than in a comment nobody reads, because each is a place
+the project's own principles are not yet fully met.
+
+- **~31,000 rows discarded before landing.** `read_csv(ignore_errors=true)`
+  drops rows with invalid cp1252 bytes in station names — ~25,515 Toronto,
+  ~5,800 Vancouver — and counts them nowhere. Station-biased, not random.
+- **`rows_landed` is not reconciled against source record counts.** The funnel
+  is exact below that line and blind above it. All three data losses found so
+  far (nested zip, unread worksheet, encoding) lived there.
+- **Montreal station identity spans three key spaces** (2014-2020 codes, 2021
+  `emplacement_pk`, 2022+ names), so `stations_seen` reads ~3,490 for a
+  ~1,200-station network. The GBFS bridge that `docs/source-audit.md` proves
+  is possible — the feed carries both legacy key systems — is unbuilt.
+- **The trips chart plots a 26:1 range on one linear axis**, so Vancouver's
+  real growth reads as a flat line along the baseline.
+
 ## Sequencing notes
 
 - 001 blocks 005–008 and 019. Nothing in phase 2 should be written in detail

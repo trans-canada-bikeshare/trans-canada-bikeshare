@@ -51,8 +51,16 @@ def main() -> int:
         "",
         "## Row funnel",
         "",
-        "Every row that entered the pipeline is either kept or dropped for a "
-        "named reason. The two must sum to what landed.",
+        "Every row that **landed** is either kept or dropped for a named "
+        "reason, and the two sum exactly to what landed.",
+        "",
+        "**This accounting starts at `rows_landed`, not at the source files.** "
+        "Rows the CSV reader discards before landing — currently ~31,000 on "
+        "invalid cp1252 encoding, concentrated on a few station names — are "
+        "not counted here or anywhere else. Reconciling `rows_landed` against "
+        "source record counts is an open gap, tracked in `docs/roadmap.md`. "
+        "Every data loss found in this project so far has lived in exactly "
+        "that blind spot.",
         "",
     ]
 

@@ -72,13 +72,16 @@ WITH usage AS (
 raw_agg AS (
   SELECT
     system_id,
-    station_id,
-    arg_max(label, ts)              AS station_name,
-    min(ts)                         AS first_ts,
-    max(ts)                         AS last_ts,
+    -- Montreal's era-local ids collapse to one canonical identity where the
+    -- bridge resolves them; everything else keeps the id it had.
+    coalesce(b.canonical_id, u.station_id) AS station_id,
+    arg_max(u.label, u.ts)          AS station_name,
+    min(u.ts)                       AS first_ts,
+    max(u.ts)                       AS last_ts,
     count(*)                        AS lifetime_events
-  FROM usage
-  GROUP BY system_id, station_id
+  FROM usage u
+  LEFT JOIN mtl_station_bridge b ON b.era_id = u.station_id
+  GROUP BY 1, 2
 ),
 -- name -> canonical id, built only from stations that HAVE a published id
 bridge AS (
@@ -110,8 +113,12 @@ agg AS (
 )
 SELECT
   a.*,
-  s.lat,
-  s.lon,
+  -- Coordinates come from GBFS where the identity resolves to a live station,
+  -- and from the annual snapshots otherwise (Montreal's pre-2022 files are the
+  -- only source for stations GBFS no longer lists, since the feed is
+  -- current-state only).
+  coalesce(g.lat, s.lat) AS lat,
+  coalesce(g.lon, s.lon) AS lon,
   -- "Active" means seen in the last six months OF THAT SYSTEM'S OWN data, not
   -- of the archive as a whole: the three systems have different end dates and
   -- a shared cutoff would silently retire the ones that publish less often.
@@ -120,7 +127,10 @@ SELECT
     FROM agg a2 WHERE a2.system_id = a.system_id
   )                                 AS is_active
 FROM agg a
-LEFT JOIN conformed_stations s USING (system_id, station_id);
+LEFT JOIN conformed_stations s USING (system_id, station_id)
+LEFT JOIN gbfs_station g
+  ON g.system_id = a.system_id
+ AND g.station_id = regexp_replace(a.station_id, '^[a-z-]+:s?', '');
 
 CREATE OR REPLACE TABLE fact_trips AS
 SELECT
@@ -130,8 +140,11 @@ SELECT
   return_ts,
   trip_month,
   trip_year,
-  departure_station_id,
-  return_station_id,
+  -- Canonical station identity, so the fact and dim_station agree. Without
+  -- this the fact still carries Montreal's era-local keys and every
+  -- station-level join silently splits one dock into three.
+  coalesce(bd.canonical_id, departure_station_id) AS departure_station_id,
+  coalesce(br.canonical_id, return_station_id)    AS return_station_id,
   departure_label,
   return_label,
   departure_borough,
@@ -149,4 +162,6 @@ SELECT
   len(quality_flags) > 0  AS has_quality_issue,
   source_period,
   source_file
-FROM conformed_trips;
+FROM conformed_trips c
+LEFT JOIN mtl_station_bridge bd ON bd.era_id = c.departure_station_id
+LEFT JOIN mtl_station_bridge br ON br.era_id = c.return_station_id;

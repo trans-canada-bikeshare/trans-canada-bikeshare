@@ -177,10 +177,11 @@ the project's own principles are not yet fully met.
 - **`rows_landed` is not reconciled against source record counts.** The funnel
   is exact below that line and blind above it. All three data losses found so
   far (nested zip, unread worksheet, encoding) lived there.
-- **Montreal station identity spans three key spaces** (2014-2020 codes, 2021
-  `emplacement_pk`, 2022+ names), so `stations_seen` reads ~3,490 for a
-  ~1,200-station network. The GBFS bridge that `docs/source-audit.md` proves
-  is possible — the feed carries both legacy key systems — is unbuilt.
+- ~~Montreal station identity spans three key spaces~~ — **closed
+  2026-07-29.** `pipeline/sql/35_bridge.sql` reconciles them through GBFS;
+  identities 3,490 -> 1,776 against a live network of 1,107, with 88.1% of
+  Montreal trip volume resolving to a canonical station and the residue
+  counted in the quality report.
 - **The trips chart plots a 26:1 range on one linear axis**, so Vancouver's
   real growth reads as a flat line along the baseline.
 

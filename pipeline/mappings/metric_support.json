@@ -74,7 +74,7 @@
         },
         "mtl-bixi": {
           "supported": true,
-          "identity": "published key 2014-2021, normalised name 2022+"
+          "identity": "published key 2014-2021 and normalised name 2022+, reconciled to one identity through the GBFS feed (spec 35_bridge.sql)"
         },
         "tor-bikeshare": {
           "supported": true,

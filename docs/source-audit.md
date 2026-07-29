@@ -235,13 +235,16 @@ station_id=2   short_name=6002   Ste-Catherine / Dézéry
 So Montreal station identity is **recoverable** across all eras, using a
 different join key per era plus name matching for 2022+.
 
-> **Status 2026-07-29: designed, not implemented.** Nothing in the pipeline
-> performs this bridge. Montreal's `dim_station` therefore holds ~3,490
-> identities for a network of roughly 1,200 physical stations — 644 code-era,
-> 829 pk-era and 2,031 name-era, counted separately. The rendered active count
-> (1,227) is roughly right because it is name-era only, but per-station history
-> is severed at both era boundaries, and any station-level feature (flows,
-> per-station trends) is blocked until this is built. That is a spec 007 concern and
+> **Status 2026-07-29: BUILT** (`pipeline/sql/35_bridge.sql`). Three matchers,
+> strongest first — the code and pk key spaces join to GBFS exactly, era-D
+> names match GBFS names, and whatever the name misses is resolved by position
+> when the nearest dock is within 50 m and the runner-up is over 100 m away, so
+> two adjacent stations cannot merge. Montreal's identities fall from ~3,490 to
+> 1,776 against a live network of 1,107, and **88.1% of Montreal trip volume**
+> resolves to a canonical station. The residue is mostly stations retired
+> before the current GBFS snapshot, which a current-state feed cannot know
+> about; those keep their era-local identity and are counted in
+> `docs/data-quality-report.md` rather than dropped. That is a spec 007 concern and
 must be counted in the quality report — a name that fails to match is a
 silently dropped station, exactly the kind of thing this project promises not
 to do.

@@ -29,7 +29,7 @@ import common
 
 SQL_DIR = common.PIPELINE_DIR / "sql"
 WAREHOUSE = common.DATA_WAREHOUSE / "bikeshare.duckdb"
-STAGES = ("extract", "clean", "conform", "model")
+STAGES = ("extract", "reference", "clean", "conform", "model")
 SQL_FILES = {"clean": "20_clean.sql", "conform": "30_conform.sql", "model": "40_model.sql"}
 
 # Sources that exist in the manifest but are deliberately not trip-level.
@@ -422,6 +422,9 @@ def run_sql(con, name: str) -> None:
 def run_model(con) -> None:
     """Build the star schema, with dim_system loaded from the registry."""
     con.execute("SET VARIABLE mappings_dir = ?", [str(common.MAPPINGS_DIR)])
+    # Montreal's three key spaces are reconciled before the dimension is built.
+    run_sql(con, "35_bridge.sql")
+    record(con, "model", "mtl_bridge_entries", "SELECT count(*) FROM mtl_station_bridge")
     run_sql(con, "40_model.sql")
 
     # dim_system comes from common.SYSTEMS rather than being restated in SQL,
@@ -445,6 +448,43 @@ def run_model(con) -> None:
            "SELECT count(*) FROM fact_trips WHERE has_quality_issue")
     record(con, "model", "trips_ebike_known",
            "SELECT count(*) FROM fact_trips WHERE is_ebike IS NOT NULL")
+
+
+def run_reference(con) -> None:
+    """Load the pinned GBFS station feeds.
+
+    This is what makes Montreal's station identity recoverable at all. BIXI has
+    used three key spaces across its history — 4-digit codes to 2020, small
+    integer `emplacement_pk` in 2021, and station NAMES only from 2022 — and
+    the GBFS feed is the one place that carries two of them side by side:
+    `short_name` is the old code, `station_id` is the pk. Without it the eras
+    are three disjoint sets of stations that happen to describe one network.
+
+    Vancouver's station_id matches the numeric prefix inside its trip-file
+    station names; Toronto's matches its published ids directly. Both gain
+    coordinates from this, which no trip file supplies.
+    """
+    con.execute("""CREATE OR REPLACE TABLE gbfs_station (
+        system_id VARCHAR, station_id VARCHAR, short_name VARCHAR,
+        name VARCHAR, lat DOUBLE, lon DOUBLE, capacity BIGINT)""")
+    total = 0
+    for system_id in sorted(common.SYSTEMS):
+        path = common.reference_path(system_id, "gbfs_station_information")
+        if not path.exists():
+            print(f"  {system_id}: no GBFS feed on disk — run download.py")
+            continue
+        payload = json.loads(path.read_text(encoding="utf-8"))
+        for st in payload["data"]["stations"]:
+            con.execute(
+                "INSERT INTO gbfs_station VALUES (?, ?, ?, ?, ?, ?, ?)",
+                [system_id, str(st.get("station_id")),
+                 str(st["short_name"]) if st.get("short_name") is not None else None,
+                 st.get("name"), st.get("lat"), st.get("lon"), st.get("capacity")],
+            )
+            total += 1
+        print(f"  {system_id}: {len(payload['data']['stations']):,} GBFS stations")
+    record(con, "reference", "gbfs_stations", "SELECT count(*) FROM gbfs_station")
+    return None
 
 
 def run_clean(con) -> None:
@@ -566,6 +606,8 @@ def main() -> int:
             print(f"\n=== {stage}")
             if stage == "extract":
                 run_extract(con, systems, args.limit)
+            elif stage == "reference":
+                run_reference(con)
             elif stage == "clean":
                 run_clean(con)
             elif stage == "model":

@@ -128,6 +128,30 @@ def main() -> int:
            FROM fact_trips GROUP BY 1 ORDER BY 1""")],
     )
 
+    # Montreal's bridge: publish the match rates so the claim is checkable.
+    bridge = q("SELECT via, count(*) FROM mtl_station_bridge GROUP BY 1 ORDER BY 2 DESC")
+    if bridge:
+        doc += ["## Montreal station bridge", "",
+                "BIXI published station identity three incompatible ways — "
+                "four-digit codes to 2020, small-integer `emplacement_pk` in "
+                "2021, and names only from 2022. These are reconciled through "
+                "the GBFS feed, which carries the code and the pk on the same "
+                "row. Anything unmatched keeps its era-local identity and is "
+                "counted below rather than dropped.", ""]
+        doc += table(["matched via", "entries"], [(v, fmt(n)) for v, n in bridge])
+        unb = q("""SELECT system_id, count(*) FILTER (station_id LIKE '%:name:%'),
+                          count(*) FROM dim_station GROUP BY 1 ORDER BY 1""")
+        doc += table(["system", "unbridged identities", "total", "share"],
+                     [(s_, fmt(u), fmt(t_), f"{100*u/t_:.1f}%") for s_, u, t_ in unb])
+        vol = q("""SELECT round(100.0*count(b.canonical_id)/count(*), 1)
+                   FROM fact_trips f
+                   LEFT JOIN mtl_station_bridge b ON b.era_id = f.departure_station_id
+                   WHERE f.system_id = 'mtl-bixi'""")[0][0]
+        doc += [f"**{vol}%** of Montreal trip volume resolves to a canonical "
+                "station identity. The remainder is mostly stations retired "
+                "before the current GBFS snapshot, which the feed cannot know "
+                "about.", ""]
+
     doc += ["## Membership labels", "",
             "Raw labels are mapped explicitly. An unmapped label is reported "
             "here rather than silently bucketed.", ""]

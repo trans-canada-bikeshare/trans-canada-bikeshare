@@ -100,7 +100,13 @@ SELECT
                                                            THEN 'same_station_under_2min' END,
     CASE WHEN return_station_id IS NULL AND return_ts IS NOT NULL
                                                            THEN 'no_return_station' END,
-    CASE WHEN departure_station_match = 'name'             THEN 'station_matched_by_name' END
+    CASE WHEN departure_station_match = 'name'             THEN 'station_matched_by_name' END,
+    -- Nothing in this archive predates 2009 or postdates today by much. A row
+    -- outside that window survived parsing but cannot be trusted; flag it
+    -- rather than quietly averaging it into a monthly total.
+    CASE WHEN year(departure_ts) < 2009
+           OR departure_ts > current_date + INTERVAL 2 DAY
+                                                           THEN 'implausible_date' END
   ], x -> x IS NOT NULL)                             AS quality_flags
 FROM derived;
 

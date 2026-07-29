@@ -181,28 +181,75 @@ def run_sql(con, name: str) -> None:
     con.execute((SQL_DIR / name).read_text(encoding="utf-8"))
 
 
+def run_model(con) -> None:
+    """Build the star schema, with dim_system loaded from the registry."""
+    con.execute("SET VARIABLE mappings_dir = ?", [str(common.MAPPINGS_DIR)])
+    run_sql(con, "40_model.sql")
+
+    # dim_system comes from common.SYSTEMS rather than being restated in SQL,
+    # so the registry stays the single source of truth for what a system is.
+    con.execute("""CREATE OR REPLACE TABLE dim_system (
+        system_id VARCHAR PRIMARY KEY, city VARCHAR, system VARCHAR,
+        source_page VARCHAR, first_year VARCHAR)""")
+    for sid, meta in common.SYSTEMS.items():
+        con.execute("INSERT INTO dim_system VALUES (?, ?, ?, ?, ?)",
+                    [sid, meta["city"], meta["system"], meta["source_page"],
+                     meta["first_year"]])
+
+    record(con, "model", "fact_trips", "SELECT count(*) FROM fact_trips")
+    record(con, "model", "dim_station", "SELECT count(*) FROM dim_station")
+    record(con, "model", "dim_station_with_coords",
+           "SELECT count(*) FROM dim_station WHERE lat IS NOT NULL")
+    record(con, "model", "dim_membership", "SELECT count(*) FROM dim_membership")
+    record(con, "model", "membership_unmapped",
+           "SELECT count(*) FROM dim_membership WHERE membership_group IS NULL")
+    record(con, "model", "trips_flagged",
+           "SELECT count(*) FROM fact_trips WHERE has_quality_issue")
+    record(con, "model", "trips_ebike_known",
+           "SELECT count(*) FROM fact_trips WHERE is_ebike IS NOT NULL")
+
+
 def run_clean(con) -> None:
-    """Clean, then account for every row that did not survive it.
+    """Resolve per-file date order, clean, then account for every dropped row.
 
     The funnel must close: landed = kept + dropped-by-reason. If it does not,
     something is being lost silently, which is the failure this project's
     quality report exists to make impossible.
     """
+    # Must precede clean: the parser reads each file's proven date order.
+    run_sql(con, "15_dates.sql")
+    odd = con.execute(
+        "SELECT system_id, source_file, date_order FROM file_date_order "
+        "WHERE date_order IN ('conflict', 'ambiguous')"
+    ).fetchall()
+    for sys_id, f, ord_ in odd:
+        print(f"  date order {ord_.upper()} for {sys_id} {f} — parsed month-first", flush=True)
+    record(con, "clean", "files_day_first",
+           "SELECT count(*) FROM file_date_order WHERE date_order = 'day'")
+    record(con, "clean", "files_ambiguous_date_order",
+           "SELECT count(*) FROM file_date_order WHERE date_order IN ('conflict','ambiguous')")
     run_sql(con, "20_clean.sql")
     record(con, "clean", "rows_kept", "SELECT count(*) FROM clean_trips")
+    # These MUST use the same context-aware parser clean_trips uses. When they
+    # did not, the funnel produced a negative duplicate count — which is exactly
+    # what the derived-and-checked design is for.
     record(
         con, "clean", "rows_dropped_no_departure_time",
-        """SELECT count(*) FROM raw_trips
-           WHERE coalesce(parse_ts(departure_raw),
-                          epoch_ms(try_cast(departure_ms AS BIGINT))) IS NULL""",
+        """SELECT count(*) FROM raw_trips r
+           LEFT JOIN file_date_order o
+             ON o.system_id = r.system_id AND o.source_file = r.source_file
+           WHERE coalesce(parse_ts_ord(r.departure_raw, o.date_order),
+                          epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NULL""",
     )
     record(
         con, "clean", "rows_dropped_no_departure_station",
-        """SELECT count(*) FROM raw_trips
-           WHERE coalesce(parse_ts(departure_raw),
-                          epoch_ms(try_cast(departure_ms AS BIGINT))) IS NOT NULL
-             AND nullif(trim(departure_station_key), '') IS NULL
-             AND nullif(trim(departure_station_name), '') IS NULL""",
+        """SELECT count(*) FROM raw_trips r
+           LEFT JOIN file_date_order o
+             ON o.system_id = r.system_id AND o.source_file = r.source_file
+           WHERE coalesce(parse_ts_ord(r.departure_raw, o.date_order),
+                          epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NOT NULL
+             AND nullif(trim(r.departure_station_key), '') IS NULL
+             AND nullif(trim(r.departure_station_name), '') IS NULL""",
     )
     # Whatever the two named reasons do not account for is exact-duplicate
     # removal by SELECT DISTINCT. Deriving it keeps the funnel closed by
@@ -270,6 +317,8 @@ def main() -> int:
                 run_extract(con, systems, args.limit)
             elif stage == "clean":
                 run_clean(con)
+            elif stage == "model":
+                run_model(con)
             else:
                 run_sql(con, SQL_FILES[stage])
     except UnknownColumns as exc:

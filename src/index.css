@@ -26,6 +26,15 @@
     --input: 206 9% 85%;
     --ring: 205 74% 38%;
     --radius: 0.5rem;
+
+    /* Series colours: one hue per system, assigned once so a city is the same
+       colour on every chart. Deliberately excludes red, which belongs to the
+       logo alone. Chosen to stay separable in both themes and under the common
+       forms of colour vision deficiency. */
+    --series-van: 205 74% 38%; /* accent blue  #196ea9 */
+    --series-mtl: 175 77% 26%; /* deep teal    #0f766e */
+    --series-tor: 41 92% 33%; /* ochre        #a16207 */
+
     color-scheme: light;
   }
 
@@ -47,6 +56,12 @@
     --rule-2: 0 0% 13%; /* rule-2 #222222 */
     --input: 0 0% 18%;
     --ring: 207 66% 62%;
+
+    /* Lifted for dark paper; same hues, enough lightness to hold a 1.5px line. */
+    --series-van: 207 66% 62%; /* #5fa5de */
+    --series-mtl: 174 42% 51%; /* #4db6ac */
+    --series-tor: 41 67% 55%; /* #d9a63a */
+
     color-scheme: dark;
   }
 

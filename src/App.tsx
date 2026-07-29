@@ -1,14 +1,21 @@
-import { useMemo } from "react";
+import { Suspense, lazy, useMemo } from "react";
 import { setTheme, useTheme } from "@/lib/theme";
 import { Section, Note } from "@/components/Section";
 import { StatGrid } from "@/components/StatGrid";
 import { LineChart, type Series } from "@/components/charts/LineChart";
 import { SmallMultiples } from "@/components/charts/SmallMultiples";
+
+// Lazy so MapLibre and its stylesheet stay out of the initial bundle. The
+// library alone is roughly four times the size of the rest of the site.
+const StationMap = lazy(() =>
+  import("@/components/StationMap").then((m) => ({ default: m.StationMap })),
+);
 import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
 import {
   meta, tripsMonthly, seasonality, stationsYearly, ebikeShare, durations,
   exclusions, incompleteMonths, monthIndex, monthKeyFromIndex, commonWindow,
+  stationsMeta, omittedFor,
 } from "@/lib/data";
 
 const NAV = [
@@ -17,6 +24,7 @@ const NAV = [
   ["seasons", "Seasons"],
   ["stations", "Stations"],
   ["ebikes", "E-bikes"],
+  ["maps", "Maps"],
   ["method", "Method"],
 ] as const;
 
@@ -292,6 +300,60 @@ export default function App() {
                 {info.reason}
               </Note>
             ))}
+          </Section>
+
+          <Section
+            id="maps"
+            eyebrow="Maps"
+            title="Three networks, three shapes"
+            lede={
+              <>
+                Every station with a position and at least{" "}
+                {stationsMeta.min_lifetime_events} lifetime trips. Counting stations
+                says nothing about a network's shape — Montreal's is dense and
+                radial, Toronto's runs along the lake and up the subway lines,
+                Vancouver's holds to the downtown peninsula. Dot size is
+                lifetime activity; hollow dots are retired stations, kept
+                because where a network used to reach is part of its history.
+              </>
+            }
+          >
+            <div className="grid gap-10 lg:grid-cols-3">
+              {SYSTEM_ORDER.map((id) => (
+                <Suspense
+                  key={id}
+                  fallback={
+                    <div className="h-[300px] border border-border md:h-[380px]" />
+                  }
+                >
+                  <StationMap system={id} theme={theme} />
+                </Suspense>
+              ))}
+            </div>
+            <Note>
+              {SYSTEM_ORDER.map((id) => {
+                const o = omittedFor(id);
+                if (!o || (o.no_coordinates === 0 && o.below_threshold === 0)) return null;
+                return (
+                  <span key={id} className="mr-4 inline-block">
+                    <strong className="font-medium text-foreground">{cityOf(id)}</strong>{" "}
+                    omits {full(o.no_coordinates)} station
+                    {o.no_coordinates === 1 ? "" : "s"} with no known position
+                    {o.below_threshold > 0 && <> and {full(o.below_threshold)} below the trip threshold</>}.
+                  </span>
+                );
+              })}{" "}
+              A station without coordinates is left off the map and counted here
+              rather than placed at a guess. Most are stations retired before the
+              current GBFS snapshot, which a live feed cannot know about.{" "}
+              <strong className="font-medium text-foreground">
+                BIXI is also not only Montreal
+              </strong>{" "}
+              — it runs stations in Sherbrooke and several South Shore towns,
+              about 0.1% of its positioned activity. This site labels the system
+              by its home city, which is how BIXI brands it, but the map will
+              show you the outliers.
+            </Note>
           </Section>
 
           <Section

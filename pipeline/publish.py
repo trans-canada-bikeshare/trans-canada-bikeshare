@@ -237,6 +237,47 @@ def build(con, registry: dict) -> dict[str, object]:
     guard(registry, "duration", sorted({r["system_id"] for r in duration}))
     art["duration"] = duration
 
+    # --- stations with a position ------------------------------------------
+    # Keys are terse because this is by far the largest artifact the site
+    # ships. A station with no coordinates is NOT placed at a guess — it is
+    # left out and counted, and the page states the count.
+    station_rows = rows(con, """
+      SELECT system_id, station_id, station_name, lat, lon,
+             lifetime_events, is_active
+      FROM dim_station
+      WHERE lat IS NOT NULL AND lifetime_events >= 100
+      ORDER BY system_id, lifetime_events DESC
+    """)
+    # Split deliberately: the counts are needed to render the section's prose,
+    # the pin list only once a reader reaches the maps. Keeping them together
+    # put 260 KB of station data in the initial bundle for a section most
+    # readers never scroll to.
+    art["stations_meta"] = {
+        "min_lifetime_events": 100,
+        "omitted": rows(con, """
+          SELECT system_id,
+                 count(*) FILTER (lat IS NULL)                      AS no_coordinates,
+                 count(*) FILTER (lat IS NOT NULL
+                                  AND lifetime_events < 100)        AS below_threshold,
+                 count(*)                                           AS total
+          FROM dim_station GROUP BY 1 ORDER BY 1
+        """),
+    }
+    art["stations"] = {
+        "stations": [
+            {
+                "s": r["system_id"],
+                "i": r["station_id"].split(":")[-1],
+                "n": r["station_name"],
+                "y": round(r["lat"], 5),
+                "x": round(r["lon"], 5),
+                "t": r["lifetime_events"],
+                "a": bool(r["is_active"]),
+            }
+            for r in station_rows
+        ],
+    }
+
     # --- what was excluded, so the site can say so --------------------------
     art["exclusions"] = rows(con, """
       SELECT system_id,

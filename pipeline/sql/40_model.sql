@@ -112,13 +112,27 @@ agg AS (
   GROUP BY system_id, station_id
 )
 SELECT
-  a.*,
+  a.* EXCLUDE (station_name),
+  -- Montreal's id-era trip files carry no station names at all, so a
+  -- canonicalised station can reach here nameless. GBFS supplies the label.
+  -- Three sources, in descending confidence: the label a trip carried, the
+  -- live GBFS name, and the annual station snapshot — which is the only one
+  -- that knows a station GBFS has since retired.
+  coalesce(a.station_name, g.name, s.station_name) AS station_name,
   -- Coordinates come from GBFS where the identity resolves to a live station,
   -- and from the annual snapshots otherwise (Montreal's pre-2022 files are the
   -- only source for stations GBFS no longer lists, since the feed is
   -- current-state only).
-  coalesce(g.lat, s.lat) AS lat,
-  coalesce(g.lon, s.lon) AS lon,
+  -- Coordinates are validated, not merely preferred. BIXI's 2021 snapshot
+  -- carries a station at (-1, -1) and the GBFS feed has 7 rows outside any
+  -- plausible Canadian extent; placing a dot at the Gulf of Guinea is worse
+  -- than showing no dot, and "no position" is already a case the page states.
+  CASE WHEN coalesce(g.lat, s.lat) BETWEEN 41 AND 84
+        AND coalesce(g.lon, s.lon) BETWEEN -141 AND -52
+       THEN coalesce(g.lat, s.lat) END AS lat,
+  CASE WHEN coalesce(g.lat, s.lat) BETWEEN 41 AND 84
+        AND coalesce(g.lon, s.lon) BETWEEN -141 AND -52
+       THEN coalesce(g.lon, s.lon) END AS lon,
   -- "Active" means seen in the last six months OF THAT SYSTEM'S OWN data, not
   -- of the archive as a whole: the three systems have different end dates and
   -- a shared cutoff would silently retire the ones that publish less often.

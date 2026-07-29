@@ -1,27 +1,43 @@
-# Current Feature
+# Current Feature: 003 Per-city manifests and downloaders
 
 ## Status
 
-_No feature in progress._
+In Progress — branch `feature/003-manifests-and-downloaders`
 
 ## Lifecycle
 
-<!-- Each action stamps its own line with the date it ran. `/feature complete`
-     refuses to proceed while `review` is unstamped. -->
-
-- [ ] load
-- [ ] start
-- [ ] test
-- [ ] review
+- [x] load — 2026-07-28
+- [x] start — 2026-07-28
+- [x] test — 2026-07-28
+- [x] review — 2026-07-28
 
 ## Goals
 
-<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
+See `docs/features/003-manifests-and-downloaders.md`. All twelve acceptance
+criteria met except the full-archive pull, which is running and is explicitly
+an operator action rather than a test.
 
 ## Notes
 
-<!-- Dependencies, sources and cities touched, licence constraints, and
-     whether this feature changes any published artifact. -->
+**Test (2026-07-28).** 26 pytest (19 new), all offline. Live discovery found
+13 Montreal periods, 12 Toronto, 103 Vancouver — and reported one unrecognized
+Vancouver link (the unlabelled duplicate 2017 export) rather than skipping it,
+which is the designed behaviour. `make check-manifest` runs `inventory.py` and
+correctly separates *pending* from *failed*. Format detection classified
+Toronto's 2014-2015 and 2016 as xlsx and the rest as zip, from magic bytes.
+
+**Resumability fix made during the run:** the manifest saved only at the end of
+a system, so a crash on file 80 of a multi-GB pull would have discarded the
+first 79 pins. It now saves after every file.
+
+**Review.** Gate items: provenance pinned — **pass**, every downloaded file
+carries sha256, byte size and content format, and each manifest now carries a
+licence block. Nothing guessed silently — **pass**, unknown link labels and
+non-data content types are reported and refused. No raw data in the diff —
+**pass**, `data-raw/` is gitignored and holds the archive. Row accounting,
+artifacts, metrics, copy, encodings — n/a, no ETL or site surface yet.
+
+**Verdict: ready to complete.**
 
 ## History
 

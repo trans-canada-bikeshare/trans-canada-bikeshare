@@ -1,0 +1,742 @@
+{
+  "system_id": "van-mobi",
+  "source_page": "https://www.mobibikes.ca/en/system-data",
+  "licence": {
+    "name": "Mobi Data License Agreement",
+    "url": "https://www.mobibikes.ca/en/system-data",
+    "checked": "2026-07-28",
+    "attribution": "Contains information from Mobi by Rogers.",
+    "note": "Non-commercial analysis use. Carried from the sister project; re-confirm against the live page before any commercial use."
+  },
+  "sources": {
+    "2017": {
+      "url": "https://drive.usercontent.google.com/download?id=1-ADbyB1k1IIv3bjs70nG_m0C0zigI5n5&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-01": {
+      "url": "https://drive.usercontent.google.com/download?id=18nSmd8szs1abJ-_emITXkjPMhQ0sAA-k&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-02": {
+      "url": "https://drive.usercontent.google.com/download?id=18ZgxCe4Oo2Pus7HgHLecH9uuGtylwOaD&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-03": {
+      "url": "https://drive.usercontent.google.com/download?id=18BLHoJHkFf6Y1TU91tWh36q7wEbrMJjj&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-04": {
+      "url": "https://drive.usercontent.google.com/download?id=17yEKUosmvk20MgXFbdK9b8W8v-RTa_Ud&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-05": {
+      "url": "https://drive.usercontent.google.com/download?id=17tDVH1CfB4MSbVkRj5sUmiTua5ra49b6&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-06": {
+      "url": "https://drive.usercontent.google.com/download?id=1BblN6ENWBPWAti262GTo9IOqYOPJG7ez&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-07": {
+      "url": "https://drive.usercontent.google.com/download?id=1Cz4c2AmQjEErm97Nj7Hytrr4VfpuG5F6&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-08": {
+      "url": "https://drive.usercontent.google.com/download?id=1-evwGaCtvfRIUYj6A1GPl6ByCkhgfQhM&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-09": {
+      "url": "https://drive.usercontent.google.com/download?id=10CIaBaPwAEEKRrMitubYSZaG9VRaZKAI&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-10": {
+      "url": "https://drive.usercontent.google.com/download?id=1-uyrFleVIHZjyNIj-iCbtJ63vFZnTVS7&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-11": {
+      "url": "https://drive.usercontent.google.com/download?id=123RFp09U95pD7EkUl1alkuAEqQnhX7bJ&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2018-12": {
+      "url": "https://drive.usercontent.google.com/download?id=17dCNNei6gUNDtzeFIMKfJ8xaWSYTxki2&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-01": {
+      "url": "https://drive.usercontent.google.com/download?id=1Adg34DeBYIlOd_mxSDUeinPEkhJFkTkX&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-02": {
+      "url": "https://drive.usercontent.google.com/download?id=1Egm1hWCTUFIKIDQDK4pScnpQbjpfRJof&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-03": {
+      "url": "https://drive.usercontent.google.com/download?id=1Fl2DVuNMMWFMo8a3EHilfxck0KJH0Cu5&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-04": {
+      "url": "https://drive.usercontent.google.com/download?id=1oRpGt22rjkvZrC7cIhDnQdf-dojfkMOm&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-05": {
+      "url": "https://drive.usercontent.google.com/download?id=1620iRVKfAPs0pzmpfupEPcStQ61vAZmQ&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-06": {
+      "url": "https://drive.usercontent.google.com/download?id=16RsSrz42HlNWr7O0G5axxXS6wYMi48Ys&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-07": {
+      "url": "https://drive.usercontent.google.com/download?id=16b7RpWOj_O-tYfZM23KJlMyj9c0kqMXA&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-08": {
+      "url": "https://drive.usercontent.google.com/download?id=17-W2UMCgjXopvJUPZ-eWhEOxtjs73ZhW&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-09": {
+      "url": "https://drive.usercontent.google.com/download?id=19aqDJksVY87l1yavpQWbA5UNkwzrBVtE&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-10": {
+      "url": "https://drive.usercontent.google.com/download?id=1DXPDzxt5HKkOV5e7B2veQ0PMVtih44LJ&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-11": {
+      "url": "https://drive.usercontent.google.com/download?id=1F5fPg4JEpYXbI3dX1gv7he88gv3CXIfa&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2019-12": {
+      "url": "https://drive.usercontent.google.com/download?id=1JxpJlpllThBmdbMxYXhBEDnckPtNUkXd&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-01": {
+      "url": "https://drive.usercontent.google.com/download?id=1MCUVg0LJMOJJmvY2PeP91gSmJL3HXobS&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-02": {
+      "url": "https://drive.usercontent.google.com/download?id=1feKIQOmOLgNlQWDkqdD0P9LlZopp_c6U&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-03": {
+      "url": "https://drive.usercontent.google.com/download?id=1IMwLZfnUkaUMimEi-hp4X68uuke99Ym0&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-04": {
+      "url": "https://drive.usercontent.google.com/download?id=1hffELgzEuCWd_-nqsdQbU6B3YEQYB8KY&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-05": {
+      "url": "https://drive.usercontent.google.com/download?id=1pMh7Wp-dYz8M8xAbfRWOVeMzqwMVyZTJ&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-06": {
+      "url": "https://drive.usercontent.google.com/download?id=1femdPsRctZchjDgsGy2Q4akNOn_PmKVO&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-07": {
+      "url": "https://drive.usercontent.google.com/download?id=1UYA5dLM_1Hkc3RQGnrGpu-GXJ70JZLm6&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-08": {
+      "url": "https://drive.usercontent.google.com/download?id=13clYhYD4xvh-RX_e7-pX3xF1LheT40SZ&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-09": {
+      "url": "https://drive.usercontent.google.com/download?id=13tTHQY4-bMBwSgnG-L48XC6R_xQf389G&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-10": {
+      "url": "https://drive.usercontent.google.com/download?id=1UZ77Xx6H0xsDUQ6z2ZEkFotC71xedtt-&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-11": {
+      "url": "https://drive.usercontent.google.com/download?id=1h7tvRaMkqOVZY0xvOcIU1TXb36qe8Hbu&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2020-12": {
+      "url": "https://drive.usercontent.google.com/download?id=17gUSmxTJXWPjbB-l7HDK1FzlvULTqXNf&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-01": {
+      "url": "https://drive.usercontent.google.com/download?id=17lpYIixTOcdZ7-SgoXrr4vdeSnYp_xgQ&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-02": {
+      "url": "https://drive.usercontent.google.com/download?id=17pmWJ-yJUT66A09lrMax01_bnEycwAco&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-03": {
+      "url": "https://drive.usercontent.google.com/download?id=17k7nMOUdVTZykAUP6nZHylKf-_a7nJR-&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-04": {
+      "url": "https://drive.usercontent.google.com/download?id=19GwTAEThIpzc1C12QYiEvu-P39SQqjaF&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-05": {
+      "url": "https://drive.usercontent.google.com/download?id=1COOOyAc-2ThrgaTbflT29pmoROdb9oIk&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-06": {
+      "url": "https://drive.usercontent.google.com/download?id=1CTwGwFJ9mOTGRM5fM70xhQW7VxXcB1Do&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-07": {
+      "url": "https://drive.usercontent.google.com/download?id=1CWCv3XorFgbLgnMkXFVHoie342s3Oioa&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-08": {
+      "url": "https://drive.usercontent.google.com/download?id=1HQCXLrQbHVliFEX_cm5W8eIDWOOoFjuH&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-09": {
+      "url": "https://drive.usercontent.google.com/download?id=1Db_39TREVgsh1SDQiUS5VRT9o9IhdhA3&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-10": {
+      "url": "https://drive.usercontent.google.com/download?id=1GYfMlUBLx3FvMFxbVdkIlDttO0zGHgr_&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-11": {
+      "url": "https://drive.usercontent.google.com/download?id=1HKc2bX-XBIqTyopz9FAPqFgO56MPw8fG&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2021-12": {
+      "url": "https://drive.usercontent.google.com/download?id=1PJV8vhzfy9pCq6sIo0haKS6_liojA0Qo&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-01": {
+      "url": "https://drive.usercontent.google.com/download?id=1PIg2O8fDsNh9ScY_vNx7ADSs2go4A0Tk&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-02": {
+      "url": "https://drive.usercontent.google.com/download?id=1HRBcaeAUkk8vV1We1Lmae6Dei0aVC3ee&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-03": {
+      "url": "https://drive.usercontent.google.com/download?id=1HRPdG4eKQ7BoUoRHj5_BLl_4OMZhnrDM&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-04": {
+      "url": "https://drive.usercontent.google.com/download?id=1c_rWhMcwXRnNt06psxmt_UN8IjbJF91E&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-05": {
+      "url": "https://drive.usercontent.google.com/download?id=1obR9XjNbRi5u5vLwYxzABlhYHpsuX86o&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-06": {
+      "url": "https://drive.usercontent.google.com/download?id=1ojQ7PB9j3fWLd3rQ2pQ6FNN31p8ND-tV&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-07": {
+      "url": "https://drive.usercontent.google.com/download?id=1oqJvzrXr6GP0G4pIhc7x3niLe2MgXtN_&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-08": {
+      "url": "https://drive.usercontent.google.com/download?id=1owP7jN5CoJliZ7LdcZGYMWC5J6yNKPiU&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-09": {
+      "url": "https://drive.usercontent.google.com/download?id=1pR_z-TY8CHImhtaQ_oP-2bXTh_8MyV14&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-10": {
+      "url": "https://drive.usercontent.google.com/download?id=1E-1C_PLb8N1QIWkqJ1C3Pd3CnjRYHoNYQ7k5iyJFT28&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-11": {
+      "url": "https://drive.usercontent.google.com/download?id=1x9zMYc8i4CYyHCwwECL-gi19CuCh6Gcz&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2022-12": {
+      "url": "https://drive.usercontent.google.com/download?id=1-RNs6YGudVZEaXXxCNJxLv21J7rgQgcE&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-01": {
+      "url": "https://drive.usercontent.google.com/download?id=12aZ-TeKZcPT6w1mLZWfSer5z0V-MIgY6&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-02": {
+      "url": "https://drive.usercontent.google.com/download?id=106aqqsbwIYHqyJpQuH-7Xj-UJrKotfp6&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-03": {
+      "url": "https://drive.usercontent.google.com/download?id=108-suaYJS1xhdLngXWh02PKUNTrKemd6&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-04": {
+      "url": "https://drive.usercontent.google.com/download?id=10E5MOzfZPNYhT7UJbKOkYn4_GTyAsJQA&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-05": {
+      "url": "https://drive.usercontent.google.com/download?id=17iCvj1J-VHYUEPOxYfIXmRHhKz1zX8qw&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-06": {
+      "url": "https://drive.usercontent.google.com/download?id=17iKflbcZDSi3pDXDmXF42Cfkfo-Tkwr2&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-07": {
+      "url": "https://drive.usercontent.google.com/download?id=17iP0AijcRCmpZ0icPYTqhxzztFdtdqfE&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-08": {
+      "url": "https://drive.usercontent.google.com/download?id=17oWflFFNCWvwwHA_wgPs-umZr5NMBapO&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-09": {
+      "url": "https://drive.usercontent.google.com/download?id=17SowN86MrVJXpI7ou5Y2qrvCgXJSTlAI&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-10": {
+      "url": "https://drive.usercontent.google.com/download?id=1gKUKesn99zxt76qz8a-1o1AeW8WSIJuK&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-11": {
+      "url": "https://drive.usercontent.google.com/download?id=10medxsRW5v0-hROBfgBIybT7T47Snbcy&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2023-12": {
+      "url": "https://drive.usercontent.google.com/download?id=13jW3rph1VyC13EzBxGOMZdFP3xgTb_m-&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-01": {
+      "url": "https://drive.usercontent.google.com/download?id=16wW2fgkyaXoQewe29GxWrrpJFtDUqikJ&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-02": {
+      "url": "https://drive.usercontent.google.com/download?id=19hgt6uX63S8NGGJqJtLLhjToapnyz_gy&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-03": {
+      "url": "https://drive.usercontent.google.com/download?id=1FFWoEhYeWz_2-ykei9hJ32oe4DOZxn4x&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-04": {
+      "url": "https://drive.usercontent.google.com/download?id=1F7GmkgwoWPMh_iaeu619cKzhxLGtM1G1&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-05": {
+      "url": "https://drive.usercontent.google.com/download?id=1IBYLLJIPMmKCZjkYJ735SDKMTQno95RX&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-06": {
+      "url": "https://drive.usercontent.google.com/download?id=1LZtI4d_38boFZJ1-kZM9KOCpymFwnAU8&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-07": {
+      "url": "https://drive.usercontent.google.com/download?id=1OohrTe-XZphZmaT-s6HUpwvB_JcApfOr&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-08": {
+      "url": "https://drive.usercontent.google.com/download?id=1-6RhRYMop395N92ZEp-KwRFpXC8Ou1Fs&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-09": {
+      "url": "https://drive.usercontent.google.com/download?id=1-3b7Q8s5Q8-bil9cmPAW2ZxoMwH0JCBC&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-10": {
+      "url": "https://drive.usercontent.google.com/download?id=12ggXy8RyqV3in2bGT0d_KK8T1ei-69qs&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-11": {
+      "url": "https://drive.usercontent.google.com/download?id=15jvNfaNoPcIwdT2AwisXX5Acdm1AuPDh&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2024-12": {
+      "url": "https://drive.usercontent.google.com/download?id=18N6CcYDi_QAycbg75anQIkbp0yGWXWWw&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-01": {
+      "url": "https://drive.usercontent.google.com/download?id=1HZAJUC7jyvkye6oy6ffWf4nHtqwOQ1aa&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-02": {
+      "url": "https://drive.usercontent.google.com/download?id=17-exUUZttoogAFQxpzkAHGCBIeUiu2GU&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-03": {
+      "url": "https://drive.usercontent.google.com/download?id=1fmz6GWsnmIgYqRFa4LzPW5xPUVolq6px&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-04": {
+      "url": "https://drive.usercontent.google.com/download?id=1N_Hk_kGCupvO15zs85IemwH7wTwR0vaO&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-05": {
+      "url": "https://drive.usercontent.google.com/download?id=1Cj7NgbCrWJJjuty4E0qtCT8b_fLJJrTy&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-06": {
+      "url": "https://drive.usercontent.google.com/download?id=1pfOI2AIgS_qiSeHbKqFm_egIGFJGXDxO&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-07": {
+      "url": "https://drive.usercontent.google.com/download?id=1AZUDC3UNb7nXNDcCTGIJyAlVTdakGqBf&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-08": {
+      "url": "https://drive.usercontent.google.com/download?id=1wH1hGY4u4PFU2tOA2iVB2YqZB2k6mD07&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-09": {
+      "url": "https://drive.usercontent.google.com/download?id=1J7C5G5vNSmDkqfoUTsQ_LnQVaR-X737J&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-10": {
+      "url": "https://drive.usercontent.google.com/download?id=1yohvHSSBqxxaN-cvTFfK-h5OFCBfmzIi&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-11": {
+      "url": "https://drive.usercontent.google.com/download?id=1up0ysRQylyweDN1SRsaCrZesBs_gaGPc&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2025-12": {
+      "url": "https://drive.usercontent.google.com/download?id=1oE3m-KLr_7SyvQopEGCvkMnZ_jlv-9FP&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2026-01": {
+      "url": "https://drive.usercontent.google.com/download?id=10jnaOurjlVRfZUQQBby_pNNvhMvRE57Z&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2026-02": {
+      "url": "https://drive.usercontent.google.com/download?id=12TDQat06FaacqWvY3oSpLYb8VexQACYC&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2026-03": {
+      "url": "https://drive.usercontent.google.com/download?id=1juChYWJMOe6tibuMeIERMHi5KQB-AQR0&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2026-04": {
+      "url": "https://drive.usercontent.google.com/download?id=1SgVj92gqvFwPtwY5E-M8QnN_rgiSazsU&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2026-05": {
+      "url": "https://drive.usercontent.google.com/download?id=1Jhn1Rr3KQjALu886PcqmMY5WQYkqr9vD&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    },
+    "2026-06": {
+      "url": "https://drive.usercontent.google.com/download?id=138WOueWybVMe1eY6IkrJF0R9vroKo2Ak&export=download&confirm=t",
+      "sha256": null,
+      "bytes": null,
+      "content_format": null,
+      "downloaded_at": null
+    }
+  },
+  "reference": {
+    "gbfs_station_information": {
+      "url": "https://gbfs.kappa.fifteen.eu/gbfs/2.2/mobi/en/station_information.json",
+      "sha256": null,
+      "bytes": null,
+      "downloaded_at": null
+    }
+  }
+}

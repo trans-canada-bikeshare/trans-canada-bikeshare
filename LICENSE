@@ -2,12 +2,33 @@ This MIT licence applies to the SOURCE CODE only. Generated data artifacts in
 this repository are analysis outputs derived from each bike share system's
 published open data and remain governed by the source licences:
 
-- BIXI Montreal trip data: BIXI Montreal open data terms (attribution to BIXI
-  Montreal; https://bixi.com/en/open-data).
-- Bike Share Toronto ridership data: Open Government Licence, Toronto
-  (https://open.toronto.ca/open-data-license/).
+- Mobi by Rogers trip data: Mobi Data License Agreement, non-commercial
+  analysis use (https://www.mobibikes.ca/en/system-data).
+
+- BIXI Montreal trip data: **no licence, terms, or attribution text is stated
+  on the source page** (https://bixi.com/en/open-data/, checked 2026-07-28).
+  BIXI publishes these files as open data, and this project attributes them to
+  BIXI Montreal throughout, but the absence of stated terms is UNRESOLVED and
+  recorded as such in pipeline/manifests/mtl-bixi.json, docs/decisions.md, and
+  the site's methodology. A previous version of this file claimed "BIXI
+  Montreal open data terms"; that claim was not supported by the source and has
+  been removed.
+
+- Bike Share Toronto ridership data: Open Government Licence – Toronto
+  (https://open.toronto.ca/open-data-licence/), the portal-wide default.
+  Required attribution, reproduced on the site and in the manifest:
+
+      Contains information licensed under the Open Government Licence – Toronto.
+
 - Weather-derived values: based on Environment and Climate Change Canada data.
+
 - Any additional city sources carry the licence stated in their manifest entry.
+
+The 11-point maple leaf in this project's marks is the leaf of the National
+Flag of Canada, used in a design per Order in Council P.C. 1965-1623 s.4. No
+exclusive right to the maple leaf is claimed. The bicycle pictogram is the
+German StVO 1992 Sinnbild Radfahrer, public domain under §5(1) UrhG. This
+project is not affiliated with or endorsed by the Government of Canada.
 
 Raw trip data is never committed to this repository.
 

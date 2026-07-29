@@ -79,3 +79,7 @@ real files, not about pulling the whole archive.
   Vite/React/Tailwind site, design tokens ported verbatim from the Vancouver
   project (26 pinned tests), `make check` gate stubs. 32 vitest + 7 pytest.
   `docs/features/002-repo-scaffold.md`
+- 2026-07-28 `80775e3` — spec 002b: brand identity. StVO bike + flag leaf logo,
+  eight-spoke wheel favicon with theme-adaptive rim, ico/apple-touch/PWA
+  rasters, asset provenance and rights recorded. 45 vitest.
+  `docs/features/002b-brand-identity.md`

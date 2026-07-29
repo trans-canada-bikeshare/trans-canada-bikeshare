@@ -1,11 +1,37 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Trans-Canada Bikeshare">
-  <!-- Two wheels on one rule: three systems, one baseline. Accent blue is the
-       only colour the design language spends, and this is data-adjacent chrome
-       so it earns it. Stroke-only, no fills — hairlines are the house style. -->
-  <g fill="none" stroke="#196ea9" stroke-width="2" stroke-linecap="round">
-    <circle cx="8.5" cy="20" r="5.5" />
-    <circle cx="23.5" cy="20" r="5.5" />
-    <path d="M2 20h28" stroke="#94999d" stroke-width="1.5" opacity="0.5" />
-    <path d="M8.5 20l5-9h6l4 9" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Trans-Canada Bikeshare">
+  <!-- Eight-spoke bicycle wheel with the 11-point flag maple leaf at the hub.
+       Spokes sit in grey so they recede and the leaf stays the hero; the hub
+       disc keeps a light backing under the leaf in both themes so it never
+       loses contrast. Deliberately NOT a bare leaf inside an open ring — see
+       docs/features/002b-brand-identity.md. -->
+  <style>
+    .rim   { fill: none; stroke: #090e11; stroke-width: 4.5 }
+    .spoke { fill: none; stroke: #5b6367; stroke-width: 2.6; stroke-linecap: round }
+    .hub   { fill: #f7f9fb }
+    @media (prefers-color-scheme: dark) {
+      .rim   { stroke: #ededed }
+      .spoke { stroke: #9a9a9a }
+    }
+  </style>
+
+  <circle class="rim" cx="32" cy="32" r="28"/>
+
+  <path class="spoke" d="M32 19V6.25
+                         M41.19 22.81 50.21 13.79
+                         M45 32H57.75
+                         M41.19 41.19 50.21 50.21
+                         M32 45V57.75
+                         M22.81 41.19 13.79 50.21
+                         M19 32H6.25
+                         M22.81 22.81 13.79 13.79"/>
+
+  <circle class="hub" cx="32" cy="32" r="13"/>
+
+  <!-- National Flag of Canada leaf. Usable in a design per Order in Council
+       P.C. 1965-1623 s.4; no exclusive rights claimed. -->
+  <g transform="translate(32 32) scale(0.0057072)" fill="#C8322F">
+    <g transform="translate(0 -15)">
+      <path d="m-90 2030 45-863a95 95 0 0 0-111-98l-859 151 116-320a65 65 0 0 0-20-73l-941-762 212-99a65 65 0 0 0 34-79l-186-572 542 115a65 65 0 0 0 73-38l105-247 423 454a65 65 0 0 0 111-57l-204-1052 327 189a65 65 0 0 0 91-27l332-652 332 652a65 65 0 0 0 91 27l327-189-204 1052a65 65 0 0 0 111 57l423-454 105 247a65 65 0 0 0 73 38l542-115-186 572a65 65 0 0 0 34 79l212 99-941 762a65 65 0 0 0-20 73l116 320-859-151a95 95 0 0 0-111 98l45 863z"/>
+    </g>
   </g>
 </svg>

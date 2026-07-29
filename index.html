@@ -14,7 +14,14 @@
       content="Canada's bike share systems, measured the same way."
     />
     <meta property="og:type" content="website" />
+    <!-- SVG first for browsers that support it — it carries a
+         prefers-color-scheme rule so the wheel rim inverts on dark chrome.
+         The .ico is the fixed-colour fallback. -->
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <meta name="theme-color" content="#f7f9fb" />
     <title>Trans-Canada Bikeshare</title>
     <script>
       // Set the theme class before first paint so a stored dark preference

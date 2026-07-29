@@ -86,7 +86,11 @@ def build(con, registry: dict) -> dict[str, object]:
              max(departure_ts) FILTER (
                NOT list_contains(quality_flags, 'implausible_date')
              )::DATE::VARCHAR                      AS last_trip,
-             count(DISTINCT departure_station_id)  AS stations_seen,
+             -- NOT a station count. Montreal spans three key spaces
+             -- (2014-2020 codes, 2021 emplacement_pk, 2022+ names) that are
+             -- not yet bridged, so this reads ~3,490 for a ~1,200-station
+             -- network. Named for what it is until the GBFS bridge lands.
+             count(DISTINCT departure_station_id)  AS station_identities_seen,
              sum(CASE WHEN has_quality_issue THEN 1 ELSE 0 END) AS flagged
       FROM fact_trips GROUP BY 1 ORDER BY 1
     """)
@@ -100,6 +104,12 @@ def build(con, registry: dict) -> dict[str, object]:
     """)}
     for s in systems:
         s["active_stations"] = active.get(s["system_id"], 0)
+
+    for s_ in systems:
+        s_["stations_note"] = (
+            "Distinct station identities, not physical stations. Montreal's "
+            "eras use three key spaces that are not yet bridged."
+        )
 
     art["meta"] = {
         "generated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),

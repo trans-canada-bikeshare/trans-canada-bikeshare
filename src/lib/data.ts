@@ -23,7 +23,10 @@ export interface SystemMetaRow {
   trips: number;
   first_trip: string;
   last_trip: string;
-  stations_seen: number;
+  /** Distinct station IDENTITIES, not physical stations — Montreal's three
+   *  unbridged key spaces inflate it. Do not render as a station count. */
+  station_identities_seen: number;
+  stations_note: string;
   active_stations: number;
   flagged: number;
 }

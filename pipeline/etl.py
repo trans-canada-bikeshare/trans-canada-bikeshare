@@ -66,6 +66,10 @@ DATA_SUFFIXES = (".csv", ".xlsx")
 IGNORABLE_SUFFIXES = (".docx", ".doc", ".pdf", ".txt", ".md", ".rtf", ".xml")
 
 
+class ReconciliationFailed(Exception):
+    """A file landed a different number of records than the source contains."""
+
+
 class UnknownMember(Exception):
     """An archive member is neither data, a nested archive, nor documentation."""
 
@@ -159,6 +163,104 @@ def sheets_in(path: Path) -> list[str]:
         book.close()
 
 
+SCRUB_DIR_NAME = "_utf8"
+
+
+def ensure_utf8(path: Path) -> tuple[Path, int]:
+    """Return a UTF-8-clean copy of a CSV, plus the number of lines repaired.
+
+    Some Toronto and Vancouver months carry cp1252 bytes in station names — an
+    en-dash in "25 York St - Union Station South", a curly apostrophe in
+    "King's College Cr.". DuckDB's reader discards those rows, and with
+    ignore_errors it does so silently.
+
+    The damage is not proportional to the row count. Toronto station 7070 lost
+    eight consecutive months of 2023 and reads as if it closed; 7358 lost its
+    first eight months of service. A station with a fabricated history is worse
+    than a slightly low total.
+
+    encoding='latin-1' is not a fix — DuckDB 1.5.5 validates C1 bytes and
+    rejects these files outright. So the repair happens a line at a time:
+    UTF-8 strict, then cp1252, then latin-1 as a last resort.
+    """
+    if path.suffix.lower() != ".csv":
+        return path, 0
+    # Stream the check: BIXI's annual CSV is 2.8 GB and must not be slurped.
+    import codecs
+
+    decoder = codecs.getincrementaldecoder("utf-8")()
+    clean = True
+    with path.open("rb") as fh:
+        while chunk := fh.read(1 << 22):
+            try:
+                decoder.decode(chunk)
+            except UnicodeDecodeError:
+                clean = False
+                break
+    if clean:
+        return path, 0          # already clean, no copy made
+
+    dest = path.parent / SCRUB_DIR_NAME / path.name
+    marker = dest.with_suffix(dest.suffix + ".lines")
+    if dest.exists() and marker.exists():
+        return dest, int(marker.read_text())
+
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    tmp = dest.with_suffix(dest.suffix + ".part")
+    repaired = 0
+    with path.open("rb") as src, tmp.open("wb") as out:
+        for line in src:
+            try:
+                line.decode("utf-8")
+            except UnicodeDecodeError:
+                repaired += 1
+                for enc in ("cp1252", "latin-1"):
+                    try:
+                        line = line.decode(enc).encode("utf-8")
+                        break
+                    except UnicodeDecodeError:
+                        continue
+                else:
+                    line = line.decode("utf-8", errors="replace").encode("utf-8")
+            out.write(line)
+    tmp.replace(dest)
+    marker.write_text(str(repaired))
+    return dest, repaired
+
+
+def source_record_count(path: Path, sheet: str | None = None) -> int:
+    """How many data records the source actually contains.
+
+    A fast line count first; only if that disagrees with what landed does the
+    caller pay for a csv.reader pass, which is the one that handles quoted
+    embedded newlines correctly.
+    """
+    if path.suffix.lower() == ".xlsx":
+        import openpyxl
+
+        book = openpyxl.load_workbook(path, read_only=True)
+        try:
+            ws = book[sheet] if sheet else book[book.sheetnames[0]]
+            return max(0, ws.max_row - 1)
+        finally:
+            book.close()
+    with path.open("rb") as fh:
+        lines = sum(1 for _ in fh)
+    return max(0, lines - 1)
+
+
+def exact_record_count(path: Path) -> int:
+    """csv.reader count, for when the line count and the landed count differ."""
+    import csv as _csv
+
+    # errors="replace" so a file that is not UTF-8 still yields a COUNT. The
+    # point here is to report how many records the source has, which is exactly
+    # the situation where the bytes are bad — crashing would replace the gate's
+    # explanation with a decode traceback.
+    with path.open("r", encoding="utf-8", errors="replace", newline="") as fh:
+        return max(0, sum(1 for _ in _csv.reader(fh)) - 1)
+
+
 def reader_expr(path: Path, sheet: str | None = None) -> str:
     quoted = str(path).replace("'", "''")
     if path.suffix.lower() == ".xlsx":
@@ -195,15 +297,17 @@ def read_header(con, path: Path, sheet: str | None = None) -> list[str]:
     return [r[0] for r in rows]
 
 
-def tabular_units(system_id: str, period: str, entry: dict) -> list[tuple[Path, str | None]]:
-    """(file, sheet) pairs to load. A multi-sheet workbook yields one per sheet."""
-    units: list[tuple[Path, str | None]] = []
+def tabular_units(system_id: str, period: str, entry: dict) -> list[tuple[Path, str | None, int]]:
+    """(file, sheet, lines_repaired) triples to load, CSVs made UTF-8 clean."""
+    units: list[tuple[Path, str | None, int]] = []
     for path in tabular_files(system_id, period, entry):
         if path.suffix.lower() == ".xlsx":
             names = sheets_in(path)
-            units += [(path, n) for n in names] if len(names) > 1 else [(path, None)]
+            units += ([(path, n, 0) for n in names] if len(names) > 1
+                      else [(path, None, 0)])
         else:
-            units.append((path, None))
+            scrubbed, repaired = ensure_utf8(path)
+            units.append((scrubbed, None, repaired))
     return units
 
 
@@ -234,6 +338,11 @@ def classify(header: list[str], maps: dict) -> str | None:
 
 def run_extract(con, systems: list[str], limit: int | None) -> None:
     run_sql(con, "10_extract.sql")
+    con.execute("""CREATE TABLE IF NOT EXISTS raw_file_audit (
+        system_id VARCHAR, source_period VARCHAR, source_file VARCHAR,
+        source_records BIGINT, rows_landed BIGINT, lines_repaired BIGINT)""")
+    for system_id in systems:
+        con.execute("DELETE FROM raw_file_audit WHERE system_id = ?", [system_id])
     # Reloading a system replaces only that system's rows. Without this, a
     # re-run would double every count instead of refreshing it.
     for system_id in systems:
@@ -251,7 +360,7 @@ def run_extract(con, systems: list[str], limit: int | None) -> None:
                 print(f"  {system_id} {period}: excluded — {EXCLUDED[(system_id, period)]}")
                 skipped += 1
                 continue
-            for path, sheet in tabular_units(system_id, period, entry):
+            for path, sheet, repaired in tabular_units(system_id, period, entry):
                 label = path.name if sheet is None else f"{path.name}#{sheet.strip()}"
                 header = read_header(con, path, sheet)
                 kind = classify(header, maps)
@@ -269,8 +378,30 @@ def run_extract(con, systems: list[str], limit: int | None) -> None:
                     f"SELECT ?, ?, ?, {sel} FROM {reader_expr(path, sheet)}",
                     [system_id, period, label],
                 )
+                landed = con.execute(
+                    f"SELECT count(*) FROM {table} WHERE system_id = ? "
+                    "AND source_period = ? AND source_file = ?",
+                    [system_id, period, label],
+                ).fetchone()[0]
+                expected = source_record_count(path, sheet)
+                if expected != landed and path.suffix.lower() == ".csv":
+                    # Line count and record count differ when a field contains a
+                    # quoted newline. Pay for the exact count only when needed.
+                    expected = exact_record_count(path)
+                con.execute(
+                    "INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?)",
+                    [system_id, period, label, expected, landed, repaired],
+                )
+                if expected != landed:
+                    raise ReconciliationFailed(
+                        f"{system_id} {period} {label}: source has {expected:,} "
+                        f"records, {landed:,} landed — {expected - landed:,} "
+                        "unaccounted for. The funnel begins at rows_landed, so a "
+                        "row lost here is invisible to every later count."
+                    )
                 loaded += 1
-                print(f"  {system_id} {period} {label}: {kind}", flush=True)
+                note = f"  (+{repaired:,} lines repaired)" if repaired else ""
+                print(f"  {system_id} {period} {label}: {kind}{note}", flush=True)
             if limit and loaded >= limit:
                 break
         print(f"{system_id}: {loaded} file(s) loaded, {skipped} excluded")
@@ -441,7 +572,8 @@ def main() -> int:
                 run_model(con)
             else:
                 run_sql(con, SQL_FILES[stage])
-    except (UnknownColumns, UnknownMember, FileNotFoundError) as exc:
+    except (UnknownColumns, UnknownMember, ReconciliationFailed,
+            FileNotFoundError) as exc:
         print(f"\nABORT: {exc}", file=sys.stderr)
         return 1
     finally:

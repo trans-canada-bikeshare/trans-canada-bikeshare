@@ -18,7 +18,7 @@ Read date: 2026-07-28.
 | Trips over time | ✅ | ✅ | ✅ | **Yes** |
 | Seasonality | ✅ | ✅ | ✅ | **Yes** |
 | Trip duration | ✅ | ✅ | ✅ | **Yes** — derived for BIXI 2022+ |
-| Active stations | ✅ | ✅ | ✅ | **Yes** — via the GBFS bridge below |
+| Active stations | ✅ | ⚠️ | ✅ | **Qualified** — the GBFS bridge below is designed but **NOT BUILT**; Montreal's counts span three unbridged key spaces |
 | Station flows | ✅ | ⚠️ | ✅ | **Qualified** — BIXI has unterminated trips |
 | **E-bike share** | ✅ | ❌ | ✅ | **No** — Montreal never publishes bike type |
 | **Membership mix** | ✅ | ⚠️ 2014–21 | ✅ | **No** — Montreal drops it at 2022 |
@@ -232,8 +232,16 @@ station_id=2   short_name=6002   Ste-Catherine / Dézéry
 | 2021 | `emplacement_pk_start` = 10, 188 | GBFS **`station_id`** — absent from `short_name` |
 | 2022+ | station **name** only | name match, with drift risk |
 
-So Montreal station identity is recoverable across all eras, using a different
-join key per era plus name matching for 2022+. That is a spec 007 concern and
+So Montreal station identity is **recoverable** across all eras, using a
+different join key per era plus name matching for 2022+.
+
+> **Status 2026-07-29: designed, not implemented.** Nothing in the pipeline
+> performs this bridge. Montreal's `dim_station` therefore holds ~3,490
+> identities for a network of roughly 1,200 physical stations — 644 code-era,
+> 829 pk-era and 2,031 name-era, counted separately. The rendered active count
+> (1,227) is roughly right because it is name-era only, but per-station history
+> is severed at both era boundaries, and any station-level feature (flows,
+> per-station trends) is blocked until this is built. That is a spec 007 concern and
 must be counted in the quality report — a name that fails to match is a
 silently dropped station, exactly the kind of thing this project promises not
 to do.

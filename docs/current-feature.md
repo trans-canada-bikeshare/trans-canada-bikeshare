@@ -70,14 +70,17 @@ _No feature in progress._
 - 2026-07-29 `fc4a07b` — van-mobi 2022-10 recovered (110,198 trips) from the
   sister archive after Drive began returning 500s.
 
-- 2026-07-29 `pending` — spec 021: station maps. MapLibre maps per system,
+- 2026-07-29 `8b84d6e` — spec 021: station maps. MapLibre maps per system,
   lazily loaded; `stations.json` + `stations_meta.json`. Review (Opus, not
-  Fable — Fable unavailable) found the maps rendered **zero dots**: MapLibre
-  cannot parse `hsl(var(...))` and silently rejected the layer. Also fixed:
-  per-map dot scales replaced by one shared ceiling, "retired" relabelled
-  "dormant" (28 hollow dots are in the live GBFS feed), station labels now
-  taken from whatever supplied the coordinate, Tukey-fence framing so
-  Sherbrooke stops stretching Montreal 161 km wide. 56 vitest.
+  Fable — Fable unavailable) found the maps rendered **zero dots** from two
+  independent causes: MapLibre cannot parse `hsl(var(...))` and silently
+  rejected the layer, and its tile-parsing worker was never emitted by the
+  build, so the SPA fallback served it `index.html` and it died parsing HTML.
+  Also fixed: per-map dot scales replaced by one shared ceiling, "retired"
+  relabelled "dormant" (28 hollow dots are in the live GBFS feed), station
+  labels now taken from whatever supplied the coordinate, Tukey-fence framing
+  so Sherbrooke stops stretching Montreal 161 km wide. Verified in a headed
+  browser: 260 / 1,102 / 972 dots. 56 vitest.
   `docs/features/021-station-maps.md`
 - 2026-07-29 `pending` — spec 009b: the enforcement 009 was missing.
   `make check-metrics` printed "stub" and exited 0 while

@@ -8,7 +8,24 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 from pathlib import Path
+
+USER_AGENT = "trans-canada-bikeshare-pipeline (+https://github.com/adnanreza)"
+
+MONTH_NAMES = {
+    "january": 1, "february": 2, "march": 3, "april": 4,
+    "may": 5, "june": 6, "july": 7, "august": 8,
+    "september": 9, "october": 10, "november": 11, "december": 12,
+    # The Mobi system-data page misspells November 2021's label. Accommodate
+    # the exact observed typo rather than fuzzy-matching month names — a fuzzy
+    # matcher would also silently swallow a genuinely new label.
+    "novemeber": 11,
+}
+
+DRIVE_FILE_RE = re.compile(
+    r"https://(?:drive|docs)\.google\.com/(?:file/d|spreadsheets/d)/([\w-]+)"
+)
 
 PIPELINE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = PIPELINE_DIR.parent
@@ -101,6 +118,25 @@ def extension_for(fmt: str) -> str:
     return {"xlsx": ".xlsx", "csv": ".csv", "zip": ".zip"}[fmt]
 
 
+def parse_mobi_period_label(label: str) -> str | None:
+    """Map a link label on the Mobi system-data page to a period key.
+
+    "May 2026" -> "2026-05"; "ALL of 2017" -> "2017"; anything else -> None,
+    which the caller must treat as an unrecognized label to report, not skip.
+    """
+    text = re.sub(r"\s+", " ", label).strip().lower()
+    if re.fullmatch(r"all of 2017", text):
+        return "2017"
+    match = re.fullmatch(r"([a-z]+) (\d{4})", text)
+    if match and match.group(1) in MONTH_NAMES:
+        return f"{match.group(2)}-{MONTH_NAMES[match.group(1)]:02d}"
+    return None
+
+
+def drive_download_url(file_id: str) -> str:
+    return f"https://drive.usercontent.google.com/download?id={file_id}&export=download&confirm=t"
+
+
 def manifest_path(system_id: str) -> Path:
     if system_id not in SYSTEMS:
         raise KeyError(f"unknown system {system_id!r}; known: {sorted(SYSTEMS)}")
@@ -114,9 +150,21 @@ def load_manifest(system_id: str) -> dict:
     return {
         "system_id": system_id,
         "source_page": SYSTEMS[system_id]["source_page"],
+        "licence": None,
         "sources": {},
         "reference": {},
     }
+
+
+def local_path(system_id: str, period: str, content_format: str | None) -> Path:
+    """Where a downloaded source file lives. Extension follows detected content,
+    never the URL — see detect_format."""
+    ext = extension_for(content_format) if content_format else ""
+    return DATA_RAW / system_id / f"{period}{ext}"
+
+
+def reference_path(system_id: str, name: str) -> Path:
+    return DATA_RAW / system_id / "reference" / f"{name}.json"
 
 
 def save_manifest(system_id: str, manifest: dict) -> None:

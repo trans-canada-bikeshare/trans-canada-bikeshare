@@ -137,6 +137,85 @@ reading of the code; every severity-1 finding is verified by the author before
 being acted on; and a reviewer that reports nothing because it was blocked has
 not delivered a pass.
 
+## 2026-07-29: "Dormant", not "retired" — and one dot scale for all three maps
+
+Spec 021's review forced two definitional choices that bind every station-level
+surface after it.
+
+**A station is "dormant", not "retired".** `is_active` means the station had a
+trip in the last six months of *its own system's* data. That is not the same as
+decommissioned: 25 Montreal and 3 Toronto stations the map drew as hollow are
+listed in the GBFS feed downloaded the same morning, including one carrying
+431,464 lifetime events. The flag is worth keeping — it is the only signal the
+trip data supports — but the word on screen has to be one the data can defend.
+Anything the site can only infer from absence is described as absence.
+
+**Dot size uses one ceiling shared by all three maps.** Sizing each map to its
+own busiest station made a 9 px dot mean 1,182,789 events in Montreal and
+429,534 in Vancouver — three panels side by side, encoding at rates 2.75x
+apart, under a single sentence explaining the encoding. Per-map normalisation
+is defensible on a page showing one city; it is not defensible in a grid whose
+heading is "Three networks, three shapes". The like-for-like invariant applies
+to visual encodings, not only to numbers.
+
+Corollary, also from 021: **a label must come from whatever supplied the
+position.** Trip-file station names were chosen by `arg_max(name, last_ts)`,
+and Toronto reuses retired station ids — id 7823 carries "Greenwood Ave /
+Sammon Ave" on 4,771 rows and "Bloor St W / Christie St" on 3, and the three
+won on a 54-minute timestamp margin. That shipped two dots labelled "Bloor St W
+/ Christie St" 7.2 km apart. Where GBFS gives a usable coordinate, GBFS names
+it too.
+
+## 2026-07-29: A rendering surface is not verified until it has been rendered
+
+Spec 021 shipped three station maps that drew **zero dots**. `seriesColor()`
+returns `hsl(var(--series-van))`, which is correct for every SVG chart on this
+site because the browser resolves it. MapLibre parses colours in JavaScript,
+could not resolve the custom property, and rejected the whole layer — silently,
+because registering an `error` listener suppresses MapLibre's own console
+logging and that listener filtered for `/style/i`. Every gate passed: 52 tests,
+typecheck, build, byte-identical artifacts, and a correct 260-station count
+rendered above each empty box, under a caption reading "Select a station".
+
+The author's own completion note said the dots had not been confirmed in a
+browser. That sentence was the finding, and it was written and merged past.
+
+Rule: **a feature whose output is rendered is not testable by its inputs.** If
+the acceptance criteria say something is drawn, the review has to observe it
+drawn.
+
+The colour fix was necessary and not sufficient. With the layer finally
+accepted, all three maps were *still* blank — and the second cause was worse,
+because it produced no signal at all. MapLibre v6 spawns its tile-parsing
+worker from a blob that resolves `maplibre-gl-worker.mjs` against
+`import.meta.url` at runtime. Rollup cannot see that string, so no chunk was
+emitted; the built site requested `/assets/maplibre-gl-worker.mjs`, the SPA
+fallback answered **HTTP 200 with index.html**, and the worker died trying to
+parse HTML as a module. No 404. No main-thread error. MapLibre parses both
+vector tiles *and* GeoJSON in that worker, so the basemap and our own dots
+failed together — which is why the symptom read as "maps don't work" rather
+than "our layer is wrong". Dev failed differently, via Vite's dep
+pre-bundling, so the two environments needed separate fixes.
+
+**Verify renders in a headed browser, driven directly.** Headless Playwright
+and backgrounded automation tabs throttle `requestAnimationFrame` to zero.
+MapLibre then never renders, never requests a tile, and reports nothing —
+every reading is equally consistent with "working" and "completely broken".
+Five rounds of diagnostics were spent on tabs that could not answer the
+question, and twice concluded "probably the environment" from evidence that
+could not distinguish the two. A headed Chromium answered it in one run.
+
+Corollary: **when a diagnostic disagrees with the person looking at the
+screen, the person is right.** The owner reported blank maps while the
+instrumentation said the layer was accepted; the instrumentation was measuring
+a throttled tab. Three control pages written to settle it were themselves
+broken — a 404'd script tag, then a wrong import shape — and each blank result
+looked like a finding.
+
+Two regression guards, both cheap: a test that nothing handed to MapLibre
+contains `var(`, and a build-time assertion that the worker assets reached
+`dist/assets`.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

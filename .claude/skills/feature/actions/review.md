@@ -6,6 +6,26 @@
 Use the Agent tool, `subagent_type: "general-purpose"`, one agent per dimension
 the change touches (data/SQL, pipeline code, frontend/docs), run in parallel.
 
+### If Fable is unavailable
+
+Fall back, in this order — **never** to reviewing in the authoring context:
+
+1. `model: "fable"` — preferred.
+2. `model: "opus"` in a **separate subagent**. Most of what review catches comes
+   from independence rather than diversity: a fresh context that did not write
+   the code and is told nothing about what its author suspects. That is
+   preserved here. What is lost is a second set of blind spots — an author and
+   a reviewer on the same model may share systematic ones, and neither can
+   observe that from the inside.
+3. `model: "sonnet"` for smaller or lower-risk changes.
+
+The fallback is about the model only. Every other rule below still binds:
+separate agent, fresh context, no hints, empirical proof, author verifies
+severity-1 findings, and a blocked reviewer is not a pass.
+
+When the review ran on anything other than Fable, **say so in the completion
+note**, so the level of assurance behind a merge is recoverable later.
+
 This is not ceremony. On 2026-07-29 a self-review of this project passed work
 that an independent Fable pass then found to contain **three separate data
 losses** — 320,229 Toronto trips inside a nested zip, 217,569 in an unread

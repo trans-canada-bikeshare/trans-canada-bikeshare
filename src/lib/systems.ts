@@ -48,6 +48,27 @@ export function seriesColor(id: SystemId): string {
   return `hsl(var(${SYSTEMS[id].varName}))`;
 }
 
+/**
+ * The same colour, resolved to a literal `hsl(...)`.
+ *
+ * `seriesColor` returns a CSS custom property reference, which is correct for
+ * anything the browser's style engine renders — every SVG chart on this site
+ * hands it straight to the DOM. MapLibre is different: it parses colours in
+ * JavaScript, where `var()` means nothing, and rejects the whole layer rather
+ * than falling back. That is how spec 021 originally shipped three maps that
+ * added their GeoJSON source and then drew nothing at all.
+ *
+ * Returns null if the token is missing, so a caller can fail visibly instead
+ * of substituting a colour nobody chose.
+ */
+export function resolvedSeriesColor(id: SystemId): string | null {
+  if (typeof getComputedStyle === "undefined") return null;
+  const triplet = getComputedStyle(document.documentElement)
+    .getPropertyValue(SYSTEMS[id].varName)
+    .trim();
+  return triplet ? `hsl(${triplet})` : null;
+}
+
 export function cityOf(id: string): string {
   return SYSTEMS[id as SystemId]?.city ?? id;
 }

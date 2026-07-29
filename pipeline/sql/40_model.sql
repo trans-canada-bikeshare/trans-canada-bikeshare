@@ -112,13 +112,37 @@ agg AS (
   GROUP BY system_id, station_id
 )
 SELECT
-  a.*,
+  a.* EXCLUDE (station_name),
+  -- Montreal's id-era trip files carry no station names at all, so a
+  -- canonicalised station can reach here nameless. GBFS supplies the label.
+  --
+  -- The label must come from whatever supplied the POSITION, or a dot is
+  -- named one dock and drawn at another. Trip labels are picked by
+  -- arg_max(station_name, last_ts) — last writer wins on a noisy field — and
+  -- Toronto reuses retired station ids: id 7823 carries "Greenwood Ave /
+  -- Sammon Ave" on 4,771 rows and "Bloor St W / Christie St" on 3, and the
+  -- three won on a timestamp. That shipped two dots labelled "Bloor St W /
+  -- Christie St" 7.2 km apart, and "Hanlan's Point Ferry Dock" drawn at
+  -- Centre Island. Where GBFS gives a usable coordinate, GBFS also names it.
+  CASE
+    WHEN g.lat BETWEEN 41 AND 84 AND g.lon BETWEEN -141 AND -52
+      THEN coalesce(g.name, a.station_name, s.station_name)
+    ELSE coalesce(a.station_name, s.station_name)
+  END                               AS station_name,
   -- Coordinates come from GBFS where the identity resolves to a live station,
   -- and from the annual snapshots otherwise (Montreal's pre-2022 files are the
   -- only source for stations GBFS no longer lists, since the feed is
   -- current-state only).
-  coalesce(g.lat, s.lat) AS lat,
-  coalesce(g.lon, s.lon) AS lon,
+  -- Coordinates are validated, not merely preferred. BIXI's 2021 snapshot
+  -- carries a station at (-1, -1) and the GBFS feed has 7 rows outside any
+  -- plausible Canadian extent; placing a dot at the Gulf of Guinea is worse
+  -- than showing no dot, and "no position" is already a case the page states.
+  CASE WHEN coalesce(g.lat, s.lat) BETWEEN 41 AND 84
+        AND coalesce(g.lon, s.lon) BETWEEN -141 AND -52
+       THEN coalesce(g.lat, s.lat) END AS lat,
+  CASE WHEN coalesce(g.lat, s.lat) BETWEEN 41 AND 84
+        AND coalesce(g.lon, s.lon) BETWEEN -141 AND -52
+       THEN coalesce(g.lon, s.lon) END AS lon,
   -- "Active" means seen in the last six months OF THAT SYSTEM'S OWN data, not
   -- of the archive as a whole: the three systems have different end dates and
   -- a shared cutoff would silently retire the ones that publish less often.

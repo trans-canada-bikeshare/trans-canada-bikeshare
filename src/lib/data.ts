@@ -14,6 +14,7 @@ import ebikeJson from "@/data/generated/ebike_share.json";
 import durationJson from "@/data/generated/duration.json";
 import exclusionsJson from "@/data/generated/exclusions.json";
 import incompleteJson from "@/data/generated/incomplete_months.json";
+import stationsMetaJson from "@/data/generated/stations_meta.json";
 import type { SystemId } from "@/lib/systems";
 
 export interface SystemMetaRow {
@@ -75,6 +76,48 @@ export const exclusions = exclusionsJson as ExclusionRow[];
 /** Months excluded from every series because the source has not finished
  *  publishing them (or, for van-mobi 2022-10, because the file will not
  *  download). Rendered on the site rather than buried in the runbook. */
+export interface StationPin {
+  /** system_id */ s: SystemId;
+  /** station key */ i: string;
+  /** name */ n: string;
+  /** lat */ y: number;
+  /** lon */ x: number;
+  /** lifetime events */ t: number;
+  /** currently active */ a: boolean;
+}
+
+export const stationsMeta = stationsMetaJson as {
+  min_lifetime_events: number;
+  omitted: {
+    system_id: SystemId;
+    no_coordinates: number;
+    below_threshold: number;
+    total: number;
+  }[];
+};
+
+/** The pin list is ~260 KB and only needed once a reader reaches the maps, so
+ *  it is fetched on demand rather than bundled with the page. */
+let pinCache: Promise<StationPin[]> | null = null;
+export function loadStations(): Promise<StationPin[]> {
+  pinCache ??= import("@/data/generated/stations.json")
+    .then((m) => (m.default as { stations: StationPin[] }).stations)
+    // Cache the result, not the rejection. Holding a failed promise here
+    // would disable all three maps for the rest of the session — every
+    // remount replays the same failure with no way back.
+    .catch((err) => {
+      pinCache = null;
+      throw err;
+    });
+  return pinCache;
+}
+
+/** Stations the map cannot show, so the page can say so rather than imply
+ *  the network is smaller than it is. */
+export function omittedFor(id: SystemId) {
+  return stationsMeta.omitted.find((o) => o.system_id === id);
+}
+
 export const incompleteMonths = incompleteJson as {
   system_id: SystemId; month: string; days_observed: number;
   days_in_month: number; trips: number;

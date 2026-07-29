@@ -215,6 +215,24 @@ Station coordinates are absent from every era; GBFS is the only source.
 
 ---
 
+## BIXI's network extends beyond Montreal
+
+**[observed 2026-07-29]** The trip data includes 25 stations in **Sherbrooke**
+— roughly 150 km east, with street names that confirm it (U. de Sherbrooke,
+Cégep de Sherbrooke, Galt Ouest, King Ouest) — plus 9 in South Shore towns:
+4 around Chambly and 5 in Sainte-Julie, about 15 km north of it. The live
+GBFS feed carries 32 Sherbrooke stations, more than the trip data has yet
+seen.
+
+Sherbrooke alone accounts for 0.089% of positioned BIXI activity; **together
+with the South Shore, 0.119%**. An earlier version of this note attached the
+Sherbrooke-only figure to the combined set.
+
+Found by a bounding-box test that initially rejected them as bad coordinates.
+They are real. The project labels this system "Montreal", which is how BIXI
+brands itself, but "Montreal" is a shorthand rather than a description of the
+service area, and the maps section now says so.
+
 ## Station identity bridge
 
 The one genuinely hard modelling problem, and it resolves cleanly **[observed]**.

@@ -3,6 +3,7 @@ import { setTheme, useTheme } from "@/lib/theme";
 import { Section, Note } from "@/components/Section";
 import { StatGrid } from "@/components/StatGrid";
 import { LineChart, type Series } from "@/components/charts/LineChart";
+import { SmallMultiples } from "@/components/charts/SmallMultiples";
 import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
 import {
@@ -42,9 +43,16 @@ export default function App() {
         id,
         label: SYSTEMS[id].city,
         color: seriesColor(id),
-        points: seasonality.series
-          .filter((r) => r.system_id === id)
-          .map((r) => ({ x: r.month_of_year, y: r.mean_trips })),
+        points: (() => {
+          const rows = seasonality.series.filter((r) => r.system_id === id);
+          // Share of that system's own year. Absolute means put Vancouver on
+          // the floor and hid the shape, which is the whole point here.
+          const total = rows.reduce((n, r) => n + r.mean_trips, 0) || 1;
+          return rows.map((r) => ({
+            x: r.month_of_year,
+            y: (100 * r.mean_trips) / total,
+          }));
+        })(),
       })),
     [],
   );
@@ -75,6 +83,11 @@ export default function App() {
   }, []);
 
   const totalTrips = meta.systems.reduce((n, s) => n + s.trips, 0);
+  // Derived, so the sentence cannot rot when the data updates.
+  const peaks = SYSTEM_ORDER.map((id) =>
+    Math.max(0, ...tripsMonthly.filter((r) => r.system_id === id).map((r) => r.trips)),
+  ).filter((n) => n > 0);
+  const scaleRatio = Math.round(Math.max(...peaks) / Math.min(...peaks));
 
   return (
     <div className="min-h-screen">
@@ -197,15 +210,27 @@ export default function App() {
             id="trips"
             eyebrow="Trips"
             title="Every month each system has published"
-            lede="Monthly trip counts, on the same definition for all three: a departure with a parseable time and a resolvable station. Gaps are gaps — a line breaks where a system published nothing."
+            lede={
+              <>
+                Monthly trip counts, on the same definition for all three: a
+                departure with a parseable time and a resolvable station. Gaps
+                are gaps — a line breaks where a system published nothing.{" "}
+                <strong className="font-medium text-foreground">
+                  Each panel is scaled to itself
+                </strong>
+                , because Montreal runs roughly {scaleRatio}× Vancouver's monthly
+                volume and a shared axis flattens the smaller systems into the
+                baseline. The absolute figures are in the overview above.
+              </>
+            }
           >
-            <LineChart
+            <SmallMultiples
               series={tripSeries}
               // Axis ticks want the year; the hover readout must name the
               // month, or a monthly value reads as an annual one.
               xLabel={(x) => monthLabel(monthKeyFromIndex(Math.round(x)))}
               xTicks={8}
-              caption="Monthly trips by system"
+              caption="Monthly trips, one panel per system, each scaled to itself"
             />
             <Note>
               Montreal's line breaks each winter through 2023 because BIXI closed
@@ -222,13 +247,14 @@ export default function App() {
             id="seasons"
             eyebrow="Seasons"
             title="The shape of a Canadian riding year"
-            lede={`Mean trips by month of year across ${seasonality.first_year} onward, averaging whole months only — a month observed for three days is a month we do not have, not a quiet one. The same three cities, the same winters, three very different answers.`}
+            lede={`Each month's share of that system's own year, across ${seasonality.first_year} onward and averaging whole months only. Plotted as shares rather than counts so the three shapes can actually be compared — in absolute terms Vancouver sits on the floor and its seasonality is invisible.`}
           >
             <LineChart
               series={seasonSeries}
               xLabel={(x) => MONTH_SHORT[Math.max(0, Math.min(11, Math.round(x) - 1))]}
+              yLabel={(y) => `${y.toFixed(0)}%`}
               xTicks={12}
-              caption="Mean trips by month of year"
+              caption="Each month's share of the system's own year"
             />
           </Section>
 

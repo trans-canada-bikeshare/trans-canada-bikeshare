@@ -417,10 +417,11 @@
     },
     "2022-10": {
       "url": "https://drive.usercontent.google.com/download?id=1E-1C_PLb8N1QIWkqJ1C3Pd3CnjRYHoNYQ7k5iyJFT28&export=download&confirm=t",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "9647226faec91dd32e558d2f80adb383b92444cb74ca865000dec57410b44e60",
+      "bytes": 13551714,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-09T23:05:38+00:00",
+      "provenance_note": "Google Drive returns HTTP 500 for this file's download endpoint as of 2026-07-29 — verified across four endpoint forms, and the source page still points at the same drive id, so this is a source-side outage rather than a stale link. These bytes were taken from the sister project mobi-transit-explorer, which acquired them from the same URL on 2026-07-09, and the sha256 recorded here was computed independently and matches that project's pin exactly. Re-download from source and drop this note once Drive serves the file again."
     },
     "2022-11": {
       "url": "https://drive.usercontent.google.com/download?id=1x9zMYc8i4CYyHCwwECL-gi19CuCh6Gcz&export=download&confirm=t",

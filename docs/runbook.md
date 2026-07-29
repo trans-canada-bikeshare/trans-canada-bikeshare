@@ -78,9 +78,18 @@ Before the first deploy:
 
 ## Known gaps
 
-- `van-mobi` 2022-10 fails to download: Google Drive returns a persistent 500.
-  One period of 103. Retry with
-  `python pipeline/download.py --system van-mobi --period 2022-10`.
+- `van-mobi` 2022-10 **cannot be downloaded from source**: Google Drive
+  returns HTTP 500, confirmed across four endpoint forms on 2026-07-29, while
+  the Mobi source page still points at the same drive id — a source-side
+  outage, not a stale link. The archive currently holds a copy taken from the
+  sister project `mobi-transit-explorer`, which acquired it from the same URL
+  on 2026-07-09; its sha256 was recomputed independently here and matches that
+  project's pin exactly. The manifest entry carries a `provenance_note` saying
+  so. **A clean-room rebuild on another machine will fail on this period until
+  Drive serves the file again** — that is the one place the reproducibility
+  contract currently depends on a second copy rather than the source. Retry
+  with `python pipeline/download.py --system van-mobi --period 2022-10
+  --accept-changes` once it is back.
 - One row carries `implausible_date` after all parsing fixes. It is flagged,
   excluded from published series, and counted in the quality report.
 - Montreal and Toronto retain a measured ~0.02–0.03% exact-duplicate residual.

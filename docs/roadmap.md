@@ -171,19 +171,22 @@ monthly-refresh runbook.
 Recorded here rather than in a comment nobody reads, because each is a place
 the project's own principles are not yet fully met.
 
-- **~31,000 rows discarded before landing.** `read_csv(ignore_errors=true)`
-  drops rows with invalid cp1252 bytes in station names — ~25,515 Toronto,
-  ~5,800 Vancouver — and counts them nowhere. Station-biased, not random.
-- **`rows_landed` is not reconciled against source record counts.** The funnel
-  is exact below that line and blind above it. All three data losses found so
-  far (nested zip, unread worksheet, encoding) lived there.
+- ~~`van-mobi` 2022-10 missing~~ — **recovered 2026-07-29** from the sister
+  project's archive with an independently verified checksum, since Drive
+  still 500s. 110,198 trips. Provenance recorded in the manifest.
+- ~~~31,000 rows discarded before landing~~ — **fixed 2026-07-29.** Line-level
+  UTF-8 repair recovered all 31,315.
+- ~~`rows_landed` not reconciled against source record counts~~ — **fixed
+  2026-07-29.** `raw_file_audit` compares them per file and aborts on
+  mismatch.
 - ~~Montreal station identity spans three key spaces~~ — **closed
   2026-07-29.** `pipeline/sql/35_bridge.sql` reconciles them through GBFS;
   identities 3,490 -> 1,776 against a live network of 1,107, with 88.1% of
   Montreal trip volume resolving to a canonical station and the residue
   counted in the quality report.
-- **The trips chart plots a 26:1 range on one linear axis**, so Vancouver's
-  real growth reads as a flat line along the baseline.
+- ~~The trips chart plots a 26:1 range on one linear axis~~ — **fixed
+  2026-07-29.** Small multiples, each panel scaled to itself; seasonality
+  replotted as share of each system's own year.
 
 ## Sequencing notes
 

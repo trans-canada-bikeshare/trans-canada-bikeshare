@@ -1,1 +1,1 @@
-[{"system_id":"mtl-bixi","median_s":639,"p25_s":366,"p75_s":1084,"basis_trips":87934850},{"system_id":"tor-bikeshare","median_s":698,"p25_s":428,"p75_s":1118,"basis_trips":38537870},{"system_id":"van-mobi","median_s":666,"p25_s":359,"p75_s":1203,"basis_trips":8696703}]
+[{"system_id":"mtl-bixi","median_s":639,"p25_s":366,"p75_s":1084,"basis_trips":87934850},{"system_id":"tor-bikeshare","median_s":698,"p25_s":428,"p75_s":1118,"basis_trips":38537870},{"system_id":"van-mobi","median_s":665,"p25_s":358,"p75_s":1203,"basis_trips":8806791}]

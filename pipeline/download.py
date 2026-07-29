@@ -145,9 +145,12 @@ def download_system(
         try:
             sha, size, fmt = stream_to(entry["url"], path)
             status = apply_result(entry, sha, size, fmt, accept_changes)
-            print(f"  {period}: {status} {fmt} {size:,}B {sha[:12]}…")
-        except (Drift, requests.RequestException) as exc:
-            print(f"  {period}: FAILED — {exc}", file=sys.stderr)
+            # Save after every file, not at the end of the system. A multi-GB
+            # run that dies on file 80 must not throw away the first 79 pins.
+            common.save_manifest(system_id, manifest)
+            print(f"  {period}: {status} {fmt} {size:,}B {sha[:12]}…", flush=True)
+        except (Drift, requests.RequestException, OSError) as exc:
+            print(f"  {period}: FAILED — {exc}", file=sys.stderr, flush=True)
             failures += 1
 
     for name, entry in (manifest.get("reference") or {}).items():

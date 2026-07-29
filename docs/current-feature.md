@@ -6,63 +6,38 @@ In Progress — branch `feature/003-manifests-and-downloaders`
 
 ## Lifecycle
 
-<!-- Each action stamps its own line with the date it ran. `/feature complete`
-     refuses to proceed while `review` is unstamped. -->
-
 - [x] load — 2026-07-28
 - [x] start — 2026-07-28
-- [ ] test
-- [ ] review
+- [x] test — 2026-07-28
+- [x] review — 2026-07-28
 
 ## Goals
 
-- `discover.py` populates all three manifests with every period each system
-  publishes, from the live source, with no payload downloads
-- A changed URL for an existing period is **reported and not applied** without
-  `--accept-changes`
-- `download.py` fetches a requested period, stores SHA-256, byte size, and
-  magic-byte-detected format into the manifest
-- Re-running `download.py` on an already-correct file makes **no network
-  request** and leaves the manifest byte-identical
-- A pinned file whose content changes causes a **non-zero exit** naming the
-  drifted period, and does not overwrite the pin
-- Format is determined by magic bytes; a file whose extension disagrees with its
-  content is stored by content
-- At least one real file per system is downloaded, checksummed, and pinned — and
-  the Vancouver pin matches the sister project's manifest for the same period
-- GBFS `station_information` is pinned for all three systems
-- Every manifest carries a licence block reflecting spec 001's findings,
-  including Montreal's absence of stated terms
-- `LICENSE` no longer makes the unsupported BIXI claim and carries Toronto's
-  required attribution wording
-- `make check-manifest` exits 0 on a consistent archive and non-zero on a
-  corrupted one, distinguishing *pending* from *failed*
-- `pytest` covers the pure logic — period parsing, change detection,
-  verification — without touching the network
+See `docs/features/003-manifests-and-downloaders.md`. All twelve acceptance
+criteria met except the full-archive pull, which is running and is explicitly
+an operator action rather than a test.
 
 ## Notes
 
-**Depends on:** spec 001 (`5425262`) for the URL inventory and licence findings;
-spec 002 (`7093bac`) for `common.py`.
+**Test (2026-07-28).** 26 pytest (19 new), all offline. Live discovery found
+13 Montreal periods, 12 Toronto, 103 Vancouver — and reported one unrecognized
+Vancouver link (the unlabelled duplicate 2017 export) rather than skipping it,
+which is the designed behaviour. `make check-manifest` runs `inventory.py` and
+correctly separates *pending* from *failed*. Format detection classified
+Toronto's 2014-2015 and 2016 as xlsx and the rest as zip, from magic bytes.
 
-**Sources:** all three trip archives plus their discovery surfaces (Mobi system-
-data page, BIXI open-data page, Toronto CKAN `package_show`), and GBFS
-`station_information` for each.
+**Resumability fix made during the run:** the manifest saved only at the end of
+a system, so a crash on file 80 of a multi-GB pull would have discarded the
+first 79 pins. It now saves after every file.
 
-**Cities:** Vancouver, Montreal, Toronto. Tier 1.
+**Review.** Gate items: provenance pinned — **pass**, every downloaded file
+carries sha256, byte size and content format, and each manifest now carries a
+licence block. Nothing guessed silently — **pass**, unknown link labels and
+non-data content types are reported and refused. No raw data in the diff —
+**pass**, `data-raw/` is gitignored and holds the archive. Row accounting,
+artifacts, metrics, copy, encodings — n/a, no ETL or site surface yet.
 
-**Published artifacts change:** No. Manifests are committed;
-`src/data/generated/` stays empty until spec 014.
-
-**Licence constraints — this spec discharges two debts:**
-- Spec 001 deferred SHA-256 here. Discharged for the files actually downloaded.
-- `LICENSE` makes a BIXI claim the source page does not support, and omits
-  Toronto's required attribution string. Corrected here.
-
-**Scale.** The full archive is several GB (BIXI 2024 is 476 MB; its 2025 file is
-2.8 GB uncompressed). Discovery is cheap and covers everything; downloading is
-explicit and scoped. Acceptance is about the downloader behaving correctly on
-real files, not about pulling the whole archive.
+**Verdict: ready to complete.**
 
 ## History
 

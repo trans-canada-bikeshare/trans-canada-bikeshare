@@ -58,6 +58,55 @@ which guards that project's growth lever and has no analogue here. What
 belongs in that slot for this project is data honesty, so that is what the
 review gate enforces.
 
+## 2026-07-28: BIXI publishes no licence — UNRESOLVED, shipping anyway
+
+The BIXI open-data page states no licence, no terms, and no attribution
+requirement (observed in spec 001). A third party republishes the 2014–2021
+files under CC BY-SA 4.0, but that is that author's choice and says nothing
+about BIXI's terms.
+
+Decision: **ingest and publish Montreal, and say plainly that the terms are
+unknown.** Absence of stated terms is not a prohibition — BIXI presents these
+files as open data on its own site — and a three-city comparison without
+Montreal is not the project. The unresolved status is recorded in
+`pipeline/manifests/mtl-bixi.json`, in `LICENSE`, and on the methodology page,
+and BIXI Montreal is attributed throughout.
+
+`LICENSE` previously claimed "BIXI Montreal open data terms". That claim was
+unsupported and has been removed rather than softened. Toronto's required
+attribution string — "Contains information licensed under the Open Government
+Licence – Toronto" — was missing and has been added.
+
+**Open action for the owner:** ask BIXI directly. If terms arrive that forbid
+this use, the fix is one publish run: Montreal drops out of
+`src/data/generated/` and the site renders it as unavailable.
+
+## 2026-07-28: E-bike share and membership ship as two-city comparisons
+
+Spec 001 established that Montreal publishes no bike-type field in any era and
+loses `is_member` at the 2022 format break. Two of the README's headline
+metrics therefore cannot be three-city comparisons.
+
+Decision: **show both for Vancouver and Toronto, with Montreal explicitly
+marked "not published" rather than absent.** A visible, explained gap is more
+informative than a quietly missing city, and it is what "every visual encoding
+says what it means" requires. Passed on: demoting the metrics to per-city
+detail, and dropping them — Toronto's e-bike share reaching ~22% is the most
+interesting trend in the data, and hiding it to keep a tidy grid would be the
+wrong trade.
+
+Spec 009's metric registry makes this enforceable rather than a matter of care:
+publishing a cross-city series for a metric the registry does not mark
+supported in every system in it is an error, not a judgement call.
+
+## 2026-07-28: Overnight autonomous build, specs 003–026
+
+Owner decisions for the run: ingest **every year each city publishes**,
+resumable, with the site's copy deriving from whatever actually loaded so
+partial coverage stays honest; **stop before deployment** — spec 027 is written
+as a runbook and never executed; and prefer **depth over breadth** if time runs
+short, always stopping on a merged spec rather than leaving work in flight.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

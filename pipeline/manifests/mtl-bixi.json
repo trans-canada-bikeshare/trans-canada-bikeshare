@@ -1,0 +1,112 @@
+{
+  "system_id": "mtl-bixi",
+  "source_page": "https://bixi.com/en/open-data/",
+  "licence": {
+    "name": null,
+    "url": "https://bixi.com/en/open-data/",
+    "checked": "2026-07-28",
+    "attribution": null,
+    "note": "NO licence, terms, or attribution text is stated on the source page (observed, spec 001). A third party republishes the 2014-2021 files under CC BY-SA 4.0, but that is that author's choice and is not evidence of BIXI's terms. Resolve before shipping any Montreal-derived artifact."
+  },
+  "sources": {
+    "2014": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2014.zip",
+      "sha256": "ee111ca0d141f8845d6416e5491a171d9a234ae4c6bbb2fb73b400460ed24a00",
+      "bytes": 24865029,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:13+00:00"
+    },
+    "2015": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2015.zip",
+      "sha256": "2aaf66497aad55cdb22fc2a2864a0c5100f3f9387194137c82e0a7ade4027415",
+      "bytes": 27332337,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:14+00:00"
+    },
+    "2016": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2016.zip",
+      "sha256": "e5226e85b964117ea29122806de52f7c8d585157df08c9beff6a54340f6a104e",
+      "bytes": 31280310,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:15+00:00"
+    },
+    "2017": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2017.zip",
+      "sha256": "e58ed8ac969174a6955fdd5210f2a1da8789218cd8c1f697e50451e854600e03",
+      "bytes": 37268165,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:17+00:00"
+    },
+    "2018": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2018.zip",
+      "sha256": "768683994b31ffd0d448a4869b96e1596804c987cf5c6c284c3bf6bfa7a0753f",
+      "bytes": 41615599,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:18+00:00"
+    },
+    "2019": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2019.zip",
+      "sha256": "40416f996ff7173b0bc5940e8ad2db174fe9ca4647d9fe86a7e2ccb570e02257",
+      "bytes": 68656723,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:20+00:00"
+    },
+    "2020": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2020.zip",
+      "sha256": "8121ff328d3f1839e6f864185adca9a2341e007fa4ec76aafd5b0fc5faca3709",
+      "bytes": 39548481,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:21+00:00"
+    },
+    "2021": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/06/Historique-BIXI-2021.zip",
+      "sha256": "b007b0c5acae0f8fd929e35ff7a329b6b1f54311e80db09ddac2e76810182387",
+      "bytes": 107562146,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:24+00:00"
+    },
+    "2022": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2023/08/DonneesOuverte2022.zip",
+      "sha256": "3052228df7daf203c88653294c5c11c5ea10e9fcbff05fac0d662a3bed3088c6",
+      "bytes": 263505194,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:28+00:00"
+    },
+    "2023": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2024/01/DonneesOuvertes2023_12.zip",
+      "sha256": "92e81b62b5b4a24c2bf9362a3e603170bc315ee1b0e6e07054445852f355e8a2",
+      "bytes": 371874695,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:35+00:00"
+    },
+    "2024": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2025/01/DonneesOuvertes2024_010203040506070809101112.zip",
+      "sha256": "b186787487149d111b5d1a414a25f5e8430d7424fd4c982d36e33ce282eb7d58",
+      "bytes": 499557477,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:44+00:00"
+    },
+    "2025": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2026/02/DonneesOuvertes2025_010203040506070809101112.zip",
+      "sha256": "bcffb1f5e71017a824a7343ce4452c65d23612ce0a66678c6c4e9de700f98aee",
+      "bytes": 317178725,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:50+00:00"
+    },
+    "2026": {
+      "url": "https://cdn.bixi.com/wp-content/uploads/2026/02/DonneesOuvertes2026_010203040506-2.zip",
+      "sha256": "441fa95b556a43d794a86e4b19cfb79007e377b7e5f208a08241741e22fa463b",
+      "bytes": 188750907,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:01:54+00:00"
+    }
+  },
+  "reference": {
+    "gbfs_station_information": {
+      "url": "https://gbfs.velobixi.com/gbfs/2-2/en/station_information.json",
+      "sha256": "8a297424622cfca2b749b9260c8e35f72ae6e682df62c3158ccce2332df0179e",
+      "bytes": 379991,
+      "downloaded_at": "2026-07-29T06:01:54+00:00"
+    }
+  }
+}

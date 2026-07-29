@@ -16,6 +16,12 @@
 -- name-matched station is a weaker claim than an id-matched one and the
 -- quality report must be able to say how much of the archive rests on it.
 
+-- Toronto's return-side station ids arrive float-formatted in some eras:
+-- '8160.0' beside '8160' for the same dock. Left alone they become two
+-- stations, which inflated the site's active-station count by roughly 2.3x.
+CREATE OR REPLACE MACRO norm_key(s) AS
+  nullif(regexp_replace(trim(cast(s AS VARCHAR)), '\.0+$', ''), '');
+
 CREATE OR REPLACE MACRO norm_name(s) AS
   nullif(trim(regexp_replace(lower(cast(s AS VARCHAR)), '\s+', ' ', 'g')), '');
 
@@ -36,22 +42,22 @@ WITH resolved AS (
     CASE
       WHEN system_id = 'van-mobi' AND nullif(van_id(departure_station_name), '') IS NOT NULL
         THEN 'van-mobi:' || van_id(departure_station_name)
-      WHEN departure_station_key IS NOT NULL
-        THEN system_id || ':' || departure_station_key
+      WHEN norm_key(departure_station_key) IS NOT NULL
+        THEN system_id || ':' || norm_key(departure_station_key)
       WHEN departure_station_name IS NOT NULL
         THEN system_id || ':name:' || norm_name(departure_station_name)
     END AS departure_station_id,
     CASE
       WHEN system_id = 'van-mobi' AND nullif(van_id(return_station_name), '') IS NOT NULL
         THEN 'van-mobi:' || van_id(return_station_name)
-      WHEN return_station_key IS NOT NULL
-        THEN system_id || ':' || return_station_key
+      WHEN norm_key(return_station_key) IS NOT NULL
+        THEN system_id || ':' || norm_key(return_station_key)
       WHEN return_station_name IS NOT NULL
         THEN system_id || ':name:' || norm_name(return_station_name)
     END AS return_station_id,
     CASE
       WHEN system_id = 'van-mobi' AND nullif(van_id(departure_station_name), '') IS NOT NULL THEN 'id'
-      WHEN departure_station_key IS NOT NULL THEN 'id'
+      WHEN norm_key(departure_station_key) IS NOT NULL THEN 'id'
       ELSE 'name'
     END AS departure_station_match,
     -- Human label, with Vancouver's numeric prefix stripped

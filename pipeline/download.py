@@ -44,8 +44,8 @@ def refine_archive_format(path: Path) -> str:
     return "xlsx" if any(n == "[Content_Types].xml" for n in names) else "zip"
 
 
-def stream_to(url: str, dest: Path) -> tuple[str, int, str]:
-    """Download to dest, returning (sha256, bytes, content_format)."""
+def stream_to(url: str, dest: Path) -> tuple[str, int, str, Path, Path]:
+    """Download to a .part file, returning (sha256, bytes, format, tmp, final)."""
     dest.parent.mkdir(parents=True, exist_ok=True)
     digest = hashlib.sha256()
     size = 0
@@ -75,9 +75,13 @@ def stream_to(url: str, dest: Path) -> tuple[str, int, str]:
             "expired or now serves an interstitial page"
         )
 
+    # Deliberately does NOT put the file in place. The caller verifies the pin
+    # first and commits only on success — otherwise a refused download would
+    # overwrite the last verified copy of bytes the source no longer serves,
+    # destroying the archive at exactly the moment the refusal exists to
+    # protect it.
     final = dest.with_suffix(common.extension_for(content_format))
-    tmp.replace(final)
-    return digest.hexdigest(), size, content_format
+    return digest.hexdigest(), size, content_format, tmp, final
 
 
 def entry_is_satisfied(entry: dict, path: Path) -> bool:
@@ -143,8 +147,13 @@ def download_system(
             print(f"  {period}: ok (skipped, no request)")
             continue
         try:
-            sha, size, fmt = stream_to(entry["url"], path)
-            status = apply_result(entry, sha, size, fmt, accept_changes)
+            sha, size, fmt, tmp, final = stream_to(entry["url"], path)
+            try:
+                status = apply_result(entry, sha, size, fmt, accept_changes)
+            except Drift:
+                tmp.unlink(missing_ok=True)   # keep the verified copy intact
+                raise
+            tmp.replace(final)
             # Save after every file, not at the end of the system. A multi-GB
             # run that dies on file 80 must not throw away the first 79 pins.
             common.save_manifest(system_id, manifest)
@@ -164,9 +173,10 @@ def download_system(
                 entry["url"], timeout=120, headers={"User-Agent": common.USER_AGENT}
             )
             response.raise_for_status()
-            path.write_bytes(response.content)
             sha = hashlib.sha256(response.content).hexdigest()
+            # Verify before writing, for the same reason as above.
             status = apply_result(entry, sha, len(response.content), None, accept_changes)
+            path.write_bytes(response.content)
             print(f"  {name}: {status} {len(response.content):,}B {sha[:12]}…")
         except (Drift, requests.RequestException) as exc:
             print(f"  {name}: FAILED — {exc}", file=sys.stderr)

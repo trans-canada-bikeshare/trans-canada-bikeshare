@@ -7,7 +7,7 @@ import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
 import {
   meta, tripsMonthly, seasonality, stationsYearly, ebikeShare, durations,
-  exclusions, monthIndex, monthKeyFromIndex, commonWindow,
+  exclusions, incompleteMonths, monthIndex, monthKeyFromIndex, commonWindow,
 } from "@/lib/data";
 
 const NAV = [
@@ -130,9 +130,12 @@ export default function App() {
             title="Three systems, side by side"
             lede={
               <>
-                Each system covers a different span. Cross-city comparisons below
-                are restricted to {meta.common_window_first_year} onward, where all
-                three publish — {longDate(window.first)} to {longDate(window.last)}.
+                Each system covers a different span, and the charts below show
+                each one's full range rather than cropping it. All three publish
+                from {meta.common_window_first_year} onward — {longDate(window.first)}{" "}
+                to {longDate(window.last)} — which is the window the seasonality
+                comparison uses, and the only stretch where a three-way
+                like-for-like reading is available.
               </>
             }
           >
@@ -172,8 +175,19 @@ export default function App() {
                   }))}
               />
             </div>
+            {incompleteMonths.length > 0 && (
+              <Note>
+                {incompleteMonths.length} partial month
+                {incompleteMonths.length === 1 ? " is" : "s are"} excluded from
+                every chart — months the sources have not finished publishing, and{" "}
+                {"van-mobi 2022-10"}, whose file fails to download. Listing them
+                rather than plotting them keeps a three-day stub from reading as a
+                collapse.
+              </Note>
+            )}
             <Note>
-              Durations exclude trips with no recorded end. Those are real
+              Durations exclude trips with no recorded end, and trips whose
+              duration is zero, negative, or over 24 hours. Those are real
               departures and are counted in the trip totals above, but a duration
               cannot be computed without an ending.
             </Note>
@@ -187,13 +201,20 @@ export default function App() {
           >
             <LineChart
               series={tripSeries}
-              xLabel={(x) => monthKeyFromIndex(Math.round(x)).slice(0, 4)}
+              // Axis ticks want the year; the hover readout must name the
+              // month, or a monthly value reads as an annual one.
+              xLabel={(x) => monthLabel(monthKeyFromIndex(Math.round(x)))}
+              xTicks={8}
               caption="Monthly trips by system"
             />
             <Note>
-              Montreal's line falls to nothing each winter because BIXI closes
-              from roughly mid-November to mid-April. That is a real closure, not
-              missing data.
+              Montreal's line breaks each winter through 2023 because BIXI closed
+              for the season — those months were never published, which is why
+              the line breaks rather than dropping to zero.{" "}
+              <strong className="font-medium text-foreground">
+                BIXI has run year-round since December 2023
+              </strong>
+              , so recent winters are low but continuous.
             </Note>
           </Section>
 
@@ -201,7 +222,7 @@ export default function App() {
             id="seasons"
             eyebrow="Seasons"
             title="The shape of a Canadian riding year"
-            lede={`Mean trips by month of year across ${seasonality.first_year} onward. The same three cities, the same winters, three very different answers.`}
+            lede={`Mean trips by month of year across ${seasonality.first_year} onward, averaging whole months only — a month observed for three days is a month we do not have, not a quiet one. The same three cities, the same winters, three very different answers.`}
           >
             <LineChart
               series={seasonSeries}

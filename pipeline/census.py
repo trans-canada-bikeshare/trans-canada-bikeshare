@@ -65,20 +65,35 @@ def headers_in(path: Path) -> list[tuple[str, list[str]]]:
     if suffix == ".xlsx":
         return [(path.name, _header_from_xlsx(path))]
     if suffix == ".zip":
-        out: list[tuple[str, list[str]]] = []
         with zipfile.ZipFile(path) as zf:
-            for info in zf.infolist():
-                name = info.filename
-                if name.endswith("/") or name.startswith("__MACOSX"):
-                    continue
-                low = name.lower()
-                if low.endswith(".csv"):
-                    with zf.open(info) as fh:
-                        out.append((name, _header_from_csv_bytes(fh.read(SNIFF))))
-                elif low.endswith(".xlsx"):
-                    out.append((name, _header_from_xlsx(path, name)))
-        return out
+            return _headers_in_zip(zf, path, depth=0)
     return []
+
+
+def _headers_in_zip(zf: zipfile.ZipFile, path: Path, depth: int) -> list[tuple[str, list[str]]]:
+    """Recurse into nested archives. Toronto ships November 2022 as a zip
+    inside the annual zip; a census that cannot see it cannot author an era map
+    that covers it."""
+    out: list[tuple[str, list[str]]] = []
+    if depth > 3:
+        return out
+    for info in zf.infolist():
+        name = info.filename
+        base = Path(name).name
+        if name.endswith("/") or name.startswith("__MACOSX") or base.startswith((".", "~$")):
+            continue
+        low = base.lower()
+        if low.endswith(".csv"):
+            with zf.open(info) as fh:
+                out.append((name, _header_from_csv_bytes(fh.read(SNIFF))))
+        elif low.endswith(".xlsx"):
+            out.append((name, _header_from_xlsx(path, name)))
+        elif low.endswith(".zip"):
+            with zf.open(info) as raw:
+                payload = io.BytesIO(raw.read())
+            with zipfile.ZipFile(payload) as nested:
+                out += _headers_in_zip(nested, path, depth + 1)
+    return out
 
 
 def census(system_id: str) -> dict[str, list[str]]:

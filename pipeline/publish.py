@@ -111,20 +111,66 @@ def build(con, registry: dict) -> dict[str, object]:
                        "comparisons are restricted to the common window.",
     }
 
+    # --- month completeness -------------------------------------------------
+    # A month observed on 3 days of 31 is not a low month; it is a month we do
+    # not have. Publishing it as a data point produced two lies at once: the
+    # trailing partial month made Vancouver's "latest" read 26 trips against a
+    # 144,105 prior month, and Vancouver's 2022-10 (37 trips, the download that
+    # 500s) rendered as a ridership collapse under a lede promising that gaps
+    # are drawn as gaps. Incomplete months are now excluded from every series
+    # and listed in the artifact so the site can say which and why.
+    incomplete = rows(con, f"""
+      SELECT system_id, strftime(trip_month, '%Y-%m') AS month,
+             count(DISTINCT date_key) AS days_observed,
+             day(last_day(trip_month)) AS days_in_month,
+             count(*) AS trips
+      FROM fact_trips WHERE {TRUSTED}
+      GROUP BY 1, 2, trip_month
+      -- Two distinct things look alike here and must not be conflated:
+      --   a month we do not HAVE          -> exclude
+      --   a month the system only OPERATED part of -> keep, it is real
+      -- BIXI opens mid-April and closed mid-November for most of its history,
+      -- so ~16 observed days in those months is genuine ridership. A blanket
+      -- coverage threshold deleted it and punched fake gaps in the chart.
+      -- Exclude only a stub of a few days, or a trailing month the source has
+      -- not finished publishing.
+      HAVING count(DISTINCT date_key) <= 3
+          OR (trip_month = (SELECT max(f2.trip_month) FROM fact_trips f2
+                            WHERE f2.system_id = fact_trips.system_id)
+              AND count(DISTINCT date_key) < day(last_day(trip_month)))
+      ORDER BY 1, 2
+    """)
+    art["incomplete_months"] = incomplete
+    skip = {(r["system_id"], r["month"]) for r in incomplete}
+
+    def complete(series: list[dict]) -> list[dict]:
+        return [r for r in series if (r["system_id"], r["month"]) not in skip]
+
     # --- trips per month, all three ----------------------------------------
-    monthly = rows(con, f"""
+    monthly = complete(rows(con, f"""
       SELECT system_id, strftime(trip_month, '%Y-%m') AS month, count(*) AS trips
       FROM fact_trips WHERE {TRUSTED} GROUP BY 1, 2 ORDER BY 1, 2
-    """)
+    """))
     guard(registry, "trips", sorted({r["system_id"] for r in monthly}))
     art["trips_monthly"] = monthly
 
     # --- seasonality: mean trips by month of year, common window ------------
     first = int(registry["_window"]["common_first_year"])
+    # Seasonality averages MONTHS, so a one-day stub dragged Montreal's July
+    # mean down 10% and handed the "peak riding month" title to August. Only
+    # complete months count, and only whole ones inside the common window.
     seasonal = rows(con, f"""
-      SELECT system_id, month(trip_month) AS month_of_year,
-             count(*) / count(DISTINCT trip_year) AS mean_trips
-      FROM fact_trips WHERE trip_year >= ? AND {TRUSTED} GROUP BY 1, 2 ORDER BY 1, 2
+      WITH months AS (
+        SELECT system_id, trip_month, month(trip_month) AS moy,
+               count(*) AS trips, count(DISTINCT date_key) AS days
+        FROM fact_trips WHERE trip_year >= ? AND {TRUSTED}
+        GROUP BY 1, 2, 3
+        HAVING count(DISTINCT date_key) > 3
+      )
+      SELECT system_id, moy AS month_of_year,
+             CAST(round(avg(trips)) AS BIGINT) AS mean_trips,
+             count(*) AS months_averaged
+      FROM months GROUP BY 1, 2 ORDER BY 1, 2
     """, [first])
     guard(registry, "seasonality", sorted({r["system_id"] for r in seasonal}))
     art["seasonality"] = {"first_year": first, "series": seasonal}
@@ -143,13 +189,18 @@ def build(con, registry: dict) -> dict[str, object]:
     ebike = rows(con, f"""
       SELECT system_id, strftime(trip_month, '%Y-%m') AS month,
              count(*) FILTER (is_ebike) AS ebike_trips,
-             count(*) FILTER (is_ebike IS NOT NULL) AS classified_trips
+             count(*) FILTER (is_ebike IS NOT NULL) AS classified_trips,
+             count(*) AS month_trips
       FROM fact_trips
       WHERE system_id IN ({','.join('?' * len(ebike_systems))})
-        AND is_ebike IS NOT NULL AND {TRUSTED}
-      GROUP BY 1, 2 HAVING count(*) FILTER (is_ebike IS NOT NULL) > 0
+        AND {TRUSTED}
+      GROUP BY 1, 2
+      -- A month where 15 of 39,000 trips carry a bike-type field cannot state
+      -- an e-bike share. Require the classified rows to be most of the month.
+      HAVING count(*) FILTER (is_ebike IS NOT NULL) >= 0.5 * count(*)
       ORDER BY 1, 2
     """, ebike_systems)
+    ebike = complete(ebike)
     guard(registry, "ebike_share", sorted({r["system_id"] for r in ebike}))
     art["ebike_share"] = {
         "series": ebike,

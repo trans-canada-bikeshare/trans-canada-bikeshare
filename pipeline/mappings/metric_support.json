@@ -11,9 +11,16 @@
       "unit": "trips",
       "comparable": true,
       "systems": {
-        "van-mobi": { "supported": true },
-        "mtl-bixi": { "supported": true },
-        "tor-bikeshare": { "supported": true, "note": "Trip-level data begins 2016; 2014-2015 is pre-aggregated and excluded." }
+        "van-mobi": {
+          "supported": true
+        },
+        "mtl-bixi": {
+          "supported": true
+        },
+        "tor-bikeshare": {
+          "supported": true,
+          "note": "Trip-level data begins 2016; 2014-2015 is pre-aggregated and excluded."
+        }
       }
     },
     "seasonality": {
@@ -22,20 +29,37 @@
       "unit": "trips per month",
       "comparable": true,
       "systems": {
-        "van-mobi": { "supported": true },
-        "mtl-bixi": { "supported": true, "note": "BIXI does not operate mid-November to mid-April; the winter floor is a real closure, not missing data." },
-        "tor-bikeshare": { "supported": true }
+        "van-mobi": {
+          "supported": true
+        },
+        "mtl-bixi": {
+          "supported": true,
+          "note": "BIXI does not operate mid-November to mid-April; the winter floor is a real closure, not missing data."
+        },
+        "tor-bikeshare": {
+          "supported": true
+        }
       }
     },
     "duration": {
       "label": "Trip duration",
-      "definition": "Published duration where the source gives one, else return minus departure. Unterminated trips are EXCLUDED — a duration cannot be computed without an ending.",
+      "definition": "Published duration where the source gives one, else return minus departure. Excludes unterminated trips, and durations of zero, negative, or over 24 hours — a duration cannot be computed without an ending, and the others are not journeys.",
       "unit": "seconds",
       "comparable": true,
       "systems": {
-        "van-mobi": { "supported": true, "source": "published" },
-        "mtl-bixi": { "supported": true, "source": "published 2014-2021, derived 2022+", "note": "Excludes unterminated trips; the excluded share must be stated wherever this is shown." },
-        "tor-bikeshare": { "supported": true, "source": "published" }
+        "van-mobi": {
+          "supported": true,
+          "source": "published"
+        },
+        "mtl-bixi": {
+          "supported": true,
+          "source": "published 2014-2021, derived 2022+",
+          "note": "Excludes unterminated trips; the excluded share must be stated wherever this is shown."
+        },
+        "tor-bikeshare": {
+          "supported": true,
+          "source": "published"
+        }
       }
     },
     "active_stations": {
@@ -44,9 +68,18 @@
       "unit": "stations",
       "comparable": true,
       "systems": {
-        "van-mobi": { "supported": true, "identity": "id parsed from the station name prefix" },
-        "mtl-bixi": { "supported": true, "identity": "published key 2014-2021, normalised name 2022+" },
-        "tor-bikeshare": { "supported": true, "identity": "published id from 2018, normalised name for 2016 and 2017 Q3-Q4" }
+        "van-mobi": {
+          "supported": true,
+          "identity": "id parsed from the station name prefix"
+        },
+        "mtl-bixi": {
+          "supported": true,
+          "identity": "published key 2014-2021, normalised name 2022+"
+        },
+        "tor-bikeshare": {
+          "supported": true,
+          "identity": "published id from 2018, normalised name for 2016 and 2017 Q3-Q4"
+        }
       }
     },
     "station_flows": {
@@ -55,9 +88,17 @@
       "unit": "trips",
       "comparable": true,
       "systems": {
-        "van-mobi": { "supported": true },
-        "mtl-bixi": { "supported": true, "qualified": true, "note": "2022+ files contain unterminated trips in quantity. They are excluded here and the excluded share must be shown on the chart, not buried in methodology." },
-        "tor-bikeshare": { "supported": true }
+        "van-mobi": {
+          "supported": true
+        },
+        "mtl-bixi": {
+          "supported": true,
+          "qualified": true,
+          "note": "2022+ files contain unterminated trips in quantity. They are excluded here and the excluded share must be shown on the chart, not buried in methodology."
+        },
+        "tor-bikeshare": {
+          "supported": true
+        }
       }
     },
     "ebike_share": {
@@ -66,13 +107,20 @@
       "unit": "percent of trips",
       "comparable": false,
       "systems": {
-        "van-mobi": { "supported": true, "signal": "Electric bike column" },
+        "van-mobi": {
+          "supported": true,
+          "signal": "Electric bike column"
+        },
         "mtl-bixi": {
           "supported": false,
           "reason": "BIXI publishes no bike-type field in ANY era, 2014 through 2026. Verified across the full archive by pipeline/census.py, not inferred.",
           "display": "not published"
         },
-        "tor-bikeshare": { "supported": true, "signal": "Bike_Model, EFIT and EFIT G5 are the electric models", "note": "Available from 2025 only; earlier eras carry no bike-type column." }
+        "tor-bikeshare": {
+          "supported": true,
+          "signal": "Bike_Model, EFIT and EFIT G5 are the electric models",
+          "note": "Bike_Model appears from the re-published 2024 file onward; earlier eras carry no bike-type column. Verified against the published series, which begins 2024-01 — an earlier note claiming 2025 was stale."
+        }
       }
     },
     "membership_mix": {
@@ -81,14 +129,20 @@
       "unit": "percent of trips",
       "comparable": false,
       "systems": {
-        "van-mobi": { "supported": true, "granularity": "many named pass types, grouped" },
+        "van-mobi": {
+          "supported": true,
+          "granularity": "many named pass types, grouped"
+        },
         "mtl-bixi": {
           "supported": false,
           "reason": "is_member exists 2014-2021 and disappears at the 2022 format break. A series that ends in 2021 cannot be compared against two that run to 2026.",
           "display": "published to 2021 only",
           "partial_until": "2021"
         },
-        "tor-bikeshare": { "supported": true, "granularity": "Member / Casual, with label drift across eras" }
+        "tor-bikeshare": {
+          "supported": true,
+          "granularity": "Member / Casual, with label drift across eras"
+        }
       }
     },
     "forecast": {
@@ -97,9 +151,18 @@
       "unit": "trips per day",
       "comparable": true,
       "systems": {
-        "van-mobi": { "supported": true, "weather_station": "ECCC 888 Vancouver Harbour CS" },
-        "mtl-bixi": { "supported": true, "weather_station": "ECCC, downtown Montreal — see spec 013" },
-        "tor-bikeshare": { "supported": true, "weather_station": "ECCC 31688 Toronto City" }
+        "van-mobi": {
+          "supported": true,
+          "weather_station": "ECCC 888 Vancouver Harbour CS"
+        },
+        "mtl-bixi": {
+          "supported": true,
+          "weather_station": "ECCC, downtown Montreal — see spec 013"
+        },
+        "tor-bikeshare": {
+          "supported": true,
+          "weather_station": "ECCC 31688 Toronto City"
+        }
       }
     },
     "operational_signals": {
@@ -108,13 +171,19 @@
       "unit": "various",
       "comparable": false,
       "systems": {
-        "van-mobi": { "supported": true, "signal": "Bike column" },
+        "van-mobi": {
+          "supported": true,
+          "signal": "Bike column"
+        },
         "mtl-bixi": {
           "supported": false,
           "reason": "No bike identifier in any era, so consecutive trips of one bike cannot be reconstructed.",
           "display": "not published"
         },
-        "tor-bikeshare": { "supported": true, "signal": "Bike Id, from 2019" }
+        "tor-bikeshare": {
+          "supported": true,
+          "signal": "Bike Id, from 2019"
+        }
       }
     }
   }

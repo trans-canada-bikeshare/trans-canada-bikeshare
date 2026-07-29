@@ -13,6 +13,7 @@ import stationsYearlyJson from "@/data/generated/stations_yearly.json";
 import ebikeJson from "@/data/generated/ebike_share.json";
 import durationJson from "@/data/generated/duration.json";
 import exclusionsJson from "@/data/generated/exclusions.json";
+import incompleteJson from "@/data/generated/incomplete_months.json";
 import type { SystemId } from "@/lib/systems";
 
 export interface SystemMetaRow {
@@ -67,6 +68,14 @@ export const ebikeShare = ebikeJson as {
 };
 export const durations = durationJson as DurationRow[];
 export const exclusions = exclusionsJson as ExclusionRow[];
+
+/** Months excluded from every series because the source has not finished
+ *  publishing them (or, for van-mobi 2022-10, because the file will not
+ *  download). Rendered on the site rather than buried in the runbook. */
+export const incompleteMonths = incompleteJson as {
+  system_id: SystemId; month: string; days_observed: number;
+  days_in_month: number; trips: number;
+}[];
 
 /** Month key "2025-06" -> a sortable integer 24306, for chart x values. */
 export function monthIndex(key: string): number {

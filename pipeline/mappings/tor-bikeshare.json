@@ -5,7 +5,7 @@
     "2017-Q1, 2017-Q2": "nine columns, ids present, minute-precision M/D/YYYY",
     "2018": "same nine column names, reordered",
     "2019-2024": "Title Case with the doubled space; adds Bike Id",
-    "2025+": "Title_Snake; adds Bike_Model, which is the only e-bike signal any Toronto era carries",
+    "2025+": "Title_Snake; Bike_Model is the only e-bike signal any Toronto era carries. Present from the re-published 2024 file onward.",
     "2014-2015": "NOT trip data - pre-aggregated OD matrices at a different grain. Excluded from fact_trips; see docs/source-audit.md"
   },
   "trips": {
@@ -18,7 +18,6 @@
     "to_station_id": "return_station_key",
     "to_station_name": "return_station_name",
     "user_type": "membership_raw",
-
     "Trip Id": "trip_id",
     "Trip  Duration": "duration_s",
     "Trip Duration": "duration_s",
@@ -30,7 +29,6 @@
     "End Station Name": "return_station_name",
     "Bike Id": "bike_id",
     "User Type": "membership_raw",
-
     "Trip_Id": "trip_id",
     "Trip_Duration": "duration_s",
     "Start_Station_Id": "departure_station_key",

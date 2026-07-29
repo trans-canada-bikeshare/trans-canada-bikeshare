@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
 from pathlib import Path
 
@@ -171,6 +172,12 @@ def save_manifest(system_id: str, manifest: dict) -> None:
     manifest["sources"] = dict(sorted(manifest.get("sources", {}).items()))
     path = manifest_path(system_id)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(
+    # Atomic: this is rewritten after every downloaded file during a multi-GB
+    # run, so an in-place write is a standing invitation to truncate the
+    # manifest — losing every pin from the run and breaking load_manifest for
+    # every later command.
+    tmp = path.with_suffix(".json.tmp")
+    tmp.write_text(
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
     )
+    os.replace(tmp, path)

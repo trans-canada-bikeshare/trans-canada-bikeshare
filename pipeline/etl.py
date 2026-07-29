@@ -16,6 +16,7 @@ Usage: python pipeline/etl.py [--stage extract|clean|conform|model|all]
 from __future__ import annotations
 
 import argparse
+import io
 import json
 import shutil
 import sys
@@ -57,31 +58,89 @@ def extracted_dir(system_id: str, period: str) -> Path:
     return common.DATA_RAW / system_id / "_extracted" / period
 
 
+DATA_SUFFIXES = (".csv", ".xlsx")
+# Members that are documentation rather than data. Listed explicitly, because
+# the alternative — skipping anything that is not a CSV — is how Toronto's
+# November 2022 went missing: that month ships as a zip nested inside the
+# annual zip, and a silent skip dropped 320,000 trips from the site.
+IGNORABLE_SUFFIXES = (".docx", ".doc", ".pdf", ".txt", ".md", ".rtf", ".xml")
+
+
+class UnknownMember(Exception):
+    """An archive member is neither data, a nested archive, nor documentation."""
+
+
+def _unpack(zf: zipfile.ZipFile, dest_dir: Path, source: str, depth: int = 0) -> None:
+    """Extract data members, recursing into nested archives.
+
+    Every member must be classifiable. An unrecognized one ABORTS, exactly as
+    an unmapped column header does — the guarantee is about unknown input, and
+    an archive member is input.
+    """
+    if depth > 3:
+        raise UnknownMember(f"{source}: archive nested more than 3 deep")
+    for info in zf.infolist():
+        name = info.filename
+        base = Path(name).name
+        if name.endswith("/") or name.startswith("__MACOSX") or base.startswith((".", "~$")):
+            continue
+        low = base.lower()
+        if low.endswith(DATA_SUFFIXES):
+            dest = dest_dir / base
+            if dest.exists():
+                # Flattening means two members could collide and one would win
+                # silently. Refuse instead.
+                raise UnknownMember(
+                    f"{source}: two members flatten to the same name {base!r}"
+                )
+            with zf.open(info) as src, dest.open("wb") as dst:
+                shutil.copyfileobj(src, dst, 1 << 20)
+        elif low.endswith(".zip"):
+            with zf.open(info) as nested_raw:
+                payload = io.BytesIO(nested_raw.read())
+            with zipfile.ZipFile(payload) as nested:
+                _unpack(nested, dest_dir, f"{source} -> {base}", depth + 1)
+        elif low.endswith(IGNORABLE_SUFFIXES):
+            continue
+        else:
+            raise UnknownMember(
+                f"{source}: member {name!r} is neither data, a nested archive, "
+                "nor documentation. Classify it in etl.py — deliberately."
+            )
+
+
 def tabular_files(system_id: str, period: str, entry: dict) -> list[Path]:
-    """Every CSV/XLSX for a period, unpacking archives once and caching them."""
+    """Every CSV/XLSX for a period, unpacking archives once and caching them.
+
+    The cache is keyed by the source checksum, not just the period: a refreshed
+    zip at the same period must invalidate it. BIXI's annual filename encodes
+    the months it contains, so a mid-season re-publish changes the URL and the
+    pin while the period stays '2026' — a period-keyed cache would happily
+    serve January-to-June forever.
+    """
     path = common.local_path(system_id, period, entry.get("content_format"))
     if not path.exists():
-        return []
-    if path.suffix.lower() in (".csv", ".xlsx"):
+        raise FileNotFoundError(
+            f"{system_id} {period}: pinned in the manifest but absent at {path}. "
+            "Run download.py; a missing pinned file must not silently shrink the "
+            "warehouse."
+        )
+    if path.suffix.lower() in DATA_SUFFIXES:
         return [path]
 
-    out_dir = extracted_dir(system_id, period)
+    sha = (entry.get("sha256") or "nopin")[:12]
+    out_dir = extracted_dir(system_id, period).with_name(f"{period}.{sha}")
     if not out_dir.exists():
+        # Drop any cache built from a different pin for this period.
+        for stale in out_dir.parent.glob(f"{period}.*"):
+            shutil.rmtree(stale, ignore_errors=True)
         tmp = out_dir.with_suffix(".partial")
         shutil.rmtree(tmp, ignore_errors=True)
         tmp.mkdir(parents=True, exist_ok=True)
         with zipfile.ZipFile(path) as zf:
-            for info in zf.infolist():
-                name = info.filename
-                if name.endswith("/") or name.startswith("__MACOSX"):
-                    continue
-                if not name.lower().endswith((".csv", ".xlsx")):
-                    continue
-                dest = tmp / Path(name).name
-                with zf.open(info) as src, dest.open("wb") as dst:
-                    shutil.copyfileobj(src, dst, 1 << 20)
+            _unpack(zf, tmp, f"{system_id} {period}")
         tmp.replace(out_dir)
-    return sorted(p for p in out_dir.iterdir() if p.suffix.lower() in (".csv", ".xlsx"))
+    return sorted(p for p in out_dir.iterdir() if p.suffix.lower() in DATA_SUFFIXES)
 
 
 def reader_expr(path: Path) -> str:
@@ -321,7 +380,7 @@ def main() -> int:
                 run_model(con)
             else:
                 run_sql(con, SQL_FILES[stage])
-    except UnknownColumns as exc:
+    except (UnknownColumns, UnknownMember, FileNotFoundError) as exc:
         print(f"\nABORT: {exc}", file=sys.stderr)
         return 1
     finally:

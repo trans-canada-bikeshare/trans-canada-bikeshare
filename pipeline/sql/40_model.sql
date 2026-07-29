@@ -56,6 +56,10 @@ LEFT JOIN mapped m
 -- Every station the trips reference, plus anything the annual snapshots know.
 -- Coordinates come from the snapshots (Montreal) or GBFS (loaded at spec 012);
 -- a station with none is still a real station and still counted.
+-- A station reached by name and the same station reached by its published id
+-- are ONE station. Without this bridge every system's count is inflated —
+-- Vancouver's by 104, Toronto's by 375 — and by a different amount each, which
+-- is the worst possible failure for a side-by-side comparison.
 CREATE OR REPLACE TABLE dim_station AS
 WITH usage AS (
   SELECT system_id, departure_station_id AS station_id, departure_label AS label,
@@ -65,15 +69,43 @@ WITH usage AS (
   SELECT system_id, return_station_id, return_label, return_ts
   FROM conformed_trips WHERE return_station_id IS NOT NULL
 ),
-agg AS (
+raw_agg AS (
   SELECT
     system_id,
     station_id,
     arg_max(label, ts)              AS station_name,
-    min(ts)::DATE                   AS first_seen,
-    max(ts)::DATE                   AS last_seen,
+    min(ts)                         AS first_ts,
+    max(ts)                         AS last_ts,
     count(*)                        AS lifetime_events
   FROM usage
+  GROUP BY system_id, station_id
+),
+-- name -> canonical id, built only from stations that HAVE a published id
+bridge AS (
+  SELECT system_id, lower(trim(station_name)) AS key, arg_max(station_id, lifetime_events) AS canonical
+  FROM raw_agg
+  WHERE station_id NOT LIKE '%:name:%' AND station_name IS NOT NULL
+  GROUP BY 1, 2
+),
+resolved AS (
+  SELECT
+    r.system_id,
+    coalesce(b.canonical, r.station_id) AS station_id,
+    r.station_name, r.first_ts, r.last_ts, r.lifetime_events
+  FROM raw_agg r
+  LEFT JOIN bridge b
+    ON b.system_id = r.system_id
+   AND r.station_id LIKE '%:name:%'
+   AND b.key = lower(trim(r.station_name))
+),
+agg AS (
+  SELECT
+    system_id, station_id,
+    arg_max(station_name, last_ts)  AS station_name,
+    min(first_ts)::DATE             AS first_seen,
+    max(last_ts)::DATE              AS last_seen,
+    sum(lifetime_events)            AS lifetime_events
+  FROM resolved
   GROUP BY system_id, station_id
 )
 SELECT

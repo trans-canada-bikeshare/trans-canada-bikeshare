@@ -136,6 +136,22 @@ export function LineChart({
           />
         ))}
 
+        {/* An isolated point emits a bare M and draws nothing — it would simply
+            vanish from the chart. Give any unconnected point a dot. */}
+        {series.flatMap((s) => {
+          const sorted = [...s.points].sort((a, b) => a.x - b.x);
+          return sorted
+            .filter((p, i) => {
+              const prev = sorted[i - 1];
+              const next = sorted[i + 1];
+              const far = (q?: { x: number }) => !q || Math.abs(q.x - p.x) > step * 1.5;
+              return far(prev) && far(next);
+            })
+            .map((p) => (
+              <circle key={`${s.id}-${p.x}`} cx={px(p.x)} cy={py(p.y)} r={2} fill={s.color} />
+            ));
+        })}
+
         {nearest !== null &&
           series.map((s) => {
             const p = s.points.find((q) => q.x === nearest);
@@ -167,11 +183,19 @@ export function LineChart({
               <span className="font-mono text-[11px] tabular-nums text-foreground">
                 {point ? yLabel(point.y) : "—"}
               </span>
+              {/* Each series ends at its own date — Toronto publishes further
+                  behind than the other two. A single shared label asserted a
+                  month/value pairing that was false for every series but one. */}
+              {nearest === null && point && (
+                <span className="font-mono text-[10px] text-muted-foreground">
+                  {xLabel(point.x)}
+                </span>
+              )}
             </span>
           );
         })}
         <span className="font-mono text-[11px] text-muted-foreground">
-          {nearest === null ? `latest · ${xLabel(xMax)}` : xLabel(nearest)}
+          {nearest === null ? "latest published" : xLabel(nearest)}
         </span>
       </figcaption>
     </figure>

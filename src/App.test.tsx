@@ -2,7 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import App from "@/App";
-import { ebikeShare, meta } from "@/lib/data";
+import { ebikeShare, meta, tripsMonthly } from "@/lib/data";
 
 describe("App", () => {
   beforeEach(() => {
@@ -27,13 +27,34 @@ describe("App", () => {
     expect(document.documentElement.classList.contains("dark")).toBe(true);
   });
 
-  it("states the common window rather than implying one", () => {
+  // This test previously pinned the sentence "comparisons below are restricted
+  // to 2017 onward" — which was FALSE: the trips and stations charts render
+  // each system's full range. A test that locks in a false claim is worse than
+  // no test, so this now checks the claim against the data it describes.
+  it("does not claim a restriction the charts do not apply", () => {
     render(<App />);
     const overview = document.getElementById("overview")!;
-    expect(overview.textContent).toMatch(
-      new RegExp(meta.common_window_first_year),
+    expect(overview.textContent).toMatch(new RegExp(meta.common_window_first_year));
+    expect(overview.textContent).not.toMatch(/restricted to/i);
+
+    const earliest = tripsMonthly
+      .map((r) => r.month)
+      .sort()[0]
+      .slice(0, 4);
+    // If a future change really does crop the charts to the common window,
+    // this fails and the copy should be revisited deliberately.
+    expect(Number(earliest)).toBeLessThan(Number(meta.common_window_first_year));
+  });
+
+  it("states BIXI's winter operation as the data has it", () => {
+    render(<App />);
+    const trips = document.getElementById("trips")!;
+    const winter = tripsMonthly.filter(
+      (r) => r.system_id === "mtl-bixi" && ["12", "01", "02"].includes(r.month.slice(5)),
     );
-    expect(overview.textContent).toMatch(/all\s+three publish/i);
+    // BIXI runs year-round now; copy claiming an unqualified closure is stale.
+    expect(winter.length).toBeGreaterThan(0);
+    expect(trips.textContent).toMatch(/year-round since/i);
   });
 
   // The load-bearing honesty test. E-bike share is a two-city metric because

@@ -145,9 +145,17 @@ export function LineChart({
           })}
       </svg>
 
+      {/* The legend doubles as the readout. With no pointer it shows each
+          series' most recent value, so the numbers are available without
+          hovering — which matters for keyboard and touch users, and is simply
+          more useful than an empty legend. */}
       <figcaption className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1">
         {series.map((s) => {
-          const p = nearest === null ? null : s.points.find((q) => q.x === nearest);
+          const sorted = [...s.points].sort((a, b) => a.x - b.x);
+          const point =
+            nearest === null
+              ? sorted[sorted.length - 1]
+              : s.points.find((q) => q.x === nearest);
           return (
             <span key={s.id} className="flex items-center gap-1.5">
               <span
@@ -157,16 +165,14 @@ export function LineChart({
               />
               <span className="eyebrow">{s.label}</span>
               <span className="font-mono text-[11px] tabular-nums text-foreground">
-                {p ? yLabel(p.y) : ""}
+                {point ? yLabel(point.y) : "—"}
               </span>
             </span>
           );
         })}
-        {nearest !== null && (
-          <span className="font-mono text-[11px] text-muted-foreground">
-            {xLabel(nearest)}
-          </span>
-        )}
+        <span className="font-mono text-[11px] text-muted-foreground">
+          {nearest === null ? `latest · ${xLabel(xMax)}` : xLabel(nearest)}
+        </span>
       </figcaption>
     </figure>
   );

@@ -1,12 +1,21 @@
 # v1 Roadmap
 
-> **Status as of 2026-07-29.** Specs 001–011, 014–018 and 026 are merged. The
-> pipeline is complete end to end over the full 20 GB archive and the site
-> renders 134.9M real trips. **Not built: 012 GBFS coordinates, 013 weather,
-> 019–020 detail surfaces, 021 maps, 022 flows, 023 forecast, 024 signals,
-> 025 methodology page, 027 deploy.** Those are the morning's work; see
-> `docs/runbook.md` for the known gaps. Depth over breadth was the instruction,
-> and the pipeline is where the depth went.
+> **Status as of 2026-07-29, evening.** Merged: **001–012, 014–019, 025, 026**
+> (004 folded into 003). The pipeline is complete end to end over the full
+> 20 GB archive and the site renders **135,598,303** real trips.
+>
+> On a branch, awaiting merge: **021 station maps**, and **009's enforcement** —
+> `make check-metrics` ran as a stub until 2026-07-29 while the registry
+> claimed it was enforced, so 009 was only half-built.
+>
+> **Not built: 013 weather, 020 membership mix, 022 flows, 023 forecast,
+> 024 signals, 027 deploy.**
+>
+> Depth over breadth was the instruction, and the pipeline is where the depth
+> went. An earlier version of this block was stale in four places — it listed
+> 012, 019, 021 and 025 as unbuilt after they had shipped. Status lines rot
+> faster than anything else in a repository, which is the argument for deriving
+> them; this one is still written by hand and should be read with that in mind.
 
 Full parity with the Vancouver project across three docked systems. Twenty-seven
 specs in eight phases, each one small enough to load, build, review, and merge on

@@ -44,19 +44,47 @@ _No feature in progress._
   LICENSE corrected (BIXI unsupported claim removed, Toronto attribution added).
   26 pytest. `docs/features/003-manifests-and-downloaders.md`
 
-<!-- GAP: specs 004-020 shipped during the overnight autonomous run of
-     2026-07-28/29 without their History lines being appended. The commits are
-     the record until they are backfilled — `git log --oneline main` reads in
-     order. Recorded as a gap rather than reconstructed from memory, because a
-     History entry invented after the fact is worth less than a pointer to the
-     commit that is actually true. -->
+<!-- Backfilled 2026-07-29 from `git log`, not from memory. Specs 005-019 and
+     025-026 shipped in batched commits during the overnight autonomous run
+     rather than one merge each, so these lines point at the commit that
+     actually carried the work. Where several specs shared a commit, they share
+     a line — splitting them would invent a sequence that did not happen. -->
 
-- 2026-07-29 `pending` — spec 021: station maps. MapLibre maps per system,
+- 2026-07-28 `a343ccc`+`cb10b98` — specs 005-008: the warehouse. Era maps,
+  staged extract → clean → conform → model, Kimball star schema over the full
+  archive. `docs/features/005-008-warehouse.md`
+- 2026-07-28 `cb10b98` — specs 009-010: metric support registry and the
+  generated quality report. **009 shipped only half-built** — the registry
+  landed, its `make check-metrics` enforcement was a stub until 2026-07-29.
+- 2026-07-28 `b077d75` — spec 011: `make check-artifacts` byte-compares
+  committed artifacts against a fresh publish run.
+- 2026-07-28 `0ddd43c` — specs 015-019: app shell, overview, trips,
+  seasonality, active stations, e-bike share.
+- 2026-07-29 `3edb79a` — spec 026: chart legends carry values without hover.
+- 2026-07-29 `71b2d64` — spec 012: GBFS station geography, and the Montreal
+  station bridge that reconciled three era key spaces into one identity.
+- 2026-07-29 `c6dd7db`, `cf7ec27`, `74371ec`, `13993fb` — the independent Fable
+  review and its fixes: 320,229 Toronto trips in a nested zip, 217,569 in an
+  unread worksheet, 31,315 lost to encoding, 8.9M Montreal rows on the wrong
+  local day, and four false claims on the site.
+- 2026-07-29 `fc4a07b` — van-mobi 2022-10 recovered (110,198 trips) from the
+  sister archive after Drive began returning 500s.
+
+- 2026-07-29 `8b84d6e` — spec 021: station maps. MapLibre maps per system,
   lazily loaded; `stations.json` + `stations_meta.json`. Review (Opus, not
-  Fable — Fable unavailable) found the maps rendered **zero dots**: MapLibre
-  cannot parse `hsl(var(...))` and silently rejected the layer. Also fixed:
-  per-map dot scales replaced by one shared ceiling, "retired" relabelled
-  "dormant" (28 hollow dots are in the live GBFS feed), station labels now
-  taken from whatever supplied the coordinate, Tukey-fence framing so
-  Sherbrooke stops stretching Montreal 161 km wide. 56 vitest.
+  Fable — Fable unavailable) found the maps rendered **zero dots** from two
+  independent causes: MapLibre cannot parse `hsl(var(...))` and silently
+  rejected the layer, and its tile-parsing worker was never emitted by the
+  build, so the SPA fallback served it `index.html` and it died parsing HTML.
+  Also fixed: per-map dot scales replaced by one shared ceiling, "retired"
+  relabelled "dormant" (28 hollow dots are in the live GBFS feed), station
+  labels now taken from whatever supplied the coordinate, Tukey-fence framing
+  so Sherbrooke stops stretching Montreal 161 km wide. Verified in a headed
+  browser: 260 / 1,102 / 972 dots. 56 vitest.
   `docs/features/021-station-maps.md`
+- 2026-07-29 `pending` — spec 009b: the enforcement 009 was missing.
+  `make check-metrics` printed "stub" and exited 0 while
+  `metric_support.json` claimed it was checked. Now fails on an artifact
+  publishing an unsupported system **or on one never declared at all** — the
+  case 021 needed. 12 tests, each planting a violation. 38 pytest.
+  `docs/features/009b-metric-gate.md`

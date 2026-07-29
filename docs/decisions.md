@@ -32,6 +32,32 @@ locations, no stations) arrive in v2 as a visibly separate panel, because
 presenting fuzzed scooter trips as comparable to dock-to-dock rides would
 undermine the honesty the methodology depends on.
 
+## 2026-07-28: The /feature workflow
+
+Features run through a single Claude skill, `/feature`, taking one of `load |
+start | test | review | complete`. The five steps are the lifecycle the
+Vancouver project already documents in prose (`docs/feature-lifecycle.md`
+there); the skill mechanism — a thin `SKILL.md` dispatcher over one file per
+action in `actions/` — is carried from the canadatest project, where it has
+run about a hundred features. Working file `docs/current-feature.md`, specs
+in `docs/features/NNN-name.md` from `000-template.md`.
+
+Two gates block, and they are the reason the workflow exists rather than a
+checklist nobody reads. **Review** blocks on data integrity and
+comparability: provenance pinned to a checksummed manifest, no silent
+guessing, row accounting that closes, artifacts that reproduce byte for
+byte, and metrics defined identically across tier-1 cities or visibly
+labelled as not comparable. **Complete** blocks on committing raw or large
+files, and stops for an explicit yes or no — a raw trip file in git is
+permanent, is in every future clone, and may breach a source licence, which
+makes it the one mistake here a revert does not fix.
+
+Passed on: the canadatest skill's sixth action, `explain` (the History entry
+written at complete already carries the what-and-why); and its SEO gate,
+which guards that project's growth lever and has no analogue here. What
+belongs in that slot for this project is data honesty, so that is what the
+review gate enforces.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

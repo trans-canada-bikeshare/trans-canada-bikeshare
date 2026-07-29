@@ -49,6 +49,10 @@ conversation to have at load, not at review.
 `README.md` states the project's principles. They are not aspirations; they
 are the review gate in `actions/review.md`.
 
+**Review is never self-review.** `/feature review` delegates to subagents on a
+different model. The reason, and the evidence for it, is at the top of
+`actions/review.md`.
+
 ## Task
 
 Execute the requested action: $ARGUMENTS
@@ -58,7 +62,7 @@ Execute the requested action: $ARGUMENTS
 | `load` | Load a feature spec or inline description into the working file |
 | `start` | Branch from `main` and implement the goals |
 | `test` | Test or verify what was built, against the acceptance criteria |
-| `review` | Goals met, code quality, and the blocking data integrity gate |
+| `review` | **Delegated to Fable subagents** — goals, quality, and the blocking data integrity gate |
 | `complete` | Test, build, commit, merge, push, reset |
 
 See [actions/](actions/) for the detailed instructions for each.

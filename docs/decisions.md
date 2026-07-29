@@ -107,6 +107,36 @@ partial coverage stays honest; **stop before deployment** — spec 027 is writte
 as a runbook and never executed; and prefer **depth over breadth** if time runs
 short, always stopping on a merged spec rather than leaving work in flight.
 
+## 2026-07-29: Review is delegated to a different model, never self-review
+
+`/feature review` now launches Fable subagents rather than reviewing in the
+authoring context. One agent per dimension the change touches, in parallel,
+told nothing about what the author already suspects or fixed.
+
+The evidence for the rule, from the overnight build of specs 003-026: a
+self-review passed work that an independent Fable pass then found to contain
+three separate data losses — 320,229 Toronto trips in a zip nested inside the
+annual zip, 217,569 in an unread second worksheet of a workbook, and ~31,000
+dropped silently on invalid encoding — plus 8.9M Montreal rows landing on the
+wrong local day because BIXI's 2022+ epoch milliseconds are UTC while every
+other era publishes local time. The site meanwhile carried four claims its own
+data contradicted, including a winter-closure note that was false in present
+tense directly above the chart disproving it.
+
+All three losses had the same shape: a container whose contents were only
+partially enumerated. The gates in this project fired precisely where their
+author had anticipated failure and were silent everywhere else — which is the
+structural argument, not a claim about any one model. The blind spot that
+produces a bug also shapes the review of it, so the reviewer has to be
+somewhere else. A different model makes that independence real rather than
+nominal.
+
+Corollaries written into `actions/review.md`: the reviewer is told nothing
+about existing suspicions; findings need a query that demonstrates them, not a
+reading of the code; every severity-1 finding is verified by the author before
+being acted on; and a reviewer that reports nothing because it was blocked has
+not delivered a pass.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

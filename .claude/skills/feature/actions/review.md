@@ -1,5 +1,43 @@
 # Review Action
 
+## Review is delegated. You do not review your own work.
+
+**Launch the review as a subagent on a different model — `model: "fable"`.**
+Use the Agent tool, `subagent_type: "general-purpose"`, one agent per dimension
+the change touches (data/SQL, pipeline code, frontend/docs), run in parallel.
+
+This is not ceremony. On 2026-07-29 a self-review of this project passed work
+that an independent Fable pass then found to contain **three separate data
+losses** — 320,229 Toronto trips inside a nested zip, 217,569 in an unread
+second worksheet, ~31,000 to silent encoding errors — plus **8.9M Montreal rows
+on the wrong local day**, and four claims on the site its own data
+contradicted. The gates written into this project fired exactly where their
+author had anticipated failure, and were silent everywhere else. That is the
+structural problem: the blind spot that produces a bug also shapes the review
+of it. A different model makes the independence real rather than nominal.
+
+**Rules for the delegation:**
+
+- Do **not** tell the reviewer what you already fixed or suspect. If it
+  independently re-surfaces something you believe fixed, that fix did not hold.
+- Require **empirical proof**: a query whose output demonstrates the finding,
+  not a reading of the code. Give the agent the warehouse path and note that
+  read-only DuckDB queries are cheap.
+- Require it to say plainly when something is **fine** — a review that only
+  lists problems cannot be distinguished from one that missed the good parts.
+- **Verify every severity-1 finding yourself before acting on it.** Reviewers
+  are wrong sometimes, and a confident wrong finding costs more than none.
+- A reviewer that reports **nothing** because it was blocked (a database lock,
+  a missing dep) has **not** delivered a clean result. Resume it. Never present
+  a stalled run as a pass.
+- Reviewers work from a snapshot. If you fix something mid-review, expect it to
+  be flagged anyway; say so rather than treating the reviewer as wrong.
+
+Then apply your own judgement to what comes back, and carry out steps 1-7 below
+against the findings.
+
+---
+
 1. Read `docs/current-feature.md` for the goals and the spec for full context.
 2. Review every change on the branch: `git diff main` and
    `git diff main --stat`.

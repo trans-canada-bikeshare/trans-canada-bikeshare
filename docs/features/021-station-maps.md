@@ -8,7 +8,7 @@ Ready
 
 Every station-level surface was blocked until Montreal had one identity per
 station rather than three. The bridge (`pipeline/sql/35_bridge.sql`) landed
-2026-07-29, GBFS coordinates are loaded for all three systems, and 2,451 of
+2026-07-29, GBFS coordinates are loaded for all three systems, and 2,445 of
 3,412 identities are positioned. This is the first surface to spend that.
 
 A map is also the honest way to show something the charts cannot: these three
@@ -49,34 +49,63 @@ that.
 
 ## Acceptance Criteria
 
-- [ ] Each system renders its own map, centred and zoomed to its own stations
-      rather than a shared viewport
-- [ ] MapLibre is not in the initial bundle — verified by checking the built
-      chunks and by a network trace that shows it loading only on demand
-- [ ] Basemap follows the theme and swaps when the theme toggles
-- [ ] Dot colour matches that system's series colour everywhere else on the site
-- [ ] Retired stations are visibly distinct from active ones, and the legend
+- [x] Each system renders its own map, centred and zoomed to its own stations
+      rather than a shared viewport — measured: distinct centres, zoom 9.99 /
+      6.61 / 9.14 before the framing fix, each on its own city
+- [x] MapLibre is not in the initial bundle — entry chunk 75.50 kB gzip,
+      `maplibre-gl` a separate 256.53 kB chunk, `grep -c maplibre` on the entry
+      chunk returns 0
+- [x] Basemap follows the theme and swaps when the theme toggles — 3 `positron`
+      + 3 `dark` style requests after a toggle, old instances removed
+- [x] Dot colour matches that system's series colour everywhere else on the site
+      — `circle-color` now resolves to `hsl(205 74% 38%)` from the same token
+      the charts use. **This criterion was previously marked met while the
+      layer was being rejected outright.**
+- [x] Dormant stations are visibly distinct from active ones, and the caption
       says which is which
-- [ ] Selecting a station shows name, lifetime trips, and active state
-- [ ] Stations without coordinates are stated as a count, not silently omitted
-- [ ] Keyboard: the map is reachable and does not trap focus
-- [ ] No horizontal overflow at 320px in either theme
-- [ ] `npm test`, `npm run typecheck`, `npm run build` exit 0; the publish
-      budget still passes
+- [x] Selecting a station shows name, lifetime events, and dormancy
+- [x] Stations without coordinates are stated as a count, not silently omitted
+      — page figures reconcile exactly against `stations_meta.json`
+- [x] Keyboard: the map is reachable and does not trap focus — Tab from the
+      canvas reaches the zoom controls and exits in DOM order
+- [x] No horizontal overflow at 320px in either theme —
+      `scrollWidth === clientWidth` (305/305) in both
+- [x] `npm test` (56), `npm run typecheck`, `npm run build` exit 0; publish
+      budget 19.9% of 320 KB
+
+**Not verified: dots confirmed drawn at the pixel level.** The layer is
+accepted (`getLayer("station-dots")` returns it, paint properties resolve, the
+console is clean where two validation errors previously fired), but no
+available environment composites the GPU output — headless Playwright and a
+backgrounded automation tab both throttle `requestAnimationFrame`, so MapLibre
+never requests a vector tile and the basemap is equally blank. Confirming this
+needs a human with a foreground browser. See `docs/decisions.md`.
 
 ## Data Integrity Checklist
 
-- [ ] Provenance — coordinates come from the pinned GBFS feeds and Montreal's
-      annual snapshots, both checksummed
-- [ ] Nothing guessed — a station without coordinates is omitted from the map
-      and **counted on the page**, never placed at a guessed position
-- [ ] Metrics defined identically — "lifetime events" is departures plus
-      returns for every system
-- [ ] Artifacts reproduce — `make check-artifacts` covers the new file
-- [ ] Copy derives from the data — station counts and the missing-coordinate
-      count come from the artifact
-- ~~Row accounting~~ — n/a, no ETL change
-- [ ] No raw data committed
+- [x] Provenance — coordinates come from the pinned GBFS feeds and Montreal's
+      annual snapshots, both checksummed. `make check-manifest` ok 14/13/104
+- [x] Nothing guessed — a station without coordinates is omitted from the map
+      and **counted on the page**, never placed at a guessed position. No
+      `fillna`, bare `except`, `COALESCE(x, 0)` or `errors="coerce"` in the
+      diff; the two `coalesce` uses are commented provenance chains. The
+      coordinate validator nulls BIXI's `(-1,-1)` row and 7 GBFS `(0,0)` rows
+      rather than plotting them
+- [x] Metrics defined identically — "lifetime events" is departures plus
+      returns for every system, recomputed independently from `conformed_trips`
+      and exact for all three (mtl 176,123,580 / tor 77,144,982 / van
+      17,634,356)
+- [x] Artifacts reproduce — "all 10 artifacts match a fresh publish run"
+- [x] Copy derives from the data — station counts, the threshold, and the
+      omission counts all read from the artifact. Two claims that did **not**
+      derive from it were removed: a causal explanation of missing coordinates
+      the data contradicted, and a Vancouver shape claim true of activity but
+      not of stations
+- [x] Registry gate — `stations` now calls `guard(registry, "active_stations")`
+      like every other cross-city artifact. It previously skipped it
+- ~~Row accounting~~ — n/a, no ETL change to trip parsing; `fact_trips` is
+      unchanged at 135,598,303 across the `40_model.sql` edit
+- [x] No raw data committed
 
 ## Testing
 

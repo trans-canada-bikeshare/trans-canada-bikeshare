@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import stationsJson from "@/data/generated/stations.json";
 import { stationsMeta, omittedFor } from "@/lib/data";
-import { SYSTEM_ORDER, SYSTEMS } from "@/lib/systems";
+import { SYSTEM_ORDER, SYSTEMS, resolvedSeriesColor, seriesColor } from "@/lib/systems";
 
 const pins = (stationsJson as { stations: { s: string; y: number; x: number; t: number; n: string }[] })
   .stations;
@@ -37,11 +37,46 @@ describe("station artifact", () => {
     }
   });
 
-  it("never ships a station without a name or with zero trips", () => {
-    for (const p of pins) {
-      expect(p.n?.length ?? 0).toBeGreaterThan(0);
-      expect(p.t).toBeGreaterThanOrEqual(stationsMeta.min_lifetime_events);
+  it("never ships a station without a name", () => {
+    for (const p of pins) expect(p.n?.length ?? 0).toBeGreaterThan(0);
+  });
+
+  // Pin the literal, not `stationsMeta.min_lifetime_events`. Comparing the
+  // artifact to a constant from the same publish run restates it rather than
+  // checking it: move the threshold in publish.py and both sides move together
+  // while the spec and the sentence on the page quietly stop being true.
+  it("ships only stations at or above the declared 100-event threshold", () => {
+    expect(stationsMeta.min_lifetime_events).toBe(100);
+    for (const p of pins) expect(p.t).toBeGreaterThanOrEqual(100);
+  });
+});
+
+describe("map dot colour", () => {
+  // Spec 021 first shipped with `hsl(var(--series-van))` handed to MapLibre,
+  // which parses colours in JavaScript and cannot resolve a custom property.
+  // It rejected the whole layer without throwing, so all three maps added
+  // their GeoJSON source, drew zero dots, and captioned themselves "Select a
+  // station". Nothing in the suite noticed.
+  it("never hands MapLibre a CSS custom property", () => {
+    for (const id of SYSTEM_ORDER) {
+      document.documentElement.style.setProperty(SYSTEMS[id].varName, "205 74% 38%");
+      const colour = resolvedSeriesColor(id);
+      expect(colour, `no resolved colour for ${id}`).not.toBeNull();
+      expect(colour).not.toContain("var(");
+      // MapLibre accepts CSS colour syntax it can parse without the cascade.
+      expect(colour).toMatch(/^hsl\([\d.\s%]+\)$/);
     }
+  });
+
+  it("still returns the var() form for SVG, which the browser does resolve", () => {
+    for (const id of SYSTEM_ORDER) expect(seriesColor(id)).toContain("var(");
+  });
+
+  it("returns null rather than inventing a colour when the token is absent", () => {
+    for (const id of SYSTEM_ORDER) {
+      document.documentElement.style.removeProperty(SYSTEMS[id].varName);
+    }
+    expect(resolvedSeriesColor("van-mobi")).toBeNull();
   });
 
   // The map cannot show a station with no coordinates. The page must therefore

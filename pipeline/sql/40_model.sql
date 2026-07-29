@@ -115,10 +115,20 @@ SELECT
   a.* EXCLUDE (station_name),
   -- Montreal's id-era trip files carry no station names at all, so a
   -- canonicalised station can reach here nameless. GBFS supplies the label.
-  -- Three sources, in descending confidence: the label a trip carried, the
-  -- live GBFS name, and the annual station snapshot — which is the only one
-  -- that knows a station GBFS has since retired.
-  coalesce(a.station_name, g.name, s.station_name) AS station_name,
+  --
+  -- The label must come from whatever supplied the POSITION, or a dot is
+  -- named one dock and drawn at another. Trip labels are picked by
+  -- arg_max(station_name, last_ts) — last writer wins on a noisy field — and
+  -- Toronto reuses retired station ids: id 7823 carries "Greenwood Ave /
+  -- Sammon Ave" on 4,771 rows and "Bloor St W / Christie St" on 3, and the
+  -- three won on a timestamp. That shipped two dots labelled "Bloor St W /
+  -- Christie St" 7.2 km apart, and "Hanlan's Point Ferry Dock" drawn at
+  -- Centre Island. Where GBFS gives a usable coordinate, GBFS also names it.
+  CASE
+    WHEN g.lat BETWEEN 41 AND 84 AND g.lon BETWEEN -141 AND -52
+      THEN coalesce(g.name, a.station_name, s.station_name)
+    ELSE coalesce(a.station_name, s.station_name)
+  END                               AS station_name,
   -- Coordinates come from GBFS where the identity resolves to a live station,
   -- and from the annual snapshots otherwise (Montreal's pre-2022 files are the
   -- only source for stations GBFS no longer lists, since the feed is

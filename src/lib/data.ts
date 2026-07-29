@@ -100,9 +100,15 @@ export const stationsMeta = stationsMetaJson as {
  *  it is fetched on demand rather than bundled with the page. */
 let pinCache: Promise<StationPin[]> | null = null;
 export function loadStations(): Promise<StationPin[]> {
-  pinCache ??= import("@/data/generated/stations.json").then(
-    (m) => (m.default as { stations: StationPin[] }).stations,
-  );
+  pinCache ??= import("@/data/generated/stations.json")
+    .then((m) => (m.default as { stations: StationPin[] }).stations)
+    // Cache the result, not the rejection. Holding a failed promise here
+    // would disable all three maps for the rest of the session — every
+    // remount replays the same failure with no way back.
+    .catch((err) => {
+      pinCache = null;
+      throw err;
+    });
   return pinCache;
 }
 

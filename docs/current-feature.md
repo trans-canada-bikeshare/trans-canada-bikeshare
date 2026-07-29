@@ -43,3 +43,20 @@ _No feature in progress._
   separated from download, checksum pinning with drift refusal, inventory gate,
   LICENSE corrected (BIXI unsupported claim removed, Toronto attribution added).
   26 pytest. `docs/features/003-manifests-and-downloaders.md`
+
+<!-- GAP: specs 004-020 shipped during the overnight autonomous run of
+     2026-07-28/29 without their History lines being appended. The commits are
+     the record until they are backfilled — `git log --oneline main` reads in
+     order. Recorded as a gap rather than reconstructed from memory, because a
+     History entry invented after the fact is worth less than a pointer to the
+     commit that is actually true. -->
+
+- 2026-07-29 `pending` — spec 021: station maps. MapLibre maps per system,
+  lazily loaded; `stations.json` + `stations_meta.json`. Review (Opus, not
+  Fable — Fable unavailable) found the maps rendered **zero dots**: MapLibre
+  cannot parse `hsl(var(...))` and silently rejected the layer. Also fixed:
+  per-map dot scales replaced by one shared ceiling, "retired" relabelled
+  "dormant" (28 hollow dots are in the live GBFS feed), station labels now
+  taken from whatever supplied the coordinate, Tukey-fence framing so
+  Sherbrooke stops stretching Montreal 161 km wide. 56 vitest.
+  `docs/features/021-station-maps.md`

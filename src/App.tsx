@@ -309,12 +309,19 @@ export default function App() {
             lede={
               <>
                 Every station with a position and at least{" "}
-                {stationsMeta.min_lifetime_events} lifetime trips. Counting stations
-                says nothing about a network's shape — Montreal's is dense and
+                {stationsMeta.min_lifetime_events} lifetime events — a departure
+                or a return, so a round trip counts twice. Counting stations
+                says nothing about a network's shape: Montreal's is dense and
                 radial, Toronto's runs along the lake and up the subway lines,
-                Vancouver's holds to the downtown peninsula. Dot size is
-                lifetime activity; hollow dots are retired stations, kept
-                because where a network used to reach is part of its history.
+                Vancouver's is the most concentrated of the three — dense on
+                the downtown peninsula and thinning outward from it. Dot size
+                is lifetime events on{" "}
+                <strong className="font-medium text-foreground">
+                  one scale shared by all three maps
+                </strong>
+                , so a dot means the same thing in each. Hollow dots are
+                dormant — no trips in the last six months of that system's own
+                data, which is not the same as decommissioned.
               </>
             }
           >
@@ -344,15 +351,18 @@ export default function App() {
                 );
               })}{" "}
               A station without coordinates is left off the map and counted here
-              rather than placed at a guess. Most are stations retired before the
-              current GBFS snapshot, which a live feed cannot know about.{" "}
+              rather than placed at a guess. Most are dormant identities the
+              current live feed no longer lists; the rest are identities that
+              could not be matched to it, which is why a few recently used
+              stations are missing too.{" "}
               <strong className="font-medium text-foreground">
                 BIXI is also not only Montreal
               </strong>{" "}
               — it runs stations in Sherbrooke and several South Shore towns,
               about 0.1% of its positioned activity. This site labels the system
-              by its home city, which is how BIXI brands it, but the map will
-              show you the outliers.
+              by its home city, which is how BIXI brands it. Those outliers are
+              drawn but sit outside the opening frame, which is fitted to each
+              network's core so its shape stays legible; pan east to reach them.
             </Note>
           </Section>
 

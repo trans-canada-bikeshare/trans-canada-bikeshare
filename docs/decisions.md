@@ -137,6 +137,59 @@ reading of the code; every severity-1 finding is verified by the author before
 being acted on; and a reviewer that reports nothing because it was blocked has
 not delivered a pass.
 
+## 2026-07-29: "Dormant", not "retired" — and one dot scale for all three maps
+
+Spec 021's review forced two definitional choices that bind every station-level
+surface after it.
+
+**A station is "dormant", not "retired".** `is_active` means the station had a
+trip in the last six months of *its own system's* data. That is not the same as
+decommissioned: 25 Montreal and 3 Toronto stations the map drew as hollow are
+listed in the GBFS feed downloaded the same morning, including one carrying
+431,464 lifetime events. The flag is worth keeping — it is the only signal the
+trip data supports — but the word on screen has to be one the data can defend.
+Anything the site can only infer from absence is described as absence.
+
+**Dot size uses one ceiling shared by all three maps.** Sizing each map to its
+own busiest station made a 9 px dot mean 1,182,789 events in Montreal and
+429,534 in Vancouver — three panels side by side, encoding at rates 2.75x
+apart, under a single sentence explaining the encoding. Per-map normalisation
+is defensible on a page showing one city; it is not defensible in a grid whose
+heading is "Three networks, three shapes". The like-for-like invariant applies
+to visual encodings, not only to numbers.
+
+Corollary, also from 021: **a label must come from whatever supplied the
+position.** Trip-file station names were chosen by `arg_max(name, last_ts)`,
+and Toronto reuses retired station ids — id 7823 carries "Greenwood Ave /
+Sammon Ave" on 4,771 rows and "Bloor St W / Christie St" on 3, and the three
+won on a 54-minute timestamp margin. That shipped two dots labelled "Bloor St W
+/ Christie St" 7.2 km apart. Where GBFS gives a usable coordinate, GBFS names
+it too.
+
+## 2026-07-29: A rendering surface is not verified until it has been rendered
+
+Spec 021 shipped three station maps that drew **zero dots**. `seriesColor()`
+returns `hsl(var(--series-van))`, which is correct for every SVG chart on this
+site because the browser resolves it. MapLibre parses colours in JavaScript,
+could not resolve the custom property, and rejected the whole layer — silently,
+because registering an `error` listener suppresses MapLibre's own console
+logging and that listener filtered for `/style/i`. Every gate passed: 52 tests,
+typecheck, build, byte-identical artifacts, and a correct 260-station count
+rendered above each empty box, under a caption reading "Select a station".
+
+The author's own completion note said the dots had not been confirmed in a
+browser. That sentence was the finding, and it was written and merged past.
+
+Rule: **a feature whose output is rendered is not testable by its inputs.** If
+the acceptance criteria say something is drawn, the review has to observe it
+drawn, or say plainly that it did not. Where the environment cannot composite
+GPU output — headless Playwright and backgrounded automation tabs both throttle
+`requestAnimationFrame`, so MapLibre never requests a tile — the fallback is to
+assert on the library's own accepted state (`getLayer()` returning the layer,
+the resolved paint property) and to say which of the two was checked. A
+regression test now pins the one-line invariant: nothing handed to MapLibre may
+contain `var(`.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

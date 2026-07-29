@@ -87,9 +87,10 @@ def build(con, registry: dict) -> dict[str, object]:
                NOT list_contains(quality_flags, 'implausible_date')
              )::DATE::VARCHAR                      AS last_trip,
              -- NOT a station count. Montreal spans three key spaces
-             -- (2014-2020 codes, 2021 emplacement_pk, 2022+ names) that are
-             -- not yet bridged, so this reads ~3,490 for a ~1,200-station
-             -- network. Named for what it is until the GBFS bridge lands.
+             -- (2014-2020 codes, 2021 emplacement_pk, 2022+ names). The GBFS
+             -- bridge in 35_bridge.sql now resolves most of them, taking this
+             -- from ~3,490 to 1,776, but 613 name-era and 85 pk-era identities
+             -- remain unmatched — so it is still identities, not stations.
              count(DISTINCT departure_station_id)  AS station_identities_seen,
              sum(CASE WHEN has_quality_issue THEN 1 ELSE 0 END) AS flagged
       FROM fact_trips GROUP BY 1 ORDER BY 1
@@ -108,7 +109,8 @@ def build(con, registry: dict) -> dict[str, object]:
     for s_ in systems:
         s_["stations_note"] = (
             "Distinct station identities, not physical stations. Montreal's "
-            "eras use three key spaces that are not yet bridged."
+            "three era key spaces are bridged to GBFS where they match; the "
+            "identities that do not still count separately."
         )
 
     art["meta"] = {
@@ -241,24 +243,32 @@ def build(con, registry: dict) -> dict[str, object]:
     # Keys are terse because this is by far the largest artifact the site
     # ships. A station with no coordinates is NOT placed at a guess — it is
     # left out and counted, and the page states the count.
-    station_rows = rows(con, """
+    # One threshold, referenced everywhere. It was previously typed three
+    # times — the filter, the published constant the page renders, and the
+    # omission count — so changing one would have left the page stating a
+    # number that no longer matched the stations it was describing.
+    MIN_EVENTS = 100
+    station_rows = rows(con, f"""
       SELECT system_id, station_id, station_name, lat, lon,
              lifetime_events, is_active
       FROM dim_station
-      WHERE lat IS NOT NULL AND lifetime_events >= 100
+      WHERE lat IS NOT NULL AND lifetime_events >= {MIN_EVENTS}
       ORDER BY system_id, lifetime_events DESC
     """)
+    # A per-system series across all three cities is exactly what the registry
+    # governs, and this artifact skipped it while every other one called guard().
+    guard(registry, "active_stations", sorted({r["system_id"] for r in station_rows}))
     # Split deliberately: the counts are needed to render the section's prose,
     # the pin list only once a reader reaches the maps. Keeping them together
     # put 260 KB of station data in the initial bundle for a section most
     # readers never scroll to.
     art["stations_meta"] = {
-        "min_lifetime_events": 100,
-        "omitted": rows(con, """
+        "min_lifetime_events": MIN_EVENTS,
+        "omitted": rows(con, f"""
           SELECT system_id,
                  count(*) FILTER (lat IS NULL)                      AS no_coordinates,
                  count(*) FILTER (lat IS NOT NULL
-                                  AND lifetime_events < 100)        AS below_threshold,
+                                  AND lifetime_events < {MIN_EVENTS}) AS below_threshold,
                  count(*)                                           AS total
           FROM dim_station GROUP BY 1 ORDER BY 1
         """),

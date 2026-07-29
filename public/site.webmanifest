@@ -1,0 +1,14 @@
+{
+  "name": "Trans-Canada Bikeshare",
+  "short_name": "TC Bikeshare",
+  "description": "Canada's bike share systems, measured the same way.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f9fb",
+  "theme_color": "#f7f9fb",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

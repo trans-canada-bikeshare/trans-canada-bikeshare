@@ -9,8 +9,18 @@ export default function App() {
     <div className="min-h-screen">
       <header className="border-b border-border">
         <div className="container flex h-14 items-center justify-between">
-          <span className="text-[15px] font-medium tracking-[-0.01em]">
-            Trans-Canada Bikeshare
+          <span className="flex items-center gap-2.5">
+            <img
+              src="/logo.svg"
+              alt=""
+              aria-hidden="true"
+              width={44}
+              height={18}
+              className="shrink-0"
+            />
+            <span className="text-[15px] font-medium tracking-[-0.01em]">
+              Trans-Canada Bikeshare
+            </span>
           </span>
           <button
             type="button"
@@ -61,6 +71,15 @@ export default function App() {
           ))}
         </dl>
       </main>
+
+      <footer className="container mt-24 border-t border-border py-8">
+        {/* The mark carries the National Flag's maple leaf. Saying plainly that
+            this is not a government site costs one line and removes any
+            implied endorsement — see docs/features/002b-brand-identity.md. */}
+        <p className="text-[13px] text-muted-foreground">
+          Not affiliated with or endorsed by the Government of Canada.
+        </p>
+      </footer>
     </div>
   );
 }

@@ -1,0 +1,94 @@
+system_id,membership_raw,membership_group
+mtl-bixi,0,casual
+mtl-bixi,1,member
+tor-bikeshare,Annual Member,member
+tor-bikeshare,Casual,casual
+tor-bikeshare,Casual Member,casual
+tor-bikeshare,Member,member
+van-mobi,24 Hour,casual
+van-mobi,24 Hour New,casual
+van-mobi,30 Day Pass,member
+van-mobi,30 Day Pass New,member
+van-mobi,365 Corporate Plus,member
+van-mobi,365 Corporate Plus Renewal,member
+van-mobi,365 Corporate Plus Renewal $119/year Vancouver (Mobi),member
+van-mobi,365 Corporate Plus Renewal Vancouver (Mobi),member
+van-mobi,365 Corporate Standard,member
+van-mobi,365 Corporate Standard Renewal,member
+van-mobi,365 Corporate Standard Renewal $99/year Vancouver (Mobi),member
+van-mobi,365 Corporate Standard Renewal Vancouver (Mobi),member
+van-mobi,365 Corporate Standard Vancouver (Mobi),member
+van-mobi,365 Day Founding Plus,member
+van-mobi,365 Day Founding Plus $119/year Vancouver (Mobi),member
+van-mobi,365 Day Founding Standard,member
+van-mobi,365 Day Founding Standard $99/year Vancouver (Mobi),member
+van-mobi,365 Day Founding Standard Vancouver (Mobi),member
+van-mobi,365 Day Pass Plus,member
+van-mobi,365 Day Pass Plus SALE,member
+van-mobi,365 Day Pass Standard,member
+van-mobi,365 Day Pass Standard SALE,member
+van-mobi,365 Day Pass Standard Vancouver $169/year (Mobi),member
+van-mobi,365 Plus,member
+van-mobi,365 Standard,member
+van-mobi,90 Day,member
+van-mobi,Annual pass $169/year Vancouver (Mobi),member
+van-mobi,Annual pass (SALE) Vancouver (Mobi),member
+van-mobi,Annual pass Vancouver (Mobi),member
+van-mobi,Archived 90 Day,member
+van-mobi,Archived Day,casual
+van-mobi,Archived Founding Plus,member
+van-mobi,Archived Founding Standard,member
+van-mobi,Archived Monthly Basic,member
+van-mobi,Archived Monthly Plus,member
+van-mobi,Archived Monthly Standard,member
+van-mobi,Archived Single Trip Pass,casual
+van-mobi,BEST Staff Free Annual Pass,member
+van-mobi,Bike Buddy Monthly Pass,member
+van-mobi,Broadway Buzz Pass #1,member
+van-mobi,Broadway Buzz Pass #2,member
+van-mobi,Broadway Buzz Pass #3,member
+van-mobi,Broadway Buzz Pass #4,member
+van-mobi,Broadway Buzz Pass #5,member
+van-mobi,Community Pass,member
+van-mobi,Community Pass E-bike,member
+van-mobi,Community Pass E-bike (PWD),member
+van-mobi,Community Pass E-bike (PWD) Vancouver (Mobi),member
+van-mobi,Community Pass E-bike Vancouver (Mobi),member
+van-mobi,Community Pass Vancouver (Mobi),member
+van-mobi,Corporate Monthly Pass,member
+van-mobi,Corporate Pass $119/year Vancouver (Mobi),member
+van-mobi,FULL SEASON PASS (Mobi),member
+van-mobi,GOCF Monthly Staff Pass,member
+van-mobi,Go by Bike Weekly Pass,member
+van-mobi,HAT TRICK PASS (discounted),casual
+van-mobi,HOPR Pass,member
+van-mobi,Herbaland Pass,member
+van-mobi,Limited - Classic Bikes Only,casual
+van-mobi,Limited Classic Bikes Only (30 min),casual
+van-mobi,Limited Classic Bikes Only (60 min),casual
+van-mobi,Limited Classic Bikes Only (PPR),casual
+van-mobi,MATCH DAY PASS (discounted),casual
+van-mobi,MOBI INFLUENCER PASS,member
+van-mobi,Maintenance,operational
+van-mobi,Monthly Pass $49/month Vancouver (Mobi),member
+van-mobi,Pay Per Ride,casual
+van-mobi,Pay as you go Vancouver (Mobi),casual
+van-mobi,Promo Day,casual
+van-mobi,Promo Day Vancouver (Mobi),casual
+van-mobi,Promo Weekly,member
+van-mobi,RideLink Pay Per Ride,casual
+van-mobi,Rogers 3-Month Promo Pass,member
+van-mobi,SUMMER PASS (Mobi),member
+van-mobi,Shared Mobility Pass,member
+van-mobi,Simplii Financial Pass $79/month,member
+van-mobi,Single Trip Pass,casual
+van-mobi,Special Weekly Pass,member
+van-mobi,UBC Inclusive Corporate Pass,member
+van-mobi,UBC Inclusive Corporate Pass Vancouver (Mobi),member
+van-mobi,UBC Weekly Promo Pass,member
+van-mobi,VIP,member
+van-mobi,VIP Tour,member
+van-mobi,VIP Tour E-bike,member
+van-mobi,Vancity Community Pass,member
+van-mobi,Youth Community Pass,member
+van-mobi,Youth Community Pass Vancouver (Mobi),member

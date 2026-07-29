@@ -1,0 +1,45 @@
+{
+  "_comment": "Mobi by Rogers. Carried from the sister project's column_eras.json, which mapped 34 distinct headers across 31 layouts over its full archive, and re-verified here by pipeline/census.py. Yes, 'Memebership type' and 'Return temperature (Â°C)' are real headers Mobi shipped. The richest of the three schemas: the only one with distance, per-trip temperature, and stopover behaviour.",
+  "_eras": {
+    "2017": "one ALL-of-2017 workbook; formats drift xlsx / csv / sheets across the archive",
+    "2018+": "monthly; five distinct timestamp formats; per-trip temperatures degrade to 0-sentinels after mid-2025",
+    "note": "The period label is NOT the content month - the file published as 2025-01 holds February rows. Canonical month is derived at conform."
+  },
+  "trips": {
+    "Departure": "departure_raw",
+    "Return": "return_raw",
+    "Departure station": "departure_station_name",
+    "Return station": "return_station_name",
+    "Bike": "bike_id",
+    "Electric bike": "electric_bike",
+    "Electric Bike": "electric_bike",
+    "Electric": "electric_bike",
+    "Membership type": "membership_raw",
+    "Membership Type": "membership_raw",
+    "Memebership type": "membership_raw",
+    "Formula": "membership_raw",
+    "Covered distance (m)": "distance_m",
+    "Duration (sec.)": "duration_s",
+    "Departure temperature (°C)": "departure_temp",
+    "Departure temperature (C)": "departure_temp",
+    "Departure temperature (deg C)": "departure_temp",
+    "Return temperature (°C)": "return_temp",
+    "Return temperature (C)": "return_temp",
+    "Return temperature (deg C)": "return_temp",
+    "Return temperature (Â°C)": "return_temp",
+    "Stopover duration (sec.)": "stopover_s",
+    "Stopover duration": "stopover_s",
+    "Lock duration (sec.)": "stopover_s",
+    "Number of stopovers": "stopover_count",
+    "Number of bike stopovers": "stopover_count",
+    "Number of bike locks": "stopover_count",
+
+    "Account": null,
+    "Manager": null,
+    "Departure slot": null,
+    "Return slot": null,
+    "Departure battery voltage (mV)": null,
+    "Return battery voltage (mV)": null
+  },
+  "stations": {}
+}

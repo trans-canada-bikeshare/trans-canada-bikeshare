@@ -1,30 +1,105 @@
+import { useMemo } from "react";
 import { setTheme, useTheme } from "@/lib/theme";
+import { Section, Note } from "@/components/Section";
+import { StatGrid } from "@/components/StatGrid";
+import { LineChart, type Series } from "@/components/charts/LineChart";
+import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
+import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
+import {
+  meta, tripsMonthly, seasonality, stationsYearly, ebikeShare, durations,
+  exclusions, monthIndex, monthKeyFromIndex, commonWindow,
+} from "@/lib/data";
 
-// Scaffold surface only. The real shell — nav, scrollspy, sections — is spec
-// 015. This exists to prove the design language renders and the theme flips.
+const NAV = [
+  ["overview", "Overview"],
+  ["trips", "Trips"],
+  ["seasons", "Seasons"],
+  ["stations", "Stations"],
+  ["ebikes", "E-bikes"],
+  ["method", "Method"],
+] as const;
+
 export default function App() {
   const theme = useTheme();
+  const window = commonWindow();
+
+  const tripSeries: Series[] = useMemo(
+    () =>
+      SYSTEM_ORDER.map((id) => ({
+        id,
+        label: SYSTEMS[id].city,
+        color: seriesColor(id),
+        points: tripsMonthly
+          .filter((r) => r.system_id === id)
+          .map((r) => ({ x: monthIndex(r.month), y: r.trips })),
+      })),
+    [],
+  );
+
+  const seasonSeries: Series[] = useMemo(
+    () =>
+      SYSTEM_ORDER.map((id) => ({
+        id,
+        label: SYSTEMS[id].city,
+        color: seriesColor(id),
+        points: seasonality.series
+          .filter((r) => r.system_id === id)
+          .map((r) => ({ x: r.month_of_year, y: r.mean_trips })),
+      })),
+    [],
+  );
+
+  const stationSeries: Series[] = useMemo(
+    () =>
+      SYSTEM_ORDER.map((id) => ({
+        id,
+        label: SYSTEMS[id].city,
+        color: seriesColor(id),
+        points: stationsYearly
+          .filter((r) => r.system_id === id)
+          .map((r) => ({ x: r.year, y: r.stations })),
+      })),
+    [],
+  );
+
+  const ebikeSeries: Series[] = useMemo(() => {
+    const ids = [...new Set(ebikeShare.series.map((r) => r.system_id))];
+    return SYSTEM_ORDER.filter((id) => ids.includes(id)).map((id) => ({
+      id,
+      label: SYSTEMS[id].city,
+      color: seriesColor(id),
+      points: ebikeShare.series
+        .filter((r) => r.system_id === id && r.classified_trips > 0)
+        .map((r) => ({ x: monthIndex(r.month), y: (100 * r.ebike_trips) / r.classified_trips })),
+    }));
+  }, []);
+
+  const totalTrips = meta.systems.reduce((n, s) => n + s.trips, 0);
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-border">
-        <div className="container flex h-14 items-center justify-between">
-          <span className="flex items-center gap-2.5">
-            <img
-              src="/logo.svg"
-              alt=""
-              aria-hidden="true"
-              width={44}
-              height={18}
-              className="shrink-0"
-            />
+      <header className="sticky top-0 z-10 border-b border-border bg-background/85 backdrop-blur">
+        <div className="container flex h-14 items-center justify-between gap-4">
+          <a href="#top" className="flex shrink-0 items-center gap-2.5">
+            <img src="/logo.svg" alt="" aria-hidden="true" width={44} height={18} />
             <span className="text-[15px] font-medium tracking-[-0.01em]">
               Trans-Canada Bikeshare
             </span>
-          </span>
+          </a>
+          <nav className="hidden items-center gap-5 md:flex" aria-label="Sections">
+            {NAV.map(([id, label]) => (
+              <a
+                key={id}
+                href={`#${id}`}
+                className="text-[14px] text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {label}
+              </a>
+            ))}
+          </nav>
           <button
             type="button"
-            className="eyebrow border-b border-muted-2 pb-0.5 transition-colors hover:border-foreground hover:text-foreground"
+            className="eyebrow shrink-0 border-b border-muted-2 pb-0.5 transition-colors hover:border-foreground hover:text-foreground"
             aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}
             aria-pressed={theme === "dark"}
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
@@ -34,51 +109,188 @@ export default function App() {
         </div>
       </header>
 
-      <main className="container pt-24">
-        <p className="eyebrow">Scaffold · spec 002</p>
-        <h1 className="mt-7 max-w-3xl text-[clamp(40px,7vw,96px)] font-medium leading-[0.95] tracking-[-0.024em]">
-          Canada's bike share systems, measured the same way.
-        </h1>
-        {/* text-base is the 17px portfolio reading size, not the browser's 16 —
-            Tailwind only applies it where asked, so prose opts in explicitly. */}
-        <p className="mt-9 max-w-xl text-base text-muted-foreground">
-          Vancouver, Montreal, and Toronto — one pipeline, one set of
-          definitions, computed from each system's published open data and
-          compared like for like.
-        </p>
+      <main id="top" className="container pb-24">
+        <div className="pt-20 md:pt-28">
+          <p className="eyebrow">Canada · three systems · one method</p>
+          <h1 className="mt-6 max-w-4xl text-[clamp(40px,7vw,92px)] font-medium leading-[0.95] tracking-[-0.024em]">
+            Canada's bike share systems, measured the same way.
+          </h1>
+          <p className="mt-8 max-w-2xl text-base leading-relaxed text-muted-foreground">
+            {full(totalTrips)} trips from Vancouver, Montreal and Toronto, computed
+            from each system's published open data through one pipeline, with one
+            set of definitions — and with every place they cannot be compared
+            said out loud.
+          </p>
+        </div>
 
-        <hr className="mt-16 border-t border-rule-2" />
-
-        {/* SCAFFOLD DATA — hardcoded, and it must not stay that way. These years
-            are audit-verified (docs/source-audit.md) but the project's rule is
-            that copy derives from the data window, not from a literal. Spec 014
-            emits meta.json and spec 016 replaces this surface entirely; until
-            then this is the one place in the repo making a data claim no
-            pipeline backs. */}
-        <dl className="mt-8 grid gap-6 sm:grid-cols-3">
-          {[
-            { city: "Vancouver", system: "Mobi by Rogers", since: "2017" },
-            { city: "Montreal", system: "BIXI", since: "2014" },
-            { city: "Toronto", system: "Bike Share Toronto", since: "2014" },
-          ].map((s) => (
-            <div key={s.city} className="border-t border-border pt-4">
-              <dt className="eyebrow">{s.city}</dt>
-              <dd className="mt-2 text-[15px]">{s.system}</dd>
-              <dd className="mt-1 text-[13px] tabular-nums text-muted-foreground">
-                open data since {s.since}
-              </dd>
+        <div className="mt-20 space-y-16 md:space-y-20">
+          <Section
+            id="overview"
+            eyebrow="Overview"
+            title="Three systems, side by side"
+            lede={
+              <>
+                Each system covers a different span. Cross-city comparisons below
+                are restricted to {meta.common_window_first_year} onward, where all
+                three publish — {longDate(window.first)} to {longDate(window.last)}.
+              </>
+            }
+          >
+            <StatGrid
+              stats={meta.systems
+                .slice()
+                .sort(
+                  (a, b) =>
+                    SYSTEM_ORDER.indexOf(a.system_id) - SYSTEM_ORDER.indexOf(b.system_id),
+                )
+                .map((s) => ({
+                  label: s.city,
+                  value: compact(s.trips),
+                  accent: seriesColor(s.system_id),
+                  detail: (
+                    <>
+                      {s.system} · {full(s.active_stations)} active stations
+                      <br />
+                      {s.first_trip.slice(0, 7)} to {s.last_trip.slice(0, 7)}
+                    </>
+                  ),
+                }))}
+            />
+            <div className="mt-12">
+              <StatGrid
+                stats={durations
+                  .slice()
+                  .sort(
+                    (a, b) =>
+                      SYSTEM_ORDER.indexOf(a.system_id) - SYSTEM_ORDER.indexOf(b.system_id),
+                  )
+                  .map((d) => ({
+                    label: `${cityOf(d.system_id)} · median trip`,
+                    value: duration(d.median_s),
+                    accent: seriesColor(d.system_id),
+                    detail: `middle half ${duration(d.p25_s)} to ${duration(d.p75_s)}`,
+                  }))}
+              />
             </div>
-          ))}
-        </dl>
+            <Note>
+              Durations exclude trips with no recorded end. Those are real
+              departures and are counted in the trip totals above, but a duration
+              cannot be computed without an ending.
+            </Note>
+          </Section>
+
+          <Section
+            id="trips"
+            eyebrow="Trips"
+            title="Every month each system has published"
+            lede="Monthly trip counts, on the same definition for all three: a departure with a parseable time and a resolvable station. Gaps are gaps — a line breaks where a system published nothing."
+          >
+            <LineChart
+              series={tripSeries}
+              xLabel={(x) => monthKeyFromIndex(Math.round(x)).slice(0, 4)}
+              caption="Monthly trips by system"
+            />
+            <Note>
+              Montreal's line falls to nothing each winter because BIXI closes
+              from roughly mid-November to mid-April. That is a real closure, not
+              missing data.
+            </Note>
+          </Section>
+
+          <Section
+            id="seasons"
+            eyebrow="Seasons"
+            title="The shape of a Canadian riding year"
+            lede={`Mean trips by month of year across ${seasonality.first_year} onward. The same three cities, the same winters, three very different answers.`}
+          >
+            <LineChart
+              series={seasonSeries}
+              xLabel={(x) => MONTH_SHORT[Math.max(0, Math.min(11, Math.round(x) - 1))]}
+              xTicks={12}
+              caption="Mean trips by month of year"
+            />
+          </Section>
+
+          <Section
+            id="stations"
+            eyebrow="Stations"
+            title="Networks, growing at different rates"
+            lede="Distinct stations seen in each year's trips. Active counts in the overview use each system's own most recent six months, not a shared cutoff — that would penalise whichever system publishes least often."
+          >
+            <LineChart
+              series={stationSeries}
+              xLabel={(x) => String(Math.round(x))}
+              yLabel={(y) => String(Math.round(y))}
+              caption="Distinct stations seen per year"
+            />
+          </Section>
+
+          <Section
+            id="ebikes"
+            eyebrow="E-bikes"
+            title="Two cities, because only two publish it"
+            lede="Share of trips taken on an electric bike, monthly. This is not a three-city comparison and is not presented as one."
+          >
+            <LineChart
+              series={ebikeSeries}
+              xLabel={(x) => monthLabel(monthKeyFromIndex(Math.round(x)))}
+              yLabel={(y) => `${Math.round(y)}%`}
+              caption="Share of trips on an electric bike"
+            />
+            {Object.entries(ebikeShare.unsupported).map(([id, info]) => (
+              <Note key={id}>
+                <strong className="font-medium text-foreground">
+                  {cityOf(id)} — {info.display ?? "not published"}.
+                </strong>{" "}
+                {info.reason}
+              </Note>
+            ))}
+          </Section>
+
+          <Section
+            id="method"
+            eyebrow="Method"
+            title="What was dropped, and what rests on a weaker claim"
+            lede="Every row this pipeline drops or flags is accounted for. The full generated report lives in the repository; these are the two figures that qualify what you have just read."
+          >
+            <StatGrid
+              stats={exclusions
+                .slice()
+                .sort(
+                  (a, b) =>
+                    SYSTEM_ORDER.indexOf(a.system_id) - SYSTEM_ORDER.indexOf(b.system_id),
+                )
+                .map((e) => ({
+                  label: `${cityOf(e.system_id)} · station matched by name`,
+                  value: percent(e.station_matched_by_name / e.total, 1),
+                  accent: seriesColor(e.system_id),
+                  detail: `${full(e.unterminated)} trips with no recorded end`,
+                }))}
+            />
+            <Note>
+              A station resolved by name is a weaker claim than one resolved by a
+              published id. Montreal's share is high because BIXI stopped
+              publishing station identifiers entirely in 2022 — from then on only
+              the station name is available.
+            </Note>
+            <Note>
+              Sources: Mobi by Rogers, BIXI Montréal, and Bike Share Toronto open
+              data. Contains information licensed under the Open Government
+              Licence – Toronto. BIXI's open data page states no licence terms;
+              that is unresolved and recorded as such in the repository.
+            </Note>
+          </Section>
+        </div>
       </main>
 
-      <footer className="container mt-24 border-t border-border py-8">
-        {/* The mark carries the National Flag's maple leaf. Saying plainly that
-            this is not a government site costs one line and removes any
-            implied endorsement — see docs/features/002b-brand-identity.md. */}
-        <p className="text-[13px] text-muted-foreground">
-          Not affiliated with or endorsed by the Government of Canada.
-        </p>
+      <footer className="border-t border-border">
+        <div className="container flex flex-col gap-2 py-8 text-[13px] text-muted-foreground">
+          <p>
+            Data generated {longDate(meta.generated_at)}. Built by Adnan Reza.
+            Sister project to Mobi Transit Explorer.
+          </p>
+          <p>Not affiliated with or endorsed by the Government of Canada.</p>
+        </div>
       </footer>
     </div>
   );

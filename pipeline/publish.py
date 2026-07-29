@@ -57,6 +57,13 @@ def guard(registry: dict, metric: str, systems: list[str]) -> None:
         )
 
 
+# Rows flagged implausible_date survived parsing but cannot be trusted. They
+# stay in fact_trips and in the quality report — nothing is hidden — but they
+# must not reach a published series, where a single stray row would stretch a
+# chart axis back to the year 2000.
+TRUSTED = "NOT list_contains(quality_flags, 'implausible_date')"
+
+
 def rows(con, sql: str, params: list | None = None) -> list[dict]:
     cur = con.execute(sql, params or [])
     cols = [d[0] for d in cur.description]
@@ -105,28 +112,28 @@ def build(con, registry: dict) -> dict[str, object]:
     }
 
     # --- trips per month, all three ----------------------------------------
-    monthly = rows(con, """
+    monthly = rows(con, f"""
       SELECT system_id, strftime(trip_month, '%Y-%m') AS month, count(*) AS trips
-      FROM fact_trips GROUP BY 1, 2 ORDER BY 1, 2
+      FROM fact_trips WHERE {TRUSTED} GROUP BY 1, 2 ORDER BY 1, 2
     """)
     guard(registry, "trips", sorted({r["system_id"] for r in monthly}))
     art["trips_monthly"] = monthly
 
     # --- seasonality: mean trips by month of year, common window ------------
     first = int(registry["_window"]["common_first_year"])
-    seasonal = rows(con, """
+    seasonal = rows(con, f"""
       SELECT system_id, month(trip_month) AS month_of_year,
              count(*) / count(DISTINCT trip_year) AS mean_trips
-      FROM fact_trips WHERE trip_year >= ? GROUP BY 1, 2 ORDER BY 1, 2
+      FROM fact_trips WHERE trip_year >= ? AND {TRUSTED} GROUP BY 1, 2 ORDER BY 1, 2
     """, [first])
     guard(registry, "seasonality", sorted({r["system_id"] for r in seasonal}))
     art["seasonality"] = {"first_year": first, "series": seasonal}
 
     # --- active stations over time -----------------------------------------
-    stations = rows(con, """
+    stations = rows(con, f"""
       SELECT system_id, trip_year AS year,
              count(DISTINCT departure_station_id) AS stations
-      FROM fact_trips GROUP BY 1, 2 ORDER BY 1, 2
+      FROM fact_trips WHERE {TRUSTED} GROUP BY 1, 2 ORDER BY 1, 2
     """)
     guard(registry, "active_stations", sorted({r["system_id"] for r in stations}))
     art["stations_yearly"] = stations
@@ -139,7 +146,7 @@ def build(con, registry: dict) -> dict[str, object]:
              count(*) FILTER (is_ebike IS NOT NULL) AS classified_trips
       FROM fact_trips
       WHERE system_id IN ({','.join('?' * len(ebike_systems))})
-        AND is_ebike IS NOT NULL
+        AND is_ebike IS NOT NULL AND {TRUSTED}
       GROUP BY 1, 2 HAVING count(*) FILTER (is_ebike IS NOT NULL) > 0
       ORDER BY 1, 2
     """, ebike_systems)
@@ -155,7 +162,7 @@ def build(con, registry: dict) -> dict[str, object]:
     }
 
     # --- duration distribution, terminated trips only -----------------------
-    duration = rows(con, """
+    duration = rows(con, f"""
       SELECT system_id,
              CAST(median(duration_s) AS INTEGER)                      AS median_s,
              CAST(quantile_cont(duration_s, 0.25) AS INTEGER)         AS p25_s,
@@ -163,6 +170,7 @@ def build(con, registry: dict) -> dict[str, object]:
              count(*)                                                 AS basis_trips
       FROM fact_trips
       WHERE return_ts IS NOT NULL AND duration_s BETWEEN 1 AND 86400
+        AND {TRUSTED}
       GROUP BY 1 ORDER BY 1
     """)
     guard(registry, "duration", sorted({r["system_id"] for r in duration}))

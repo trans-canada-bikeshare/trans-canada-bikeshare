@@ -143,10 +143,29 @@ def tabular_files(system_id: str, period: str, entry: dict) -> list[Path]:
     return sorted(p for p in out_dir.iterdir() if p.suffix.lower() in DATA_SUFFIXES)
 
 
-def reader_expr(path: Path) -> str:
+def sheets_in(path: Path) -> list[str]:
+    """Every worksheet in a workbook.
+
+    read_xlsx() reads only the FIRST sheet. Toronto's 2016.xlsx carries Q3 and
+    Q4 as two sheets, so 217,569 trips — a whole quarter — were never read and
+    nothing said so. A workbook is an archive too.
+    """
+    import openpyxl
+
+    book = openpyxl.load_workbook(path, read_only=True)
+    try:
+        return list(book.sheetnames)
+    finally:
+        book.close()
+
+
+def reader_expr(path: Path, sheet: str | None = None) -> str:
     quoted = str(path).replace("'", "''")
     if path.suffix.lower() == ".xlsx":
-        return f"read_xlsx('{quoted}', all_varchar = true)"
+        if sheet is None:
+            return f"read_xlsx('{quoted}', all_varchar = true)"
+        esc = sheet.replace("'", "''")
+        return f"read_xlsx('{quoted}', all_varchar = true, sheet = '{esc}')"
     # ignore_errors keeps a single ragged row from killing a 3 GB file; the
     # count difference is recorded as a drop, never hidden.
     return (
@@ -155,9 +174,21 @@ def reader_expr(path: Path) -> str:
     )
 
 
-def read_header(con, path: Path) -> list[str]:
-    rows = con.execute(f"DESCRIBE SELECT * FROM {reader_expr(path)}").fetchall()
+def read_header(con, path: Path, sheet: str | None = None) -> list[str]:
+    rows = con.execute(f"DESCRIBE SELECT * FROM {reader_expr(path, sheet)}").fetchall()
     return [r[0] for r in rows]
+
+
+def tabular_units(system_id: str, period: str, entry: dict) -> list[tuple[Path, str | None]]:
+    """(file, sheet) pairs to load. A multi-sheet workbook yields one per sheet."""
+    units: list[tuple[Path, str | None]] = []
+    for path in tabular_files(system_id, period, entry):
+        if path.suffix.lower() == ".xlsx":
+            names = sheets_in(path)
+            units += [(path, n) for n in names] if len(names) > 1 else [(path, None)]
+        else:
+            units.append((path, None))
+    return units
 
 
 def plan(header: list[str], column_map: dict, source: str) -> list[tuple[str, str]]:
@@ -204,25 +235,26 @@ def run_extract(con, systems: list[str], limit: int | None) -> None:
                 print(f"  {system_id} {period}: excluded — {EXCLUDED[(system_id, period)]}")
                 skipped += 1
                 continue
-            for path in tabular_files(system_id, period, entry):
-                header = read_header(con, path)
+            for path, sheet in tabular_units(system_id, period, entry):
+                label = path.name if sheet is None else f"{path.name}#{sheet.strip()}"
+                header = read_header(con, path, sheet)
                 kind = classify(header, maps)
                 if kind is None:
                     raise UnknownColumns(
-                        f"{system_id} {period} {path.name}: header matches neither "
+                        f"{system_id} {period} {label}: header matches neither "
                         f"the trips nor the stations map: {header!r}"
                     )
-                pairs = plan(header, maps[kind], f"{system_id} {period} {path.name}")
+                pairs = plan(header, maps[kind], f"{system_id} {period} {label}")
                 cols = ", ".join(f'"{u}"' for _, u in pairs)
                 sel = ", ".join(f'"{r}"' for r, _ in pairs)
                 table = "raw_trips" if kind == "trips" else "raw_stations"
                 con.execute(
                     f"INSERT INTO {table} (system_id, source_period, source_file, {cols}) "
-                    f"SELECT ?, ?, ?, {sel} FROM {reader_expr(path)}",
-                    [system_id, period, path.name],
+                    f"SELECT ?, ?, ?, {sel} FROM {reader_expr(path, sheet)}",
+                    [system_id, period, label],
                 )
                 loaded += 1
-                print(f"  {system_id} {period} {path.name}: {kind}", flush=True)
+                print(f"  {system_id} {period} {label}: {kind}", flush=True)
             if limit and loaded >= limit:
                 break
         print(f"{system_id}: {loaded} file(s) loaded, {skipped} excluded")
@@ -277,6 +309,17 @@ def run_clean(con) -> None:
     """
     # Must precede clean: the parser reads each file's proven date order.
     run_sql(con, "15_dates.sql")
+    run_sql(con, "17_timezones.sql")
+    for sys_id, f, basis, trough, n in con.execute(
+        "SELECT system_id, source_file, tz_basis, trough_hour, rows_parsed "
+        "FROM file_timezone WHERE tz_basis <> 'local' ORDER BY 1, 2"
+    ).fetchall():
+        print(f"  timezone {basis.upper()} for {sys_id} {f} "
+              f"(trough {trough:02d}:00, {n:,} rows)", flush=True)
+    record(con, "clean", "files_utc",
+           "SELECT count(*) FROM file_timezone WHERE tz_basis = 'utc'")
+    record(con, "clean", "files_tz_unknown",
+           "SELECT count(*) FROM file_timezone WHERE tz_basis = 'unknown'")
     odd = con.execute(
         "SELECT system_id, source_file, date_order FROM file_date_order "
         "WHERE date_order IN ('conflict', 'ambiguous')"
@@ -288,6 +331,7 @@ def run_clean(con) -> None:
     record(con, "clean", "files_ambiguous_date_order",
            "SELECT count(*) FROM file_date_order WHERE date_order IN ('conflict','ambiguous')")
     run_sql(con, "20_clean.sql")
+    run_sql(con, "25_localise.sql")
     record(con, "clean", "rows_kept", "SELECT count(*) FROM clean_trips")
     # These MUST use the same context-aware parser clean_trips uses. When they
     # did not, the funnel produced a negative duplicate count — which is exactly
@@ -347,6 +391,7 @@ def connect(db_path: Path) -> duckdb.DuckDBPyConnection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(str(db_path))
     con.execute("INSTALL excel; LOAD excel;")
+    con.execute("INSTALL icu; LOAD icu;")  # timezone conversion in 20_clean.sql
     # 135M rows on a 16 GB machine: bound memory explicitly and give the spill
     # a home on the data volume. Left to its own devices DuckDB will take ~80%
     # of RAM and then thrash.

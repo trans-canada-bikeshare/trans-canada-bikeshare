@@ -42,6 +42,32 @@ CREATE OR REPLACE MACRO parse_month_first(s) AS try_strptime(
   ]
 );
 
+-- A text timestamp a file published in UTC -> that system's local time.
+-- Files classified 'local' (and 'unknown', which is left alone deliberately)
+-- pass through untouched. See 17_timezones.sql for how the basis is derived.
+CREATE OR REPLACE MACRO as_local(sys, ts, basis) AS
+  CASE WHEN ts IS NULL THEN NULL
+       WHEN basis = 'utc' THEN timezone(
+         CASE sys
+           WHEN 'mtl-bixi'      THEN 'America/Montreal'
+           WHEN 'tor-bikeshare' THEN 'America/Toronto'
+           WHEN 'van-mobi'      THEN 'America/Vancouver'
+         END,
+         ts AT TIME ZONE 'UTC')
+       ELSE ts END;
+
+-- Epoch milliseconds -> that system's local wall-clock time.
+CREATE OR REPLACE MACRO to_local(sys, ms) AS
+  CASE WHEN try_cast(ms AS BIGINT) IS NOT NULL THEN
+    timezone(
+      CASE sys
+        WHEN 'mtl-bixi'      THEN 'America/Montreal'
+        WHEN 'tor-bikeshare' THEN 'America/Toronto'
+        WHEN 'van-mobi'      THEN 'America/Vancouver'
+      END,
+      epoch_ms(try_cast(ms AS BIGINT))::TIMESTAMP AT TIME ZONE 'UTC')
+  END;
+
 CREATE OR REPLACE MACRO parse_day_first(s) AS try_strptime(
   s,
   ['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M', '%-d/%-m/%Y %-H:%M']
@@ -111,10 +137,21 @@ typed AS (
 
     -- Text timestamp where one exists, epoch milliseconds otherwise. No system
     -- publishes both, so coalesce is unambiguous.
+    -- BIXI's 2022+ epoch milliseconds are UTC; every other era and system
+    -- publishes LOCAL time. Read naively they shift Montreal +4/+5 hours: the
+    -- peak departure hour moved 17:00 -> 21:00 exactly at the format break
+    -- while Toronto and Vancouver held at 17:00, and the 02:00-05:59 share
+    -- leapt from 2.2% to 10.4%. 8.9M rows landed on the wrong local DAY, which
+    -- corrupts date_key, trip_month and is_weekend. Converting per zone also
+    -- gets EDT/EST right, which a flat -4 would not.
+    -- Text timestamps land as published here; the handful of files that turn
+    -- out to be UTC are corrected in 25_localise.sql. Applying the conversion
+    -- inline evaluated ICU across all 135M rows and segfaulted DuckDB, for the
+    -- benefit of the ~1.3M that need it.
     coalesce(parse_ts_ord(r.departure_raw, o.date_order),
-             epoch_ms(try_cast(r.departure_ms AS BIGINT)))        AS departure_ts,
+             to_local(r.system_id, r.departure_ms))               AS departure_ts,
     coalesce(parse_ts_ord(r.return_raw, o.date_order),
-             epoch_ms(try_cast(r.return_ms AS BIGINT)))           AS return_ts,
+             to_local(r.system_id, r.return_ms))                  AS return_ts,
 
     nullif(trim(r.departure_station_key), '')                     AS departure_station_key,
     nullif(trim(r.return_station_key), '')                        AS return_station_key,

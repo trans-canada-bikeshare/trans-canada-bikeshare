@@ -28,15 +28,16 @@ check-manifest:
 	fi
 
 # Spec 009. Fails if a cross-city artifact publishes a metric the registry does
-# not mark supported for every system in it. This is the executable form of the
-# like-for-like promise — spec 001 already found two metrics it must catch.
+# not mark supported for every system in it, OR if an artifact carrying
+# system-keyed data was never declared against a metric at all. The second case
+# is the one spec 021 needed: it shipped stations.json across three cities
+# having called guard() for neither of its artifacts, and every gate passed.
+#
+# This ran as a stub until 2026-07-29 — printing a message and exiting 0 while
+# metric_support.json claimed it was enforced. No `|| true`, no conditional:
+# a gate that cannot fail is the thing this target exists to prevent.
 check-metrics:
-	@if [ -f pipeline/check_metrics.py ]; then \
-		$(PYTHON) pipeline/check_metrics.py; \
-	else \
-		echo "check-metrics: stub — spec 009 makes this real."; \
-		echo "  will enforce pipeline/mappings/metric_support.json across published series"; \
-	fi
+	$(PYTHON) pipeline/check_metrics.py
 
 check: check-manifest check-metrics check-artifacts
 

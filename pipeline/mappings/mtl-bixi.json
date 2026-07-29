@@ -1,0 +1,37 @@
+{
+  "_comment": "BIXI Montreal. Three trip layouts and three station layouts, verified across every acquired file by pipeline/census.py. Extraction FAILS on any header not listed here, so new drift becomes an explicit decision rather than a silent guess. Note what the 2022 break costs: is_member and the integer station key both disappear, and are not recoverable.",
+  "_eras": {
+    "2014-2020": "start_station_code, second-precision from 2020, minute before",
+    "2021": "station key renamed AND renumbered to emplacement_pk (a different key space, joining to GBFS station_id rather than short_name); millisecond timestamps",
+    "2022+": "one unsorted annual CSV; epoch-millisecond timestamps; station NAME only, with coordinates inline; membership gone"
+  },
+  "trips": {
+    "start_date": "departure_raw",
+    "end_date": "return_raw",
+    "start_station_code": "departure_station_key",
+    "end_station_code": "return_station_key",
+    "emplacement_pk_start": "departure_station_key",
+    "emplacement_pk_end": "return_station_key",
+    "duration_sec": "duration_s",
+    "is_member": "membership_raw",
+
+    "STARTSTATIONNAME": "departure_station_name",
+    "ENDSTATIONNAME": "return_station_name",
+    "STARTSTATIONARRONDISSEMENT": "departure_borough",
+    "ENDSTATIONARRONDISSEMENT": "return_borough",
+    "STARTSTATIONLATITUDE": "departure_lat",
+    "STARTSTATIONLONGITUDE": "departure_lon",
+    "ENDSTATIONLATITUDE": "return_lat",
+    "ENDSTATIONLONGITUDE": "return_lon",
+    "STARTTIMEMS": "departure_ms",
+    "ENDTIMEMS": "return_ms"
+  },
+  "stations": {
+    "code": "station_key",
+    "Code": "station_key",
+    "pk": "station_key",
+    "name": "station_name",
+    "latitude": "lat",
+    "longitude": "lon"
+  }
+}

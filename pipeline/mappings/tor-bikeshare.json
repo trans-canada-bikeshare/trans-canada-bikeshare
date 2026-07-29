@@ -1,0 +1,47 @@
+{
+  "_comment": "Bike Share Toronto. Every column is renamed twice across the archive (snake_case -> Title Case -> Title_Snake) and reordered once at 2018. 'Trip  Duration' really does carry two spaces; it is mapped verbatim and must never be trimmed into 'Trip Duration'. Verified across every acquired file by pipeline/census.py.",
+  "_eras": {
+    "2016, 2017-Q3, 2017-Q4": "seven columns, station NAMES ONLY - no station ids",
+    "2017-Q1, 2017-Q2": "nine columns, ids present, minute-precision M/D/YYYY",
+    "2018": "same nine column names, reordered",
+    "2019-2024": "Title Case with the doubled space; adds Bike Id",
+    "2025+": "Title_Snake; adds Bike_Model, which is the only e-bike signal any Toronto era carries",
+    "2014-2015": "NOT trip data - pre-aggregated OD matrices at a different grain. Excluded from fact_trips; see docs/source-audit.md"
+  },
+  "trips": {
+    "trip_id": "trip_id",
+    "trip_start_time": "departure_raw",
+    "trip_stop_time": "return_raw",
+    "trip_duration_seconds": "duration_s",
+    "from_station_id": "departure_station_key",
+    "from_station_name": "departure_station_name",
+    "to_station_id": "return_station_key",
+    "to_station_name": "return_station_name",
+    "user_type": "membership_raw",
+
+    "Trip Id": "trip_id",
+    "Trip  Duration": "duration_s",
+    "Trip Duration": "duration_s",
+    "Start Station Id": "departure_station_key",
+    "Start Time": "departure_raw",
+    "Start Station Name": "departure_station_name",
+    "End Station Id": "return_station_key",
+    "End Time": "return_raw",
+    "End Station Name": "return_station_name",
+    "Bike Id": "bike_id",
+    "User Type": "membership_raw",
+
+    "Trip_Id": "trip_id",
+    "Trip_Duration": "duration_s",
+    "Start_Station_Id": "departure_station_key",
+    "Start_Time": "departure_raw",
+    "Start_Station_Name": "departure_station_name",
+    "End_Station_Id": "return_station_key",
+    "End_Time": "return_raw",
+    "End_Station_Name": "return_station_name",
+    "Bike_Id": "bike_id",
+    "User_Type": "membership_raw",
+    "Bike_Model": "bike_model"
+  },
+  "stations": {}
+}

@@ -53,9 +53,11 @@ source file to a SHA-256 and byte size. Idempotent downloads that skip files
 already matching. Format detection by magic bytes, never by extension. A
 re-download whose content differs fails unless explicitly accepted.
 
-**004 · Inventory and archive verification.** Verify the archive against the
-manifests: gaps in the expected period run, undersized files, checksum
-mismatches. Exits non-zero so it can gate the pipeline.
+**004 · Inventory and archive verification.** ~~Separate spec~~ — **folded into
+003 (2026-07-28).** `pipeline/inventory.py` shipped there: checksum and byte
+verification, monthly gap detection for Vancouver and annual for the other two,
+`PENDING` separated from `MISSING`/`CORRUPT`, wired to `make check-manifest`.
+Splitting this into its own spec would have been padding, not work.
 
 ## Phase 2 — Warehouse
 

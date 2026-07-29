@@ -338,6 +338,39 @@ timestamp at conform, for every system.
 - [ ] Licence resolution for BIXI; MDLA re-confirmation for Mobi
 - [ ] SHA-256 per file — **deferred to spec 003 by amendment**, see below
 
+## Full-archive census (2026-07-28, spec 005)
+
+Spec 001 sampled. `pipeline/census.py` then read the header of **every** file in
+the acquired archive, and found three things sampling missed. All **[observed]**.
+
+**1. Toronto 2017 is two layouts, not one.** Q1 and Q2 carry station IDs; **Q3
+and Q4 do not** — they ship `trip_id, trip_start_time, trip_stop_time,
+trip_duration_seconds, from_station_name, to_station_name, user_type`, seven
+columns, names only. **2016 uses that same name-only layout.** Spec 001 read Q1
+and generalised; that was wrong. Station identity for Toronto 2016 and half of
+2017 must be resolved by name, like BIXI's 2022+ era.
+
+**2. Toronto 2014–2015 is not trip data.** `bikeshare-ridership-2014-2015.xlsx`
+is a 16-sheet workbook of **pre-aggregated origin–destination matrices** — one
+sheet per month, each `Start Terminal | End Terminal | Casual | Registered |
+Total`, plus `Station Key`, hourly summaries and a `Demographics` sheet. There
+are no timestamps and no per-trip rows.
+
+It cannot enter `fact_trips`: the grain is wrong, and mixing grains is exactly
+what this project must not do. **Toronto's trip-level history therefore begins
+in 2016, not 2014.** The file stays pinned in the manifest and is a candidate
+source for a future flows or membership comparison at its own grain. The common
+window across all three systems is unaffected — Vancouver still sets it at 2017.
+
+**3. Montreal ships historical station coordinates.** Every pre-2022 annual ZIP
+contains a `Stations_YYYY.csv`, so Montreal has per-year station positions for
+2014–2021 rather than depending on the current-state GBFS feed. Their headers
+drift too: `code` (2014–2018, 2020), **`Code`** capitalised (2019), and `pk`
+(2021).
+
+Layout counts across the acquired archive: **Montreal 6** (3 trip, 3 station),
+**Toronto 5 and counting**.
+
 ## Method and corrections
 
 Read over HTTP range requests rather than downloading: the ZIP central directory

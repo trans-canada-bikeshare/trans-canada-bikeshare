@@ -39,67 +39,67 @@
     },
     "2019": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2019.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "5666b1b5604560b19b2122cbcdc0dbff29b050d3c328b8e0f5182c6de6c88587",
+      "bytes": 324112878,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:04:42+00:00"
     },
     "2020": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2020.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "eef16089f4a9faf64861872a2b0ef26097f47206cbd7f4586d5e5c6154f069f5",
+      "bytes": 389354150,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:07:42+00:00"
     },
     "2021": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2021.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "082a2d43729abca8152fbc14b8322336203c879c32f7064565ae46d365361edf",
+      "bytes": 91552040,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:08:22+00:00"
     },
     "2022": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2022.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "4114b32242f5949138bade1df16acf29da3bd210c46e8fb642ff81f32a498b5f",
+      "bytes": 117433457,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:09:30+00:00"
     },
     "2023": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2023.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "fde2dd44439c6c03a3a3f16a0d412d908ba25665cde26d8d76858c0b8b3d5ead",
+      "bytes": 143338358,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:10:32+00:00"
     },
     "2024": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2024.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "0f56789e81c0af0e1aad7b2f482768643b33e4fa7fb0580b3b40527a82481cc6",
+      "bytes": 206173633,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:14:08+00:00"
     },
     "2025": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2025.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "516b1ade12f1551d8b75a42a495885e85130b6c48c85c39d132b907a398e1c62",
+      "bytes": 226611421,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:15:46+00:00"
     },
     "2026": {
       "url": "https://opendata.toronto.ca/toronto.parking.authority/bike-share-toronto-ridership-data/bikeshare-ridership-2026.zip",
-      "sha256": null,
-      "bytes": null,
-      "content_format": null,
-      "downloaded_at": null
+      "sha256": "bea0091f9fd281bb9afc09c94cea4ac6437e790e1f7c7ff8918cc58eaaf03dd1",
+      "bytes": 16469906,
+      "content_format": "zip",
+      "downloaded_at": "2026-07-29T06:15:53+00:00"
     }
   },
   "reference": {
     "gbfs_station_information": {
       "url": "https://toronto.publicbikesystem.net/customer/gbfs/v2/en/station_information",
-      "sha256": null,
-      "bytes": null,
-      "downloaded_at": null
+      "sha256": "0b010ef69ccd1d12309ddf5f7275b2243839e57671b3bb80f4504f68db5ca076",
+      "bytes": 636711,
+      "downloaded_at": "2026-07-29T06:15:54+00:00"
     }
   }
 }

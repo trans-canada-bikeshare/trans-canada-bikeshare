@@ -162,7 +162,14 @@ export function StationMap({ system, theme }: Props) {
           // reject the entire layer, which is how this shipped three maps that
           // added a source and drew nothing.
           const dot = resolvedSeriesColor(system);
-          if (!dot) {
+          // MapLibre requires strictly ascending interpolation stops. A
+          // scaleMax of 0 would put both radius stops at input 0 and get the
+          // layer rejected exactly the way the unresolved `var()` colour was —
+          // silently, with the source added and nothing drawn. It should not
+          // happen, since scaleMax and stations are set together, but "should
+          // not happen" is the reasoning that shipped the first bug.
+          const ceiling = Math.sqrt(scaleMax);
+          if (!dot || !(ceiling > 0)) {
             setFailed(true);
             return;
           }
@@ -184,7 +191,7 @@ export function StationMap({ system, theme }: Props) {
             paint: {
               "circle-radius": [
                 "interpolate", ["linear"], ["sqrt", ["get", "trips"]],
-                0, 2.5, Math.sqrt(scaleMax), 9,
+                0, 2.5, ceiling, 9,
               ],
               "circle-color": dot,
               // Dormant stations read as outlines, not absences. The ring is

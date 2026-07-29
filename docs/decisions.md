@@ -182,13 +182,39 @@ browser. That sentence was the finding, and it was written and merged past.
 
 Rule: **a feature whose output is rendered is not testable by its inputs.** If
 the acceptance criteria say something is drawn, the review has to observe it
-drawn, or say plainly that it did not. Where the environment cannot composite
-GPU output — headless Playwright and backgrounded automation tabs both throttle
-`requestAnimationFrame`, so MapLibre never requests a tile — the fallback is to
-assert on the library's own accepted state (`getLayer()` returning the layer,
-the resolved paint property) and to say which of the two was checked. A
-regression test now pins the one-line invariant: nothing handed to MapLibre may
-contain `var(`.
+drawn.
+
+The colour fix was necessary and not sufficient. With the layer finally
+accepted, all three maps were *still* blank — and the second cause was worse,
+because it produced no signal at all. MapLibre v6 spawns its tile-parsing
+worker from a blob that resolves `maplibre-gl-worker.mjs` against
+`import.meta.url` at runtime. Rollup cannot see that string, so no chunk was
+emitted; the built site requested `/assets/maplibre-gl-worker.mjs`, the SPA
+fallback answered **HTTP 200 with index.html**, and the worker died trying to
+parse HTML as a module. No 404. No main-thread error. MapLibre parses both
+vector tiles *and* GeoJSON in that worker, so the basemap and our own dots
+failed together — which is why the symptom read as "maps don't work" rather
+than "our layer is wrong". Dev failed differently, via Vite's dep
+pre-bundling, so the two environments needed separate fixes.
+
+**Verify renders in a headed browser, driven directly.** Headless Playwright
+and backgrounded automation tabs throttle `requestAnimationFrame` to zero.
+MapLibre then never renders, never requests a tile, and reports nothing —
+every reading is equally consistent with "working" and "completely broken".
+Five rounds of diagnostics were spent on tabs that could not answer the
+question, and twice concluded "probably the environment" from evidence that
+could not distinguish the two. A headed Chromium answered it in one run.
+
+Corollary: **when a diagnostic disagrees with the person looking at the
+screen, the person is right.** The owner reported blank maps while the
+instrumentation said the layer was accepted; the instrumentation was measuring
+a throttled tab. Three control pages written to settle it were themselves
+broken — a 404'd script tag, then a wrong import shape — and each blank result
+looked like a finding.
+
+Two regression guards, both cheap: a test that nothing handed to MapLibre
+contains `var(`, and a build-time assertion that the worker assets reached
+`dist/assets`.
 
 ## Next
 

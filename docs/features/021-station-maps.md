@@ -73,13 +73,28 @@ that.
 - [x] `npm test` (56), `npm run typecheck`, `npm run build` exit 0; publish
       budget 19.9% of 320 KB
 
-**Not verified: dots confirmed drawn at the pixel level.** The layer is
-accepted (`getLayer("station-dots")` returns it, paint properties resolve, the
-console is clean where two validation errors previously fired), but no
-available environment composites the GPU output — headless Playwright and a
-backgrounded automation tab both throttle `requestAnimationFrame`, so MapLibre
-never requests a vector tile and the basemap is equally blank. Confirming this
-needs a human with a foreground browser. See `docs/decisions.md`.
+- [x] **Dots confirmed drawn.** Measured in a real headed Chromium
+      (`visibility: visible`, `raf: true`, WebGL via ANGLE Metal), against both
+      the dev server and the production build:
+
+      | | dev | prod | artifact |
+      |---|---|---|---|
+      | Vancouver | 260 | 260 | 260 |
+      | Montreal | 1,102 | 1,102 | 1,152 |
+      | Toronto | 972 | 972 | 972 |
+
+      `styleLoaded: true`, 16 vector tiles, zero console errors. Montreal
+      renders 1,102 of 1,152 because the framing fence keeps the Sherbrooke
+      and South Shore outliers outside the opening viewport — they are drawn,
+      one pan east, which the section states.
+
+**How this was nearly missed twice.** The first attempt to verify used
+headless Playwright and a backgrounded automation tab; both throttle
+`requestAnimationFrame` to zero, so MapLibre never renders, never requests a
+tile, and the basemap is as blank as the dots. Every reading from those
+environments was consistent with "working" and with "completely broken". The
+answer only came from a headed browser driven directly, which any future
+render-surface spec should use from the start.
 
 ## Data Integrity Checklist
 

@@ -1,43 +1,24 @@
-# Current Feature: 003 Per-city manifests and downloaders
+# Current Feature
 
 ## Status
 
-In Progress — branch `feature/003-manifests-and-downloaders`
+_No feature in progress._
 
 ## Lifecycle
 
-- [x] load — 2026-07-28
-- [x] start — 2026-07-28
-- [x] test — 2026-07-28
-- [x] review — 2026-07-28
+- [ ] load
+- [ ] start
+- [ ] test
+- [ ] review
 
 ## Goals
 
-See `docs/features/003-manifests-and-downloaders.md`. All twelve acceptance
-criteria met except the full-archive pull, which is running and is explicitly
-an operator action rather than a test.
+<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
 
 ## Notes
 
-**Test (2026-07-28).** 26 pytest (19 new), all offline. Live discovery found
-13 Montreal periods, 12 Toronto, 103 Vancouver — and reported one unrecognized
-Vancouver link (the unlabelled duplicate 2017 export) rather than skipping it,
-which is the designed behaviour. `make check-manifest` runs `inventory.py` and
-correctly separates *pending* from *failed*. Format detection classified
-Toronto's 2014-2015 and 2016 as xlsx and the rest as zip, from magic bytes.
-
-**Resumability fix made during the run:** the manifest saved only at the end of
-a system, so a crash on file 80 of a multi-GB pull would have discarded the
-first 79 pins. It now saves after every file.
-
-**Review.** Gate items: provenance pinned — **pass**, every downloaded file
-carries sha256, byte size and content format, and each manifest now carries a
-licence block. Nothing guessed silently — **pass**, unknown link labels and
-non-data content types are reported and refused. No raw data in the diff —
-**pass**, `data-raw/` is gitignored and holds the archive. Row accounting,
-artifacts, metrics, copy, encodings — n/a, no ETL or site surface yet.
-
-**Verdict: ready to complete.**
+<!-- Dependencies, sources and cities touched, licence constraints, and
+     whether this feature changes any published artifact. -->
 
 ## History
 
@@ -58,3 +39,7 @@ artifacts, metrics, copy, encodings — n/a, no ETL or site surface yet.
   eight-spoke wheel favicon with theme-adaptive rim, ico/apple-touch/PWA
   rasters, asset provenance and rights recorded. 45 vitest.
   `docs/features/002b-brand-identity.md`
+- 2026-07-28 `1d5bd16` — spec 003: per-city manifests and downloaders. Discovery
+  separated from download, checksum pinning with drift refusal, inventory gate,
+  LICENSE corrected (BIXI unsupported claim removed, Toronto attribution added).
+  26 pytest. `docs/features/003-manifests-and-downloaders.md`

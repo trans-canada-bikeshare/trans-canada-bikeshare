@@ -82,9 +82,10 @@ _No feature in progress._
   so Sherbrooke stops stretching Montreal 161 km wide. Verified in a headed
   browser: 260 / 1,102 / 972 dots. 56 vitest.
   `docs/features/021-station-maps.md`
-- 2026-07-29 `pending` — spec 009b: the enforcement 009 was missing.
+- 2026-07-29 `3deb81e` — spec 009b: the enforcement 009 was missing.
   `make check-metrics` printed "stub" and exited 0 while
   `metric_support.json` claimed it was checked. Now fails on an artifact
   publishing an unsupported system **or on one never declared at all** — the
-  case 021 needed. 12 tests, each planting a violation. 38 pytest.
-  `docs/features/009b-metric-gate.md`
+  case 021 needed. 12 tests, each planting a violation. 38 pytest. Same merge
+  gave every spec number 001-027 a file and an index, for a repository about
+  to be public. `docs/features/009b-metric-gate.md`

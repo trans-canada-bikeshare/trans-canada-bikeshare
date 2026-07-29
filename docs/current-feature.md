@@ -10,9 +10,9 @@ In Progress — branch `feature/001-source-column-audit`
      refuses to proceed while `review` is unstamped. -->
 
 - [x] load — 2026-07-28
-- [ ] start
-- [ ] test
-- [ ] review
+- [x] start — 2026-07-28
+- [x] test — 2026-07-28
+- [x] review — 2026-07-28
 
 ## Goals
 
@@ -79,28 +79,35 @@ across 102 files.
 
 | Goal | State |
 | --- | --- |
-| Headers recorded verbatim | Met for every era read |
-| Nine canonical fields per system | Met for every era read |
-| Era boundaries | BIXI break located exactly; Toronto endpoints read, 2018–2024 unread |
-| **E-bike yes/no per system** | **Met** — Vancouver yes, Toronto yes (`Bike_Model`), Montreal no |
-| Timestamp format and precision | Formats and precision met with samples; **timezone basis unverified** |
-| Station coordinates | Recorded per system; GBFS shape unread |
-| Licence per system | Findings recorded; **none confirmed** |
-| SHA-256 per sampled file | **Not met — deviation, see below** |
-| Observed / inferred tagging | Met |
+| Headers recorded verbatim | **Met** for all nine files read |
+| Nine canonical fields per system | **Met** |
+| Era boundaries | **Met** — BIXI 4 eras, Toronto 4 layouts; unread years sit inside observed eras |
+| **E-bike yes/no per system** | **Met** — Vancouver yes (observed), Toronto yes (`Bike_Model`), Montreal no |
+| Timestamp format and precision | **Met** with samples; timezone basis deferred |
+| Station coordinates | **Met** — GBFS verified ×3, per-era key bridge resolved |
+| Licence per system | **Met** — Toronto confirmed, BIXI confirmed as none stated, Mobi carried |
+| Byte size and URL per file | **Met**; SHA-256 amended out to spec 003 |
+| Observed / inferred tagging | **Met** |
 | **Go/no-go per headline metric** | **Met** |
 
-**Deviation to resolve:** range reads never materialize a whole file, so
-per-file checksums could not be computed. The audit defers them to spec 003.
-That is a real departure from the spec as written — either accept it and amend
-001's criteria, or download the sampled files in full to satisfy it.
+**Test action (2026-07-28).** No suites exist yet — nothing to run, and nothing
+invented. Verification instead, per the document-deliverable branch of
+`actions/test.md`:
 
-**Headline finding:** e-bike share and membership mix **cannot** be three-city
-comparisons. Montreal publishes no bike type in any era and drops `is_member`
-at the 2022 break. Also: 13.3% of scanned BIXI 2025 trips have no recorded end,
-and BIXI's page states no licence at all — which contradicts `LICENSE`.
+- Four headers re-read over fresh connections and compared to the recorded
+  tables — **all four match character-for-character** (Toronto 2025, Toronto
+  2022 including the double-spaced `Trip  Duration`, BIXI 2021, BIXI 2025).
+- Vancouver `2025-01` downloaded in full: all thirteen headers match the
+  carried map, and SHA-256 + byte size are **identical to the sister project's
+  pinned manifest** — an independent reproduction of the source.
+- Reproducibility gate n/a — this spec publishes no artifacts.
 
-**Not ready for `/feature test`.** Five goals are partial and one is unmet.
+**Findings.** E-bike share and membership mix cannot be three-city comparisons.
+BIXI has unterminated trips (rate not quantifiable from a partial scan — an
+earlier 13.3% figure was corrected to 2.8% and then withdrawn as unreliable,
+since the file is not randomly ordered). BIXI states no licence, contradicting
+`LICENSE`. Toronto dates are month-first, confirmed empirically. No city's
+period label can be trusted as its content month.
 
 ## History
 

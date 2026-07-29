@@ -2,16 +2,10 @@
 
 Spec 001. What the three systems actually publish, read from the real files.
 
-**Status: partial.** The core question — can each headline metric be computed
-the same way for all three cities — is answered below and the answer is no for
-two of them. Several eras remain unread; they are listed under
-[Still open](#still-open) and none of them can overturn the verdicts already
-reached, only add detail.
-
 Every claim is tagged **[observed]** (read from a real file in this audit),
 **[carried]** (observed by the Vancouver project's pipeline across its full
-archive, which is stronger evidence than a spot check), or **[inferred]** (not
-yet verified — treat as a hypothesis).
+archive — stronger evidence than a spot check), or **[inferred]** (not yet
+verified; treat as a hypothesis).
 
 Read date: 2026-07-28.
 
@@ -24,173 +18,189 @@ Read date: 2026-07-28.
 | Trips over time | ✅ | ✅ | ✅ | **Yes** |
 | Seasonality | ✅ | ✅ | ✅ | **Yes** |
 | Trip duration | ✅ | ✅ | ✅ | **Yes** — derived for BIXI 2022+ |
-| Active stations | ✅ | ⚠️ | ✅ | **Qualified** — see station identity |
-| Station flows | ✅ | ⚠️ | ✅ | **Qualified** — 13.3% of BIXI trips have no end |
+| Active stations | ✅ | ✅ | ✅ | **Yes** — via the GBFS bridge below |
+| Station flows | ✅ | ⚠️ | ✅ | **Qualified** — BIXI has unterminated trips |
 | **E-bike share** | ✅ | ❌ | ✅ | **No** — Montreal never publishes bike type |
-| **Membership mix** | ✅ | ⚠️ 2014–21 only | ✅ | **No** — Montreal drops it at 2022 |
+| **Membership mix** | ✅ | ⚠️ 2014–21 | ✅ | **No** — Montreal drops it at 2022 |
 | Weather forecast | ✅ | ✅ | ✅ | **Yes** — ECCC covers all three |
 | Operational signals | ✅ | ⚠️ | ✅ | **Qualified** — no bike ID for Montreal |
 
-**Two headline metrics in the README cannot be shown as a three-city
-comparison.** E-bike share and membership mix are Vancouver-and-Toronto only.
-This is a product decision, not a pipeline problem — no amount of engineering
-recovers a column the publisher does not ship. Options are recorded in
-[Consequences](#consequences).
+**Two headline metrics cannot be shown as three-city comparisons.** E-bike share
+and membership mix are Vancouver-and-Toronto only. No amount of engineering
+recovers a column the publisher does not ship. See [Consequences](#consequences).
 
 ---
 
 ## Vancouver — Mobi by Rogers
 
-Source: `https://www.mobibikes.ca/en/system-data`. Monthly XLSX/CSV via Google
-Drive; one `ALL of 2017` workbook then monthly from 2018-01.
+`https://www.mobibikes.ca/en/system-data`. One `ALL of 2017` workbook, then
+monthly from 2018-01. XLSX / CSV / Google Sheets via Google Drive.
 
-**[carried]** The Vancouver project maps **34 distinct raw headers across 31
-layouts over 102 files**, unified to: `departure`, `return`,
-`departure_station`, `return_station`, `bike`, `electric_bike`, `membership`,
-`distance_m`, `duration_s`, `departure_temp`, `return_temp`, `stopover_s`,
-`stopover_count`. Dropped by explicit decision: `Account`, `Manager`,
-`Departure slot`, `Return slot`, and the battery-voltage pair.
+**[carried]** 34 distinct raw headers across 31 layouts over 102 files, unified
+to `departure`, `return`, `departure_station`, `return_station`, `bike`,
+`electric_bike`, `membership`, `distance_m`, `duration_s`, `departure_temp`,
+`return_temp`, `stopover_s`, `stopover_count`. Dropped by explicit decision:
+`Account`, `Manager`, the slot pair, the battery-voltage pair.
 
-This is the richest of the three schemas by a wide margin — it is the only one
-with distance, per-trip temperature, and stopover behaviour.
+The richest of the three schemas — the only one with distance, per-trip
+temperature, and stopover behaviour.
 
-| Canonical field | Column | Note |
-| --- | --- | --- |
-| departure / return ts | `Departure` / `Return` | Five distinct timestamp formats across eras **[carried]** |
-| stations | `Departure station` / `Return station` | Name-prefixed IDs; parsed at conform **[carried]** |
-| coordinates | — | GBFS 2.2 (Fifteen platform), not in trip files **[carried]** |
-| duration | `Duration (sec.)` | **[carried]** |
-| distance | `Covered distance (m)` | Unique to Vancouver **[carried]** |
-| membership | `Membership type` / `Memebership type` / `Formula` | 85 raw labels, explicitly mapped **[carried]** |
-| bike id | `Bike` | **[carried]** |
-| **e-bike** | `Electric bike` / `Electric Bike` / `Electric` | **Present** **[carried]** |
+| Canonical field | Column |
+| --- | --- |
+| timestamps | `Departure` / `Return` — five formats across eras |
+| stations | `Departure station` / `Return station` — name-prefixed IDs |
+| duration | `Duration (sec.)` |
+| distance | `Covered distance (m)` — unique to Vancouver |
+| membership | `Membership type` / `Memebership type` / `Formula` — 85 raw labels |
+| bike id | `Bike` |
+| **e-bike** | `Electric bike` / `Electric Bike` / `Electric` — **present** |
 
-Known quirks **[carried]**: the source page misspells `Novemeber 2021`; summer
-2023 files carry invalid UTF-8 in the Squamish-language station name
-`0099 šxʷƛ̓ənəq Xwtl'e7énḵ Square`; per-trip temperatures degrade to
-0-sentinels after mid-2025; format drifts XLSX ↔ CSV ↔ Google Sheets across
-years.
+### Direct verification **[observed]**
 
-**Licence:** Mobi Data License Agreement — non-commercial analysis use.
-**[carried]**, needs re-confirming against the live page.
+One real file downloaded in full — period `2025-01`, 8,043,465 bytes:
+
+```
+Departure,Return,Bike,Electric bike,Departure station,Return station,Membership type,Covered distance (m),Duration (sec.),Departure temperature (C),Return temperature (C),Stopover duration (sec.),Number of stopovers
+2025-02-01 0:00,2025-02-01 0:00,30575,TRUE,0069 7th & Granville,0310 Jervis & Robson,UBC Inclusive Corporate Pass,3857,760,0,3,0,0
+```
+
+All thirteen headers match the carried map exactly. `Electric bike` is present
+and carries `TRUE` — e-bike derivability for Vancouver is now observed, not
+inherited. Station format `0069 7th & Granville` confirms the name-prefixed ID.
+
+Its SHA-256 is `eaa0f34e3bb596e47f37313b578d6bbdef17da7d3043482a0c765a1ec68862bd`
+and byte size 8,043,465 — **both identical to the Vancouver project's pinned
+manifest entry.** An independent download three weeks later reproduces the
+source byte for byte, which is exactly the property the manifest exists to
+guarantee.
+
+Two things the download surfaced that the carried map does not capture:
+
+1. **Vancouver timestamps here are minute precision** — `2025-02-01 0:00`, no
+   seconds. Same floor as Toronto's pre-2025 files.
+2. **The period label is not the content month.** The file published as
+   `2025-01` contains rows dated `2025-02-01`. The Vancouver project handles
+   this by deriving a canonical departure month at conform rather than trusting
+   the filename — spec 007 must do the same, for all three cities.
+
+Quirks **[carried]**: the page misspells `Novemeber 2021`; summer 2023 files
+carry invalid UTF-8 in `0099 šxʷƛ̓ənəq Xwtl'e7énḵ Square`; per-trip temperatures
+degrade to 0-sentinels after mid-2025 — and `Departure temperature (C)` already
+reads `0` in this January 2025 file.
 
 ---
 
 ## Montreal — BIXI
 
-Source: `https://bixi.com/en/open-data/`. Annual ZIP per year, 2014–2026.
-**Two incompatible eras**, and the break costs real fields.
+`https://bixi.com/en/open-data/`. Annual ZIP per year, 2014–2026.
+**Four eras**, and the 2022 break costs real fields.
 
-### Era A — through 2021 **[observed]**
+### Era A — 2014 to ~2019 **[observed: 2014]**
 
-`Historique-BIXI-2021.zip` → `2021_donnees_ouvertes.csv` (352 MB) +
-`2021_stations.csv` (45 KB).
+`Historique-BIXI-2014.zip` → monthly `BixiMontrealRentals2014/OD_2014-MM.csv`.
+
+```
+start_date,start_station_code,end_date,end_station_code,duration_sec,is_member
+2014-04-15 00:01,6209,2014-04-15 00:18,6436,1061,1
+```
+
+Timestamps are **minute precision**, no seconds.
+
+### Era B — 2020 **[observed]**
+
+`Historique-BIXI-2020.zip` → single `OD_2020.csv` + `stations.csv`. Same six
+columns as era A, but timestamps gain **seconds**: `2020-04-15 06:00:04`.
+
+### Era C — 2021 **[observed]**
+
+`Historique-BIXI-2021.zip` → `2021_donnees_ouvertes.csv` + `2021_stations.csv`.
+Station keys are **renamed and renumbered**:
 
 ```
 start_date,emplacement_pk_start,end_date,emplacement_pk_end,duration_sec,is_member
 2021-06-29 17:46:28.653,10,2021-06-29 19:33:25.700,10,6417,0
 ```
 
-| Canonical field | Column | Note |
-| --- | --- | --- |
-| departure / return ts | `start_date` / `end_date` | `YYYY-MM-DD HH:MM:SS.mmm`, **millisecond** precision, no timezone marker |
-| stations | `emplacement_pk_start` / `emplacement_pk_end` | Integer keys. Named `start_station_code` before 2021 **[inferred]** |
-| coordinates | separate `2021_stations.csv` | Annual snapshot |
-| duration | `duration_sec` | Explicit |
-| membership | `is_member` | **0/1 boolean** — coarser than Vancouver's 85 labels |
-| bike id | — | **Absent** |
-| **e-bike** | — | **Absent** |
+Timestamps gain **milliseconds**. Codes go from 4-digit (`6209`) to small
+integers (`10`) — a different key space, not a renaming of the same values.
 
-### Era B — 2022 onward **[observed]**
+### Era D — 2022 onward **[observed: 2022, 2025]**
 
-`DonneesOuverte2022.csv` (1.48 GB) and
-`DonneesOuvertes2025_...csv` (2.80 GB) — one unsorted CSV for the entire year.
+One unsorted CSV for the entire year — 1.48 GB for 2022, 2.80 GB for 2025.
 
 ```
 STARTSTATIONNAME,STARTSTATIONARRONDISSEMENT,STARTSTATIONLATITUDE,STARTSTATIONLONGITUDE,ENDSTATIONNAME,ENDSTATIONARRONDISSEMENT,ENDSTATIONLATITUDE,ENDSTATIONLONGITUDE,STARTTIMEMS,ENDTIMEMS
 St-Urbain / René-Lévesque,Ville-Marie,45.507838,-73.563136,Mansfield / Ste-Catherine,Ville-Marie,45.5013987,-73.5717863,1653343831220,1653344213703
 ```
 
-| Canonical field | Column | Note |
+| Field | Era A–C | Era D |
 | --- | --- | --- |
-| departure / return ts | `STARTTIMEMS` / `ENDTIMEMS` | **Epoch milliseconds.** Timezone basis unverified |
-| stations | `STARTSTATIONNAME` / `ENDSTATIONNAME` | **Name only — the station ID is gone.** Borough in `*ARRONDISSEMENT` |
-| coordinates | inline `*LATITUDE` / `*LONGITUDE` | Per trip, ~14 decimal places |
-| duration | — | **Derivable** as `ENDTIMEMS - STARTTIMEMS` |
-| membership | — | **Absent — lost at the 2022 break** |
-| bike id | — | Absent |
-| **e-bike** | — | **Absent** |
+| timestamps | local naive, min → sec → ms | **epoch milliseconds** |
+| stations | integer key | **name string only** |
+| coordinates | separate stations file | **inline per trip** |
+| borough | — | `*ARRONDISSEMENT` |
+| duration | `duration_sec` | **derivable** from the two timestamps |
+| membership | `is_member` 0/1 | **absent — lost at the break** |
+| bike id / e-bike | absent | absent |
 
-**Three consequences of the break, all load-bearing:**
+**Unterminated trips.** Some era-D rows have blank `ENDTIMEMS`, end station, and
+end coordinates, with a valid start. In 213,684 rows scanned from the head of
+the 2025 file, 6,008 (2.8%) were unterminated **[observed]**. **Do not quote
+that rate as the year's.** The file is not randomly ordered and unterminated
+rows cluster heavily toward the front — an earlier 45,212-row scan gave 13.3%,
+and the rate fell as the scan grew. Quantifying it needs a full pass, which
+belongs to spec 006. What is established: **unterminated trips exist, they are
+not rare, and every Montreal flow and duration metric must exclude them
+explicitly and say so.**
 
-1. **Station identity becomes a string.** Joining a 2021 station key to a 2022
-   station name requires a name-matching bridge, and station names drift
-   (`Parc Émilie-Gamelin (St-Hubert / de Maisonneuve sud)`). Any cross-era
-   Montreal station series depends on that bridge being right.
-2. **Membership disappears.** Member vs casual exists for 2014–2021 and not
-   after. A "membership mix over time" chart for Montreal would end in 2021.
-3. **13.3% of 2025 trips have no end** **[observed]** — 6,008 of 45,212 rows
-   scanned have blank `ENDTIMEMS`, `ENDSTATIONNAME`, and end coordinates.
-   Cause unknown. Until it is understood, every Montreal flow, duration, and
-   destination metric is computed on 87% of trips, and that has to be stated
-   on the chart rather than buried in methodology.
-
-Also **[observed]**: the annual CSV is **not sorted by time** — the first 2,000
-rows span 2025-01-15 to 2025-10-17. Anything assuming ordering will be wrong.
-
-**Licence: none stated.** **[observed]** — the open-data page carries no
-licence, terms, or attribution text. A third-party republication of the
-2014–2021 files uses CC BY-SA 4.0, but that is *that author's* choice and is
-not evidence of BIXI's terms. **`LICENSE` currently claims "BIXI Montreal open
-data terms (attribution to BIXI Montreal)" — that claim is not presently
-supported by anything on the source page and must be resolved before any
-Montreal-derived artifact ships.**
+Also **[observed]**: era-D files are **not sorted by time** — the first 2,000
+rows of the 2025 file span 2025-01-15 to 2025-10-17, and a row with a
+2026-01 start appears in the 2025 file. Anything assuming order will be wrong.
 
 ---
 
 ## Toronto — Bike Share Toronto
 
-Source: CKAN `bike-share-toronto-ridership-data` on `open.toronto.ca`. Annual
-ZIP per year, 2014–2026, refreshed monthly. 2024–2026 were all re-published
-2026-07-28 **[observed]** — the same day as this audit, which suggests a
-rolling republication worth watching for silent restatement of history.
+CKAN `bike-share-toronto-ridership-data` on `open.toronto.ca`. Annual ZIP per
+year, 2014–2026, refreshed monthly. **Four layouts observed**, and every column
+is renamed at least once.
 
-### Era A — 2017 **[observed]**
-
-`bikeshare-ridership-2017.zip` → four **quarterly** CSVs under a `2017 Data/`
-prefix.
-
-```
-trip_id,trip_start_time,trip_stop_time,trip_duration_seconds,from_station_id,from_station_name,to_station_id,to_station_name,user_type
-712382,1/1/2017 0:00,1/1/2017 0:03,223,7051,Wellesley St E / Yonge St Green P,7089,Church St  / Wood St,Member
-```
-
-Note the timestamp: **`M/D/YYYY H:MM` — minute precision, no seconds.** Trip
-duration is still given in seconds, so duration and timestamps disagree on
-resolution. Also note the doubled space in `Church St  / Wood St` — station
-names need normalizing.
-
-### Era B — 2025 **[observed]**
-
-`bikeshare-ridership-2025.zip` → twelve **monthly** CSVs, ~1.07 GB uncompressed
-for the year.
-
-```
-Trip_Id,Trip_Duration,Start_Station_Id,Start_Time,Start_Station_Name,End_Station_Id,End_Time,End_Station_Name,Bike_Id,User_Type,Bike_Model
-36767099,6946,7569,2025-06-01 00:01:56,Toronto Inukshuk Park,7753,2025-06-01 01:57:42,Toronto Inukshuk Park,5096,Casual,ICONIC
-```
-
-| Canonical field | 2017 | 2025 |
+| Era | File granularity | Header |
 | --- | --- | --- |
-| departure / return ts | `trip_start_time` / `trip_stop_time`, **minute** precision | `Start_Time` / `End_Time`, **second** precision |
-| stations | `from_station_id` / `to_station_id` + names | `Start_Station_Id` / `End_Station_Id` + names |
-| coordinates | — | — (GBFS only) |
-| duration | `trip_duration_seconds` | `Trip_Duration` |
-| membership | `user_type` | `User_Type` |
-| bike id | — | `Bike_Id` |
-| **e-bike** | — | **`Bike_Model`** |
+| **2017** | quarterly, `2017 Data/` | `trip_id,trip_start_time,trip_stop_time,trip_duration_seconds,from_station_id,from_station_name,to_station_id,to_station_name,user_type` |
+| **2018** | quarterly, `bikeshare2018/` | same nine columns, **reordered** — `trip_id,trip_duration_seconds,from_station_id,trip_start_time,from_station_name,trip_stop_time,to_station_id,to_station_name,user_type` |
+| **2020, 2022** | monthly | `Trip Id,Trip  Duration,Start Station Id,Start Time,Start Station Name,End Station Id,End Time,End Station Name,Bike Id,User Type` |
+| **2025** | monthly | `Trip_Id,Trip_Duration,Start_Station_Id,Start_Time,Start_Station_Name,End_Station_Id,End_Time,End_Station_Name,Bike_Id,User_Type,Bike_Model` |
 
-**`Bike_Model` distinct values, July 2025, 91,585 rows scanned [observed]:**
+Three things in that table will break a naive loader **[observed]**:
+
+1. **`Trip  Duration` carries a double space** in the 2020/2022 layout. It must
+   be mapped verbatim, not trimmed into `Trip Duration`.
+2. **2018 keeps the 2017 column names but changes their order.** A positional
+   reader survives 2017→2018; a lazy one that assumes order is stable across
+   the rename at 2020 does not.
+3. **Naming convention changes twice** — `snake_case` → `Title Case` →
+   `Title_Snake` — and `from_/to_` becomes `Start_/End_`.
+
+**Timestamp formats.**
+
+| Era | Format | Precision |
+| --- | --- | --- |
+| 2017, 2018 | `1/1/2017 0:00` | **minute** |
+| 2020, 2022 | `01/24/2022 08:41` | **minute** |
+| 2025 | `2025-06-01 00:01:56` | **second** |
+
+**Month-first, confirmed empirically [observed]:** in the 2022-01 file — which
+covers January only — the first date field is pinned to `01` while the second
+ranges 1–24. `01/24/2022` settles it. This mattered: `01/01/2022` alone is
+ambiguous, and guessing wrong silently transposes days and months for eleven
+months of every year.
+
+**`User_Type` labels drift [observed]:** `Member` in 2017; `Annual Member` /
+`Casual Member` in 2018 and 2022; `Member` / `Casual` in 2025. Needs an
+explicit label map, like Vancouver's 85.
+
+**`Bike_Model`, July 2025, 91,585 rows [observed]:**
 
 | Value | Trips | Share |
 | --- | ---: | ---: |
@@ -198,80 +208,151 @@ Trip_Id,Trip_Duration,Start_Station_Id,Start_Time,Start_Station_Name,End_Station
 | `EFIT` | 11,251 | 12.3% |
 | `EFIT G5` | 8,705 | 9.5% |
 
-`EFIT` and `EFIT G5` are the e-bike models; **e-bike share ≈ 21.8%** in that
-sample. Consistent with the City's reported 17% for 2024 across a full year.
-`User_Type` is `Member` / `Casual` **[observed]**.
+`EFIT` and `EFIT G5` are the e-bikes — **e-bike share ≈ 21.8%** in that sample,
+consistent with the City's reported 17% across all of 2024.
 
-Naming, casing, timestamp precision, file granularity (quarterly → monthly),
-and the column set **all** change between 2017 and 2025. The eras between are
-unread.
+Station coordinates are absent from every era; GBFS is the only source.
 
-**Licence:** the CKAN record returns a **null** licence field **[observed]**.
-The portal-wide Open Government Licence – Toronto is the presumed default
-**[inferred]** and must be confirmed before shipping.
+---
+
+## Station identity bridge
+
+The one genuinely hard modelling problem, and it resolves cleanly **[observed]**.
+
+BIXI's GBFS carries **both** legacy key systems at once:
+
+```
+station_id=1   short_name=6001   Drummond / de Maisonneuve
+station_id=2   short_name=6002   Ste-Catherine / Dézéry
+```
+
+| BIXI era | Trip-file key | Joins to |
+| --- | --- | --- |
+| 2014–2020 | `start_station_code` = 6209, 6436, 6212, 6250 | GBFS **`short_name`** — all four confirmed present |
+| 2021 | `emplacement_pk_start` = 10, 188 | GBFS **`station_id`** — absent from `short_name` |
+| 2022+ | station **name** only | name match, with drift risk |
+
+So Montreal station identity is recoverable across all eras, using a different
+join key per era plus name matching for 2022+. That is a spec 007 concern and
+must be counted in the quality report — a name that fails to match is a
+silently dropped station, exactly the kind of thing this project promises not
+to do.
+
+## Reference data
+
+**GBFS `station_information` [observed]** — all three are GBFS with different
+vendor extensions over a common core of `station_id`, `name`, `lat`, `lon`,
+`capacity`:
+
+| System | Stations | Notable extras |
+| --- | ---: | --- |
+| Mobi (Fifteen) | 261 | `vehicle_type_capacity`, `is_charging_station`, `is_virtual_station` |
+| BIXI | 1,107 | `short_name`, `external_id`, `is_charging`, `electric_bike_surcharge_waiver` |
+| Bike Share Toronto | 1,055 | `physical_configuration`, `altitude`, `obcn`, `groups`, `nearby_distance` |
+
+Feeds: `gbfs.kappa.fifteen.eu/gbfs/2.2/mobi/en/station_information.json` ·
+`gbfs.velobixi.com/gbfs/2-2/en/station_information.json` ·
+`toronto.publicbikesystem.net/customer/gbfs/v2/en/station_information`
+
+All three are **current-state only** — a station retired before today is not in
+the feed, so historical coverage comes from the trip files themselves.
+
+**ECCC daily climate [observed]** — same bulk endpoint the Vancouver project
+uses, returning `Date/Time`, `Mean Temp (°C)`, `Total Precip (mm)`:
+
+| City | stationID | Station name |
+| --- | --- | --- |
+| Vancouver | 888 | VANCOUVER HARBOUR CS **[carried]** |
+| Toronto | 31688 | TORONTO CITY |
+| Montreal | 30165 | MONTREAL/PIERRE ELLIOTT TRUDEAU INTL |
+
+Vancouver and Toronto are downtown. **Montreal's is the airport, ~20 km west of
+the network core** — the Vancouver project deliberately chose a downtown station
+"matching where most riding happens", and 30165 does not meet that bar. A
+downtown Montreal station should be chosen in spec 013.
+
+## Licences
+
+| System | Status |
+| --- | --- |
+| Vancouver | Mobi Data License Agreement — non-commercial analysis **[carried]**, re-confirm at 003 |
+| Montreal | **None stated** **[observed]** — the open-data page carries no licence, terms, or attribution text |
+| Toronto | **Open Government Licence – Toronto** **[observed]** — portal-wide default, permits commercial use |
+
+Toronto requires this attribution verbatim: *"Contains information licensed
+under the Open Government Licence – Toronto."*
+
+**`LICENSE` needs two corrections.** Its Toronto claim is right but is missing
+the required attribution wording. Its BIXI claim — "BIXI Montreal open data
+terms (attribution to BIXI Montreal)" — **is not supported by anything on the
+source page**. The CC BY-SA 4.0 seen elsewhere belongs to a third party's
+republication of the 2014–2021 files, not to BIXI. Resolve before any
+Montreal-derived artifact ships.
 
 ---
 
 ## Consequences
 
-**1. The README overpromises on two metrics.** E-bike share and membership mix
-cannot be three-city comparisons. Three honest options, in order of preference:
+**1. Two README metrics overpromise.** E-bike share and membership mix cannot be
+three-city comparisons. Options, in order of preference:
 
-- **Show them as two-city comparisons, labelled.** Vancouver and Toronto side
-  by side, with Montreal explicitly marked "not published" rather than absent.
-  Keeps the metric, tells the truth, and makes the gap itself informative.
-- **Demote them from headline to per-city detail.** The comparison set becomes
-  trips, seasonality, duration, stations, flows, forecast.
-- **Drop them.** Cleanest, but discards the single most interesting trend in
-  Canadian bike share — Toronto's e-bike share went from ~6% to ~22% in three
-  years.
+- **Show them as two-city comparisons, labelled.** Vancouver and Toronto side by
+  side with Montreal explicitly marked "not published". Keeps the metric, tells
+  the truth, and makes the gap itself informative.
+- **Demote to per-city detail.** The comparison set becomes trips, seasonality,
+  duration, stations, flows, forecast.
+- **Drop them** — cleanest, but discards the most interesting trend in Canadian
+  bike share: Toronto's e-bike share reaching ~22%.
 
-Recommendation: **the first.** A visible, explained gap is a stronger
-credibility signal than a metric quietly missing a city, and it is exactly what
-`README.md`'s "every visual encoding says what it means" is for.
+Recommendation: **the first.**
 
-**2. `LICENSE` needs correcting.** Its BIXI claim is unsupported by the source
-page, and its Toronto claim needs confirming against the portal default.
+**2. The era-map approach is validated and more necessary here than in
+Vancouver.** Toronto renames every column twice and reorders them once; Montreal
+changes station key space twice and drops two fields. A hard fail on unmapped
+headers is the only safe posture.
 
-**3. The era-map approach is validated, and needed more here than in
-Vancouver.** Per-city era maps with a hard fail on unknown headers are exactly
-right: Toronto renames every column between 2017 and 2025, and Montreal drops
-two fields entirely at 2022.
+**3. Timestamp precision is not uniform** — Toronto is minute-precision through
+2022, BIXI minute → second → millisecond → epoch ms, Vancouver five formats and
+minute precision in the file sampled. Any hour-of-day comparison must state the
+floor; only Toronto 2025 and BIXI 2020–2021 support sub-minute analysis at all.
 
-**4. Two things need explicit handling in the model that Vancouver never
-needed:** BIXI's name-only station identity after 2022, and BIXI's missing trip
-ends. Both belong in spec 007 (conform) and must surface in spec 010's quality
-report.
+**4. Three things need handling Vancouver never needed:** BIXI's per-era station
+key bridge, BIXI's unterminated trips, and Toronto's month-first dates.
 
-**5. Timestamp precision is not uniform** — Toronto 2017 is minute-precision,
-BIXI 2021 is millisecond, BIXI 2022+ is epoch ms, Vancouver has five formats.
-Any hour-of-day comparison must state the floor, and Toronto's early years
-cannot support sub-minute analysis at all.
-
----
+**5. No city's period label can be trusted as its content month.** Vancouver's
+`2025-01` file holds February rows; BIXI's annual files are unsorted and the
+2025 file holds a 2026 row. The canonical month must be derived from the
+timestamp at conform, for every system.
 
 ## Still open
 
-None of these can overturn the verdicts above; they add detail.
+- [x] ~~Vancouver: spot-verify one real file against the carried column map~~ —
+      done, byte-identical to the pinned manifest
+- [ ] Montreal: 2015–2019 and 2026 (2014, 2020, 2021, 2022, 2025 read; the
+      unread years sit inside observed eras)
+- [ ] Toronto: 2014–2015 XLSX, and 2019/2021/2023/2024 (2017, 2018, 2020, 2022,
+      2025 read)
+- [ ] Unterminated-trip rate across a full BIXI year, and the cause — spec 006
+- [ ] Timezone basis for BIXI epoch-ms and for all naive local timestamps
+- [ ] A downtown Montreal ECCC station to replace 30165 — spec 013
+- [ ] Licence resolution for BIXI; MDLA re-confirmation for Mobi
+- [ ] SHA-256 per file — **deferred to spec 003 by amendment**, see below
 
-- [ ] Vancouver: spot-verify one real file against the carried column map
-- [ ] Montreal: 2014–2020 headers (2021 read; Goulet reports
-      `start_station_code` before 2021) and the 2026 partial year
-- [ ] Toronto: 2014–2015 XLSX, and the 2018–2024 eras between the two read
-- [ ] The BIXI blank-end-trip cause — ongoing at export, out-of-network, or a
-      publishing defect
-- [ ] Timezone basis for BIXI epoch-ms and for every naive local timestamp
-- [ ] GBFS `station_information` shape for all three systems
-- [ ] Licence confirmation: BIXI (none found), Toronto (CKAN null), Mobi (MDLA
-      re-check)
-- [ ] ECCC climate station IDs for Montreal and Toronto
-- [ ] SHA-256 and byte size for every sampled file — deferred to spec 003,
-      which pins them into the manifest
+## Method and corrections
 
-## Method
+Read over HTTP range requests rather than downloading: the ZIP central directory
+is fetched from the tail, then only the needed member is streamed. BIXI 2025
+alone is 2.8 GB uncompressed and this audit read tens of MB of it. The helper is
+throwaway audit tooling, deliberately not committed; the real downloader is spec
+003.
 
-Read over HTTP range requests rather than downloading — the ZIP central
-directory is fetched from the tail, then only the needed member is streamed.
-BIXI 2025 alone is 2.8 GB uncompressed; the audit read a few MB of it. The
-helper is throwaway audit tooling and is deliberately not committed; the real
-downloader is spec 003.
+**Amendment.** Spec 001 asked for a SHA-256 per sampled file. Range reads never
+materialize a whole file, so no digest was computable. Deferred to spec 003,
+which downloads in full and pins checksums into the manifest — the right home for
+a reproducibility contract. Recorded in the spec.
+
+**Correction.** An earlier draft of this audit reported the BIXI unterminated
+rate as 13.3%, from a 45,212-row scan. A 213,684-row scan gives 2.8%, and the
+rate keeps falling as the scan grows because the file is not randomly ordered.
+Neither figure is the year's rate. The claim is now stated as existence and
+significance, not as a percentage.

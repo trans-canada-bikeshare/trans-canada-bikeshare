@@ -105,7 +105,13 @@ precision, and observed or inferred.
       currently-live ones
 - [ ] The licence for each system's trip data is recorded with its URL and the
       date checked, and any conflict with the claims in `LICENSE` is flagged
-- [ ] Every sampled file has its SHA-256, byte size, and retrieval URL recorded
+- [ ] Every sampled file has its **byte size and retrieval URL** recorded.
+      **Amended 2026-07-28:** SHA-256 is deferred to spec 003. The audit reads
+      headers over HTTP range requests — BIXI 2025 alone is 2.8 GB uncompressed
+      and the audit needs a few MB of it — so no whole file is ever
+      materialized to digest. Spec 003 downloads in full and pins checksums into
+      the manifest, which is where the reproducibility contract belongs anyway.
+      Recording a digest here would duplicate that work, not verify it
 - [ ] Every claim in the document is marked **observed** or **inferred**; no
       claim about a column's contents rests on a header name alone
 - [ ] The audit ends with a go / no-go per README headline metric — trips,

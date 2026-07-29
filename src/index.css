@@ -1,0 +1,133 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Design tokens ported verbatim from mobi-transit-explorer (its spec 038),
+     which measured them from adnanreza.com. Hex is the source of truth; stored
+     here as HSL triplets to fit the hsl(var(--x)) plumbing. Do not retune these
+     independently — the two projects should read as one body of work. */
+  :root {
+    --background: 210 33% 97%; /* paper #f7f9fb */
+    --foreground: 203 31% 5%; /* ink #090e11 */
+    --card: 204 22% 95%; /* paper-2 #f1f4f6 */
+    --card-foreground: 203 31% 5%;
+    --primary: 205 74% 38%; /* accent #196ea9 */
+    --primary-foreground: 210 33% 97%;
+    --secondary: 204 22% 95%; /* paper-2 */
+    --secondary-foreground: 202 11% 20%; /* ink-2 #2d3438 */
+    --muted: 204 22% 95%; /* paper-2 */
+    --muted-foreground: 205 6% 41%; /* muted #636a6f */
+    --muted-2: 207 4% 60%; /* muted-2 #94999d — link underlines */
+    --accent: 205 45% 94%; /* accent wash */
+    --accent-foreground: 204 100% 23%; /* accent-ink #004676 */
+    --border: 206 9% 85%; /* rule #d4d8db */
+    --rule-2: 210 12% 90%; /* rule-2 #e2e5e8 */
+    --input: 206 9% 85%;
+    --ring: 205 74% 38%;
+    --radius: 0.5rem;
+    color-scheme: light;
+  }
+
+  .dark {
+    --background: 0 0% 4%; /* paper #0b0b0b */
+    --foreground: 0 0% 93%; /* ink #ededed */
+    --card: 0 0% 9%; /* paper-2 #161616 */
+    --card-foreground: 0 0% 93%;
+    --primary: 207 66% 62%; /* accent #5fa5de */
+    --primary-foreground: 0 0% 4%;
+    --secondary: 0 0% 9%;
+    --secondary-foreground: 0 0% 75%; /* ink-2 #bebebe */
+    --muted: 0 0% 9%;
+    --muted-foreground: 0 0% 58%; /* muted #959595 */
+    --muted-2: 0 0% 36%; /* muted-2 #5d5d5d */
+    --accent: 207 30% 14%; /* accent wash */
+    --accent-foreground: 207 76% 70%; /* accent-ink #79b8ed */
+    --border: 0 0% 18%; /* rule #2e2e2e */
+    --rule-2: 0 0% 13%; /* rule-2 #222222 */
+    --input: 0 0% 18%;
+    --ring: 207 66% 62%;
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    font-feature-settings:
+      "rlig" 1,
+      "calt" 1,
+      "tnum" 1;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Portfolio focus treatment: an ink outline, not a colored ring. */
+  :focus-visible {
+    outline: 2px solid hsl(var(--foreground));
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The signature micro-label: mono, tiny, uppercase, muted. */
+  .eyebrow {
+    @apply font-mono text-[11px] uppercase tracking-[0.14em] text-muted-foreground;
+  }
+
+  /* Reveal with cascading children: the wrapper observes visibility, CSS
+     handles the per-child delays. Delay caps at the seventh child so long
+     groups never accumulate seconds of wait. */
+  .reveal-stagger > * {
+    opacity: 0;
+    transform: translateY(12px);
+    transition:
+      opacity 650ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      transform 650ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .reveal-stagger > :nth-child(2) {
+    transition-delay: var(--stagger-step, 70ms);
+  }
+  .reveal-stagger > :nth-child(3) {
+    transition-delay: calc(var(--stagger-step, 70ms) * 2);
+  }
+  .reveal-stagger > :nth-child(4) {
+    transition-delay: calc(var(--stagger-step, 70ms) * 3);
+  }
+  .reveal-stagger > :nth-child(5) {
+    transition-delay: calc(var(--stagger-step, 70ms) * 4);
+  }
+  .reveal-stagger > :nth-child(6) {
+    transition-delay: calc(var(--stagger-step, 70ms) * 5);
+  }
+  .reveal-stagger > :nth-child(n + 7) {
+    transition-delay: calc(var(--stagger-step, 70ms) * 6);
+  }
+  .reveal-stagger[data-visible="true"] > * {
+    opacity: 1;
+    transform: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal-stagger > * {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+  }
+}

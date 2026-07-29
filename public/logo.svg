@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 12 184 74" role="img" aria-label="Trans-Canada Bikeshare">
+  <!-- Lockup: the 11-point flag maple leaf beside the German StVO 1992
+       "Sinnbild Radfahrer" bicycle pictogram. Proximity does the work; there is
+       no divider. Provenance and rights: docs/features/002b-brand-identity.md.
+
+       Bicycle: public domain (PD-VzKat / §5(1) UrhG), no attribution required.
+       Leaf: National Flag of Canada, usable per OiC P.C. 1965-1623 s.4; no
+       exclusive rights claimed. -->
+  <style>
+    .bike { fill: #090e11; stroke: #090e11 }
+    @media (prefers-color-scheme: dark) {
+      .bike { fill: #ededed; stroke: #ededed }
+    }
+  </style>
+
+  <g transform="translate(38 48) scale(0.0173697)" fill="#C8322F">
+    <g transform="translate(0 -15)">
+      <path d="m-90 2030 45-863a95 95 0 0 0-111-98l-859 151 116-320a65 65 0 0 0-20-73l-941-762 212-99a65 65 0 0 0 34-79l-186-572 542 115a65 65 0 0 0 73-38l105-247 423 454a65 65 0 0 0 111-57l-204-1052 327 189a65 65 0 0 0 91-27l332-652 332 652a65 65 0 0 0 91 27l327-189-204 1052a65 65 0 0 0 111 57l423-454 105 247a65 65 0 0 0 73 38l542-115-186 572a65 65 0 0 0 34 79l212 99-941 762a65 65 0 0 0-20 73l116 320-859-151a95 95 0 0 0-111 98l45 863z"/>
+    </g>
+  </g>
+
+  <g class="bike" transform="translate(82.517 24.463) scale(0.1024546)">
+    <circle cx="215" cy="409" r="161" fill="none" stroke-width="40"/>
+    <circle cx="790" cy="406" r="161" fill="none" stroke-width="40"/>
+    <path stroke="none" fill-rule="evenodd" d="M 429.48437,15.467118 C 296.91790,16.759190 319.39993,1.7711686 248.07762,230.98455 C 189.97511,414.12586 196.30387,394.15363 196.00000,407.00000 C 195.78704,416.98022 203.84333,424.89312 213.96694,425.57043 C 235.02054,423.44166 226.16492,427.84741 299.15748,201.18078 C 565.86963,482.53640 465.80592,436.91194 609.34064,442.62576 C 797.98299,440.81686 813.31557,452.44550 815.55516,424.79518 C 815.29674,415.40613 810.90371,409.80716 681.43820,121.67535 L 693.84208,87.564675 L 736.48042,86.789433 L 734.92994,51.128275 L 576.00521,51.128275 C 561.96471,70.337063 581.69033,70.250925 652.75423,86.014190 L 640.35035,120.90010 L 323.27614,121.67535 C 344.63838,47.079788 332.57905,51.731243 428.70913,51.903518 L 429.48437,15.467118 z M 314.11415,159.91012 L 624.37752,159.36001 L 534.70921,400.30922 L 314.11415,159.91012 z M 661.78516,174.21304 L 573.76718,405.26023 L 766.30650,405.81034 L 661.78516,174.21304 z"/>
+  </g>
+</svg>

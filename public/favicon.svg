@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Trans-Canada Bikeshare">
+  <!-- Two wheels on one rule: three systems, one baseline. Accent blue is the
+       only colour the design language spends, and this is data-adjacent chrome
+       so it earns it. Stroke-only, no fills — hairlines are the house style. -->
+  <g fill="none" stroke="#196ea9" stroke-width="2" stroke-linecap="round">
+    <circle cx="8.5" cy="20" r="5.5" />
+    <circle cx="23.5" cy="20" r="5.5" />
+    <path d="M2 20h28" stroke="#94999d" stroke-width="1.5" opacity="0.5" />
+    <path d="M8.5 20l5-9h6l4 9" />
+  </g>
+</svg>

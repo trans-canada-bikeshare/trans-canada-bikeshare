@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Canada's bike share systems, measured the same way — Vancouver, Montreal, and Toronto compared like for like from published open data."
+    />
+    <meta name="author" content="Adnan Reza" />
+    <meta property="og:title" content="Trans-Canada Bikeshare" />
+    <meta
+      property="og:description"
+      content="Canada's bike share systems, measured the same way."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Trans-Canada Bikeshare</title>
+    <script>
+      // Set the theme class before first paint so a stored dark preference
+      // never flashes light. Kept inline and dependency-free on purpose.
+      (function () {
+        try {
+          var stored = localStorage.getItem("theme");
+          var dark =
+            stored === "dark" ||
+            (stored !== "light" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          if (dark) document.documentElement.classList.add("dark");
+        } catch (e) {
+          /* no storage access; default to light */
+        }
+      })();
+    </script>
+    <style>
+      /* Boot skeleton: shown from the first byte of HTML until React mounts and
+         replaces #root's children. On a slow connection this is the shape of
+         the page instead of a white flash; it also paints <html> in the theme's
+         paper tone so a stored-dark reload never flashes white. Tones mirror
+         the tokens in src/index.css. */
+      :root {
+        --boot-bg: #f7f9fb;
+        --boot-ink: #090e11;
+        --boot-rule: #d4d8db;
+        --boot-bone: rgba(99, 106, 111, 0.14);
+      }
+      .dark {
+        --boot-bg: #0b0b0b;
+        --boot-ink: #ededed;
+        --boot-rule: #2e2e2e;
+        --boot-bone: rgba(149, 149, 149, 0.14);
+      }
+      html {
+        background: var(--boot-bg);
+      }
+      .boot {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 24px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+      }
+      .boot-nav {
+        display: flex;
+        align-items: center;
+        height: 56px;
+        border-bottom: 1px solid var(--boot-rule);
+        margin: 0 -24px;
+        padding: 0 24px;
+        color: var(--boot-ink);
+        font-size: 15px;
+        font-weight: 500;
+        letter-spacing: -0.01em;
+      }
+      .boot-hero {
+        padding-top: 96px;
+      }
+      .boot-bar {
+        display: block;
+        border-radius: 6px;
+        background: var(--boot-bone);
+        animation: boot-pulse 1.6s ease-in-out infinite;
+      }
+      .boot-eyebrow {
+        height: 11px;
+        width: min(240px, 60%);
+      }
+      .boot-h1 {
+        height: clamp(36px, 6vw, 76px);
+        width: min(680px, 92%);
+        margin-top: 28px;
+      }
+      .boot-h1 + .boot-h1 {
+        width: min(520px, 70%);
+        margin-top: 14px;
+      }
+      .boot-p {
+        height: 14px;
+        width: min(560px, 85%);
+        margin-top: 36px;
+      }
+      .boot-p + .boot-p {
+        width: min(480px, 70%);
+        margin-top: 12px;
+      }
+      @keyframes boot-pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.45;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-bar {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="boot" aria-hidden="true">
+        <div class="boot-nav">Trans-Canada Bikeshare</div>
+        <div class="boot-hero">
+          <span class="boot-bar boot-eyebrow"></span>
+          <span class="boot-bar boot-h1"></span>
+          <span class="boot-bar boot-h1"></span>
+          <span class="boot-bar boot-p"></span>
+          <span class="boot-bar boot-p"></span>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

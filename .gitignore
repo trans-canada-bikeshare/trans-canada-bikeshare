@@ -15,3 +15,7 @@ playwright-report/
 __pycache__/
 *.pyc
 .DS_Store
+
+# test + build tooling
+coverage/
+.vite/

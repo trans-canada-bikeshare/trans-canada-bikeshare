@@ -33,22 +33,22 @@ to a reader and to anyone who wants to pick the work up.
 | 004 | [Inventory and archive verification](004-inventory-and-archive-verification.md) | **Folded into 003** |
 | 005–008 | [Extract, clean, conform, model](005-008-warehouse.md) | Complete |
 | 009 | [Metric support registry](009-metric-support-registry.md) | Complete — shipped half-built, see 009b |
-| 009b | [The metric gate](009b-metric-gate.md) | Complete — *on a branch* |
+| 009b | [The metric gate](009b-metric-gate.md) | Complete |
 | 010 | [Quality report](010-quality-report.md) | Complete |
 | 011 | [Freshness gate](011-freshness-gate.md) | Complete |
 | 012 | [Station geography](012-station-geography.md) | Complete |
-| 013 | [Weather](013-weather.md) | **Not built** |
+| 013 | [Weather](013-weather.md) | Complete |
 | 014 | [Publish aggregates](014-publish-aggregates.md) | Complete |
 | 015 | [App shell](015-app-shell.md) | Complete |
 | 016 | [Overview](016-overview.md) | Complete |
 | 017 | [Trips and seasonality](017-trips-and-seasonality.md) | Complete |
 | 018 | [Active stations](018-active-stations.md) | Complete |
 | 019 | [E-bike share](019-ebike-share.md) | Complete — two-city, Montreal labelled |
-| 020 | [Membership mix](020-membership-mix.md) | **Not built** |
-| 021 | [Station maps](021-station-maps.md) | Complete — *on a branch* |
-| 022 | [Station flows](022-station-flows.md) | **Not built** — next up |
-| 023 | [Forecast](023-forecast.md) | **Not built** — blocked on 013 |
-| 024 | [Operational signals](024-operational-signals.md) | **Not built** |
+| 020 | [Membership mix](020-membership-mix.md) | Complete — Toronto 2021-10..2023-12 withheld, source defect |
+| 021 | [Station maps](021-station-maps.md) | Complete |
+| 022 | [Station flows](022-station-flows.md) | Complete |
+| 023 | [Forecast](023-forecast.md) | **Not built** — next up; 013 now unblocks it |
+| 024 | [Operational signals](024-operational-signals.md) | **Not built** — reduced two-city scope agreed 2026-07-29 |
 | 025 | [Methodology and data quality](025-methodology-and-data-quality.md) | Complete |
 | 026 | [Accessibility and responsive](026-accessibility-and-responsive.md) | Complete |
 | 027 | [Deploy](027-deploy.md) | **Not built, deliberately** |

@@ -42,21 +42,25 @@ explicitly per-city detail.
 
 ## Changes
 
-1. **Net flow per station**, as one integer `n` = returns − departures, added
-   to each `stations.json` entry. The rate is `n / t`, where `t` is the
-   lifetime events already published — so the comparable quantity is derived in
-   the browser rather than rounded twice in the artifact.
+1. **Net flow per station**, as one integer `f` = returns − departures, added
+   to each `stations.json` entry. (`n` was taken — it is the station name.) The
+   rate is `f / t`, where `t` is the lifetime events already published, so the
+   comparable quantity is derived in the browser rather than rounded twice.
 2. **`flows.json`** carrying, per system:
-   - the **top 250 OD pairs** by trip count, with the share of system volume
-     they represent, so the truncation is a published number and not a footnote
+   - the **20 busiest OD pairs**, with names denormalised, plus the total pair
+     count and the share the shown ones carry — so the truncation is a
+     published number, not a footnote. (Twenty, not the 250 first drafted: see
+     *Changes made during the build*.)
    - **concentration**: the share of all trips carried by the busiest 10, 100
      and 1,000 pairs — defined identically for all three, and the honest
      cross-city comparison
    - **round-trip share**: trips returning to their departure station.
      Vancouver 11.14%, Montreal 3.50%, Toronto 3.57%
 3. **Net flow on the station map** — a diverging encoding, since a rate with a
-   meaningful zero needs one. Stations that take more bikes than they give sit
-   on one side of neutral, and the legend says which.
+   meaningful zero needs one. Amber gives out more than it takes in, indigo
+   takes in more, and the lede says which. It **clips at ±15%**, because a few
+   stations reach 90% and scaling to them would flatten every ordinary dock to
+   grey — so the lede also says it clips.
 4. **Trips with no resolvable return station are excluded and counted**:
    272,088 Montreal, 10,824 Toronto, 10,776 Vancouver. They are real departures
    and remain in the trip totals, but a flow needs both ends.
@@ -135,5 +139,5 @@ of Vancouver's linked trips, **8.8%** of Toronto's and **7.3%** of Montreal's.
 
 ## Rollback
 
-Single revert; `stations.json` loses `n` and `flows.json` becomes orphaned,
+Single revert; `stations.json` loses `f` and `flows.json` becomes orphaned,
 which `make check-artifacts` and `make check-metrics` both report.

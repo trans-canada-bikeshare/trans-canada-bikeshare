@@ -41,15 +41,16 @@ const STYLE = {
  * would hide the sign — the one thing the encoding exists to show. Amber
  * drains (gives out more bikes than it takes), indigo accumulates.
  *
- * The domain is ±0.15 rather than the observed range. Stations do reach ±0.44
- * (Vancouver) and ±0.73 (Toronto), and scaling to them would collapse every
+ * The domain is ±0.15 rather than the observed range. The extremes run to
+ * −0.45 (Vancouver) and −0.73 (Toronto) — both negative, since a station can
+ * drain far harder than it fills — and scaling to them would collapse every
  * ordinary dock onto neutral grey. A fully saturated dot therefore means "at
  * least this imbalanced", which the section states — an encoding that clips
  * has to say it clips.
  *
  * Two palettes, not one. An earlier version used a single set and claimed it
  * "holds up on both the light and dark basemap"; measured against the actual
- * renders it did not — indigo came out at 1.58:1 on the dark basemap, against
+ * renders it did not — indigo came out at 1.8:1 on the dark basemap, against
  * WCAG 1.4.11's 3:1, so the most strongly accumulating stations were the
  * hardest ones to see. Literal values because MapLibre parses colours in JS
  * and cannot read a CSS custom property; the map already rebuilds on a theme
@@ -70,7 +71,7 @@ const FLOW_SCALE: Record<"light" | "dark", ExpressionSpecification> = {
  * One system's stations on a map.
  *
  * MapLibre is imported dynamically. The library is 257 KB gzipped against an
- * initial bundle of 75 KB, so loading it eagerly would more than quadruple the
+ * initial bundle of 78 KB, so loading it eagerly would more than quadruple the
  * cost of a page most readers never scroll to the bottom of. It arrives when
  * this component first becomes visible and not before.
  *

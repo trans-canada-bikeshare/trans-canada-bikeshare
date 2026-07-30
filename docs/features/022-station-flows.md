@@ -61,11 +61,11 @@ explicitly per-city detail.
      trips the figures differ in the second decimal.
 3. **Net flow on the station map** — a diverging encoding, since a rate with a
    meaningful zero needs one. Amber gives out more than it takes in, indigo
-   takes in more, and the lede says which. It **clips at ±15%** — stations do
-   reach ±0.44 (Vancouver) and ±0.73 (Toronto), and scaling to them would
-   flatten every ordinary dock to grey — so the lede also says it clips.
+   takes in more, and the lede says which. It **clips at ±15%** — the extremes
+   run to −0.45 (Vancouver) and −0.73 (Toronto), both negative, and scaling
+   to them would flatten every ordinary dock to grey — so the lede says so.
    Two palettes, one per theme, because a single set failed WCAG 1.4.11 on
-   the dark basemap at 1.58:1.
+   the dark basemap at 1.8:1.
 4. **Trips with no resolvable return station are excluded and counted**:
    272,088 Montreal, 10,824 Toronto, 10,776 Vancouver. They are real departures
    and remain in the trip totals, but a flow needs both ends.
@@ -87,7 +87,7 @@ explicitly per-city detail.
       10,776
 - [x] The diverging encoding is explained in the lede, including that it
       **clips at ±15%** — an encoding that saturates has to say so
-- [x] Publish budget passes: 23.0% of 320 KB (was 19.9%)
+- [x] Publish budget passes: 22.8% of 320 KB (19.9% on main before this)
 - [x] `npm test` (68), `npm run typecheck`, `npm run build` exit 0;
       `make check` green, all 11 artifacts reproduce
 - [x] **Rendered output confirmed in a headed browser** — production build.

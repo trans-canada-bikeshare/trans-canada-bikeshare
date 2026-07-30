@@ -320,10 +320,11 @@ def build(con, registry: dict) -> dict[str, object]:
                 "x": round(r["lon"], 5),
                 "t": r["lifetime_events"],
                 "a": bool(r["is_active"]),
-                # A station present in dim_station but absent here would mean a
-                # station with events and no trips, which cannot happen; fail
-                # loudly rather than defaulting a flow of zero, which would
-                # read as "perfectly balanced".
+                # A station with events but no LINKED trip has no net flow and
+                # is absent here. One such station exists (Montreal, 1 event);
+                # it never reaches this lookup only because of the 100-event
+                # threshold. Fail loudly rather than defaulting to zero, which
+                # would render as "perfectly balanced".
                 "f": net[(r["system_id"], r["station_id"])],
             }
             for r in station_rows
@@ -335,9 +336,9 @@ def build(con, registry: dict) -> dict[str, object]:
     # alone. Every pair list here is a truncation, so the truncation ships as a
     # number — total pairs, and the share the shown ones carry.
     #
-    # It is also not comparable. The 300 busiest pairs carry 18.6% of
-    # Vancouver's trips and 3.4% of Montreal's, so three top-N lists side by
-    # side would imply a like-for-like reading that does not hold. The
+    # It is also not comparable. The 300 busiest pairs carry 19.08% of
+    # Vancouver's linked trips and 3.35% of Montreal's, so three top-N lists
+    # side by side would imply a like-for-like reading that does not hold. The
     # CONCENTRATION is the comparable metric — same definition, same window,
     # every system — and the pair lists are per-city detail, labelled as such.
     # Eight, and with names denormalised. The pair keys alone are useless to

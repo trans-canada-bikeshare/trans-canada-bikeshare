@@ -8,7 +8,7 @@
  *
  * Two palettes, not one. An earlier version used a single set and claimed it
  * held up on both basemaps; measured against the actual renders it did not —
- * indigo came out at 1.58:1 on the dark basemap against WCAG 1.4.11's 3:1, so
+ * indigo came out at 1.8:1 on the dark basemap against WCAG 1.4.11's 3:1, so
  * the most strongly accumulating stations were the hardest to see. Every stop
  * now clears 3:1 against the basemap it is drawn on, except the near-neutral
  * amber over water (2.8:1), where stations essentially never sit.
@@ -23,8 +23,11 @@ export const FLOW_STOPS: Record<"light" | "dark", string[]> = {
   dark: ["#ffc14d", "#e0a83f", "#9ca3af", "#7d9ee6", "#6f7fe8"],
 };
 
-/** Where each stop sits on the rate axis. Clipped at ±15%: stations do reach
- *  ±0.44 and ±0.73, and scaling to them would flatten every ordinary dock to
- *  neutral. A saturated dot means "at least this imbalanced", which the
- *  section states — an encoding that clips has to say so. */
+/** Where each stop sits on the rate axis. Clipped at ±15%: the extremes run
+ *  to −0.45 (Vancouver) and −0.73 (Toronto) — both negative, since a station
+ *  can drain far harder than it fills — and scaling to them would flatten
+ *  every ordinary dock to neutral. A saturated dot means "at least this
+ *  imbalanced", which the section states: an encoding that clips says so.
+ *
+ *  The legend positions its swatch from THIS array, not evenly. */
 export const FLOW_DOMAIN = [-0.15, -0.04, 0, 0.04, 0.15] as const;

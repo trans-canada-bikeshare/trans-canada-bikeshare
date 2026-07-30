@@ -175,8 +175,8 @@ export function flowsFor(id: SystemId): FlowSystem | undefined {
  *
  * This is the cross-city comparison the flows section makes, and the reason
  * the top-pair lists beside it are labelled per-city detail: the 300 busiest
- * pairs carry 18.6% of Vancouver's trips and 3.4% of Montreal's, so the same
- * "top N" describes most of one network and almost none of another.
+ * pairs carry 19.08% of Vancouver's linked trips and 3.35% of Montreal's, so
+ * the same "top N" describes much of one network and almost none of another.
  */
 export function concentration(id: SystemId, n: 10 | 100 | 1000): number | null {
   const f = flowsFor(id);

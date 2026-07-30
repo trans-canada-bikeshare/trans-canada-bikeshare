@@ -10,7 +10,7 @@ import { SmallMultiples } from "@/components/charts/SmallMultiples";
 const StationMap = lazy(() =>
   import("@/components/StationMap").then((m) => ({ default: m.StationMap })),
 );
-import { FLOW_STOPS } from "@/lib/flowScale";
+import { FLOW_STOPS, FLOW_DOMAIN } from "@/lib/flowScale";
 import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
 import {
@@ -391,7 +391,9 @@ export default function App() {
                 great majority of stations sit well inside it, and stretching
                 the scale to the few that do not would flatten everything else
                 to grey. Only trips with both ends recorded are counted, so
-                across a whole system the flows cancel to zero.
+                across every station in a system the flows cancel to zero —
+                though not across the dots drawn here, because the stations
+                these maps cannot place hold the remainder.
               </>
             }
           >
@@ -403,9 +405,16 @@ export default function App() {
                 aria-hidden="true"
                 className="h-2 w-40 max-w-[45vw]"
                 style={{
-                  // Straight from the map's own stops, so the legend cannot
-                  // drift from the encoding it describes.
-                  background: `linear-gradient(to right, ${FLOW_STOPS[theme].join(", ")})`,
+                  // Positioned by the map's OWN domain, not spaced evenly.
+                  // Five unpositioned CSS stops sit at 0/25/50/75/100%, which
+                  // put the -4% stop where the scale means -7.5% — a 1.9x
+                  // overstatement across the middle, in the one element built
+                  // for decoding the colour.
+                  background: `linear-gradient(to right, ${FLOW_DOMAIN.map(
+                    (d, i) =>
+                      `${FLOW_STOPS[theme][i]} ${((100 * (d - FLOW_DOMAIN[0])) /
+                        (FLOW_DOMAIN[FLOW_DOMAIN.length - 1] - FLOW_DOMAIN[0])).toFixed(1)}%`,
+                  ).join(", ")})`,
                 }}
               />
               <span className="font-mono tabular-nums">+15%</span>
@@ -478,23 +487,34 @@ export default function App() {
               <strong className="font-medium text-foreground">
                 The single busiest pair in every system is a loop
               </strong>{" "}
-              — Stanley Park, Parc Jean-Drapeau, Tommy Thompson Park — a bike
-              taken out and brought back to the same dock. Below that the three
-              cities diverge:{" "}
+              —{" "}
+              {SYSTEM_ORDER.map((id, i) => {
+                const top = flows.pairs.find((x) => x.s === id);
+                return (
+                  <span key={id}>
+                    {i > 0 ? ", " : ""}
+                    {top?.a}
+                  </span>
+                );
+              })}{" "}
+              — a bike taken out and brought back to the same dock. Loops among
+              each city&rsquo;s busiest pairs:{" "}
               {SYSTEM_ORDER.map((id, i) => {
                 const p = flows.pairs.filter((x) => x.s === id);
                 const loops = p.filter((x) => x.r).length;
                 return (
                   <span key={id}>
                     {i > 0 ? ", " : ""}
-                    {loops} of {cityOf(id)}&rsquo;s {p.length} busiest
+                    {loops} of {cityOf(id)}&rsquo;s {p.length}
                   </span>
                 );
               })}
-              . Montreal&rsquo;s list runs to metro stations and street
-              corners, which is what a last-mile commute looks like; Toronto
-              and Vancouver&rsquo;s stay on the waterfront and in the parks.
-              Round trips are{" "}
+              . What differs is where the rest go: all{" "}
+              {flows.pairs.filter((x) => x.s === "mtl-bixi" && !x.r).length} of
+              Montreal&rsquo;s non-loop pairs run to or from a Métro station,
+              while Vancouver&rsquo;s stay inside Stanley Park and
+              Toronto&rsquo;s single one crosses between ferry docks. Round
+              trips are{" "}
               {SYSTEM_ORDER.map((id, i) => {
                 const f = flowsFor(id);
                 if (!f) return null;
@@ -531,8 +551,9 @@ export default function App() {
                     the {flows.top_pairs_shown} shown carry{" "}
                     {percent(f.shown_trips / f.linked_trips, 2)} of its linked
                     trips. {full(f.no_return_station)} trips have no recorded
-                    return station and are excluded from both the pairs and the
-                    maps, though they remain in the totals above.
+                    return station: they are excluded from the pairs and from
+                    net flow, but their departure still counts toward the
+                    station&rsquo;s lifetime events, so it is in the dot size.
                   </span>
                 );
               })}

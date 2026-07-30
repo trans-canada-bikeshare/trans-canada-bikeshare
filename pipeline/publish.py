@@ -181,6 +181,27 @@ def build(con, registry: dict) -> dict[str, object]:
     def complete(series: list[dict]) -> list[dict]:
         return [r for r in series if (r["system_id"], r["month"]) not in skip]
 
+    # The same exclusion, pushed into SQL. Series aggregated by something other
+    # than a month cannot filter afterwards: a day inside a three-day stub is
+    # still a day, and it lands in a yearly mean as if it were a normal one.
+    # Sorted so the parameter list is stable and the artifacts byte-reproduce.
+    skip_keys = sorted(f"{s}|{m}" for s, m in skip)
+
+    def complete_months(alias: str = "") -> str:
+        """A SQL predicate dropping the months `incomplete_months` lists.
+
+        Takes a table alias because one caller joins fact_trips against another
+        relation carrying `system_id`, where an unqualified reference is
+        ambiguous rather than merely untidy.
+        """
+        if not skip_keys:
+            return ""
+        p = f"{alias}." if alias else ""
+        return (
+            f" AND ({p}system_id || '|' || strftime({p}trip_month, '%Y-%m')) NOT IN ("
+            + ",".join("?" * len(skip_keys)) + ")"
+        )
+
     # --- trips per month, all three ----------------------------------------
     monthly = complete(rows(con, f"""
       SELECT system_id, strftime(trip_month, '%Y-%m') AS month, count(*) AS trips
@@ -614,6 +635,290 @@ def build(con, registry: dict) -> dict[str, object]:
             }
             for r in top_pairs
         ],
+    }
+
+    # --- rebalancing pressure ------------------------------------------------
+    # Two views of one quantity, both from trip records alone, and both DERIVED
+    # LOWER BOUNDS rather than observations. Nothing in any of these archives
+    # records a bike being moved by a van; what is recorded is where bikes
+    # started and finished, and the imbalance that leaves behind.
+    #
+    # Window. The hour-of-day profile uses the registry's common window (2017
+    # onward), because this metric is marked comparable and the registry says a
+    # comparable series defaults to the window all three publish. The choice was
+    # measured rather than assumed: against a 2025-onward window, no hour of any
+    # system's profile moves by more than 0.11 percentage points of its linked
+    # trips, and the profiles correlate at r >= 0.992. The common window buys
+    # 124 million linked trips for a shape that barely differs, and it is the
+    # same window for all three, which is what like-for-like means here.
+    HOURLY_FIRST_YEAR = first
+    hourly = rows(con, f"""
+      WITH linked AS (
+        SELECT system_id, departure_ts, return_ts
+        FROM fact_trips
+        WHERE {TRUSTED}
+          AND departure_station_id IS NOT NULL
+          AND return_station_id IS NOT NULL
+          AND return_ts IS NOT NULL
+          AND trip_year >= ?
+          {complete_months()}
+      ), ev AS (
+        SELECT system_id, hour(departure_ts) AS h, 1 AS dep, 0 AS ret FROM linked
+        UNION ALL
+        SELECT system_id, hour(return_ts)    AS h, 0 AS dep, 1 AS ret FROM linked
+      )
+      SELECT system_id, h AS hour,
+             sum(dep)::BIGINT AS departures,
+             sum(ret)::BIGINT AS returns
+      FROM ev GROUP BY 1, 2 ORDER BY 1, 2
+    """, [HOURLY_FIRST_YEAR, *skip_keys])
+    guard(registry, "rebalancing_pressure", sorted({r["system_id"] for r in hourly}))
+
+    # Denominators for the chart, and the measured timestamp grid. Mobi
+    # publishes departure and return times ON THE HOUR and nothing finer, so
+    # Vancouver's hour buckets are the source's own labels rather than a bucket
+    # this pipeline computed. That is a real qualification on an hour-of-day
+    # comparison and the page states it — derived from `on_hour_grid`, not
+    # asserted in prose.
+    hourly_basis = rows(con, f"""
+      SELECT system_id,
+             count(*)::BIGINT                            AS linked_trips,
+             count(DISTINCT date_key)::BIGINT            AS days,
+             -- epoch_ms, not epoch: BIXI's 2022+ era publishes milliseconds,
+             -- and casting a float second count to BIGINT would round a
+             -- 3600.4-second offset onto the hour it is not on.
+             count(*) FILTER (
+               epoch_ms(departure_ts) % 3600000 = 0
+               AND epoch_ms(return_ts) % 3600000 = 0
+             )::BIGINT                                   AS on_hour_grid
+      FROM fact_trips
+      WHERE {TRUSTED}
+        AND departure_station_id IS NOT NULL
+        AND return_station_id IS NOT NULL
+        AND return_ts IS NOT NULL
+        AND trip_year >= ?
+        {complete_months()}
+      GROUP BY 1 ORDER BY 1
+    """, [HOURLY_FIRST_YEAR, *skip_keys])
+
+    # Implied minimum daily rebalancing, per year.
+    #
+    # Each event is dated by its OWN timestamp — a departure by the day it left,
+    # a return by the day it arrived — because that is what a dock actually
+    # sees. A day counts only if the system had at least one linked DEPARTURE on
+    # it. Without that condition the archive's trailing edge invents days: 21
+    # dates in July 2026 carry Montreal returns from June departures and no
+    # departures at all, and one of them (2026-07-01, 617 returns against a
+    # 3,000-a-day norm) diluted Montreal's mean by 3.8%. The same edge exists
+    # for Toronto at 2026-04-01. A day the system did not operate is not a day.
+    rebalancing = rows(con, f"""
+      WITH linked AS (
+        SELECT system_id, trip_year, trip_month,
+               departure_ts, departure_station_id, return_ts, return_station_id
+        FROM fact_trips
+        WHERE {TRUSTED}
+          AND departure_station_id IS NOT NULL
+          AND return_station_id IS NOT NULL
+          AND return_ts IS NOT NULL
+          {complete_months()}
+      ), opday AS (
+        SELECT DISTINCT system_id, trip_year, departure_ts::DATE AS d FROM linked
+      ), ev AS (
+        SELECT system_id, departure_ts::DATE AS d, departure_station_id AS sid,
+               -1 AS v FROM linked
+        UNION ALL
+        SELECT system_id, return_ts::DATE AS d, return_station_id AS sid,
+               1 AS v FROM linked
+      ), st AS (
+        SELECT o.system_id, o.trip_year, e.d, e.sid, sum(e.v) AS net
+        FROM ev e JOIN opday o ON o.system_id = e.system_id AND o.d = e.d
+        GROUP BY 1, 2, 3, 4
+      ), dayagg AS (
+        SELECT system_id, trip_year, d, sum(abs(net)) AS abs_net
+        FROM st GROUP BY 1, 2, 3
+      ), yr AS (
+        SELECT system_id, trip_year,
+               count(*)::BIGINT       AS n_days,
+               sum(abs_net)::BIGINT   AS abs_net
+        FROM dayagg GROUP BY 1, 2
+      ), tr AS (
+        SELECT system_id, trip_year,
+               count(*)::BIGINT                     AS linked_trips,
+               count(DISTINCT trip_month)::BIGINT   AS n_months
+        FROM linked GROUP BY 1, 2
+      )
+      SELECT y.system_id, y.trip_year AS year, y.n_days AS days,
+             t.n_months AS months, y.abs_net, t.linked_trips
+      FROM yr y JOIN tr t
+        ON t.system_id = y.system_id AND t.trip_year = y.trip_year
+      ORDER BY 1, 2
+    """, [*skip_keys])
+    guard(registry, "rebalancing_pressure",
+          sorted({r["system_id"] for r in rebalancing}))
+
+    # Which years the archive covers end to end. A year clipped by the edge of
+    # the archive cannot be told apart from a year the system only operated part
+    # of — Montreal's 2014 opens in April because BIXI opens in April, and its
+    # 2026 stops in June because the archive does. Both look identical from
+    # inside the data, so the chart draws only years the archive fully covers
+    # and the page says how many it dropped.
+    span = {s["system_id"]: (s["first_trip"], s["last_trip"]) for s in systems}
+    for r in rebalancing:
+        first_trip, last_trip = span[r["system_id"]]
+        r["full_year"] = (first_trip <= f"{r['year']}-01-01"
+                          and last_trip >= f"{r['year']}-12-31")
+
+    # The latest calendar year every system covers end to end. The headline
+    # comparison uses it so all three are read over the same 365 days rather
+    # than over whatever each one's archive happens to end on.
+    full_years = {
+        s: {r["year"] for r in rebalancing
+            if r["system_id"] == s and r["full_year"]}
+        for s in {r["system_id"] for r in rebalancing}
+    }
+    shared_full = set.intersection(*full_years.values()) if full_years else set()
+    art["rebalancing"] = {
+        "hourly_first_year": HOURLY_FIRST_YEAR,
+        "hourly": hourly,
+        "hourly_basis": hourly_basis,
+        "yearly": rebalancing,
+        "headline_year": max(shared_full) if shared_full else None,
+        # Carried from the registry so the caveat cannot drift away from the
+        # number it qualifies: the page renders this string, it does not
+        # paraphrase it.
+        "caveat": registry["metrics"]["rebalancing_pressure"]["caveat"],
+        "qualified": {
+            s: v for s, v in
+            registry["metrics"]["rebalancing_pressure"]["systems"].items()
+            if v.get("qualified")
+        },
+    }
+
+    # --- dwell at a dock -----------------------------------------------------
+    # Which years can carry it at all, measured rather than listed. A year is
+    # admitted only if nearly every trip in it names a bike: a chain built from
+    # a partly-identified year silently skips the trips it cannot see, so a
+    # bike's "next departure" is whichever later trip happens to carry an id,
+    # and the interval between them is not dwell.
+    BIKE_ID_MIN_COVERAGE = 0.99
+    coverage = rows(con, f"""
+      SELECT system_id, trip_year AS year,
+             count(*)::BIGINT           AS trips,
+             count(bike_id)::BIGINT     AS with_bike_id
+      FROM fact_trips
+      WHERE {TRUSTED} {complete_months()}
+      GROUP BY 1, 2 ORDER BY 1, 2
+    """, [*skip_keys])
+    for c in coverage:
+        c["coverage"] = c["with_bike_id"] / c["trips"] if c["trips"] else 0.0
+
+    # Contiguous runs of admitted years. The blocks matter, not just the years:
+    # a chain must never step across a withheld era, or Vancouver's last 2020
+    # return pairs with its first 2024 departure and reports a three-year dwell.
+    eras: list[tuple[str, int, int]] = []
+    for c in coverage:
+        if c["coverage"] < BIKE_ID_MIN_COVERAGE:
+            continue
+        if eras and eras[-1][0] == c["system_id"] and eras[-1][2] == c["year"] - 1:
+            eras[-1] = (eras[-1][0], eras[-1][1], c["year"])
+        else:
+            eras.append((c["system_id"], c["year"], c["year"]))
+
+    dwell: list[dict] = []
+    if eras:
+        values = ",".join("(?,?,?)" for _ in eras)
+        params: list[object] = []
+        for system_id, lo, hi in eras:
+            params += [system_id, lo, hi]
+        dwell = rows(con, f"""
+          WITH eras(system_id, lo, hi) AS (VALUES {values}),
+          src AS (
+            SELECT f.system_id, f.bike_id, e.lo, e.hi,
+                   f.departure_ts, f.departure_station_id,
+                   f.return_ts, f.return_station_id
+            FROM fact_trips f
+            JOIN eras e ON e.system_id = f.system_id
+                       AND f.trip_year BETWEEN e.lo AND e.hi
+            WHERE {TRUSTED} AND f.bike_id IS NOT NULL {complete_months("f")}
+          ), seq AS (
+            SELECT system_id, lo, hi, return_ts, return_station_id,
+                   lead(departure_ts)         OVER w AS next_dep_ts,
+                   lead(departure_station_id) OVER w AS next_dep_station
+            FROM src
+            -- Partitioned by system as well as bike: 2,038 bike ids are shared
+            -- between the Toronto and Vancouver namespaces, and joining across
+            -- them would splice two cities' bikes into one chain.
+            WINDOW w AS (
+              PARTITION BY system_id, bike_id, lo
+              ORDER BY departure_ts, return_ts,
+                       departure_station_id, return_station_id
+            )
+          ), paired AS (
+            SELECT system_id, lo, hi,
+                   year(return_ts)                         AS yr,
+                   month(return_ts)                        AS mo,
+                   next_dep_station = return_station_id    AS same_dock,
+                   -- datediff, not epoch(): an exact integer second count
+                   -- rather than a float that a cast would round.
+                   datediff('second', return_ts, next_dep_ts) AS dwell_s
+            FROM seq
+            WHERE return_ts IS NOT NULL AND return_station_id IS NOT NULL
+              AND next_dep_ts IS NOT NULL AND next_dep_station IS NOT NULL
+              -- An interval is reported in the year the bike ARRIVED, and only
+              -- inside the era that produced it. Without this a Vancouver
+              -- return on 2020-12-31 would publish a 2021 row, in a year the
+              -- coverage test just withheld.
+              AND year(return_ts) BETWEEN lo AND hi
+          )
+          SELECT system_id, lo AS era_first_year, hi AS era_last_year, yr AS year,
+                 count(DISTINCT mo)::BIGINT                          AS months,
+                 count(*) FILTER (same_dock AND dwell_s >= 0)::BIGINT AS intervals,
+                 -- Not dwell: the bike's next departure is from another dock,
+                 -- so something moved it. Counted rather than folded in.
+                 count(*) FILTER (NOT same_dock)::BIGINT              AS relocated,
+                 count(*) FILTER (same_dock AND dwell_s < 0)::BIGINT  AS out_of_order,
+                 count(*) FILTER (
+                   same_dock AND dwell_s >= 0 AND dwell_s % 3600 = 0
+                 )::BIGINT                                            AS on_hour_grid,
+                 CAST(quantile_cont(dwell_s, 0.25)
+                      FILTER (same_dock AND dwell_s >= 0) AS BIGINT)  AS p25_s,
+                 CAST(quantile_cont(dwell_s, 0.50)
+                      FILTER (same_dock AND dwell_s >= 0) AS BIGINT)  AS median_s,
+                 CAST(quantile_cont(dwell_s, 0.75)
+                      FILTER (same_dock AND dwell_s >= 0) AS BIGINT)  AS p75_s
+          FROM paired GROUP BY 1, 2, 3, 4 ORDER BY 1, 2, 4
+        """, [*params, *skip_keys])
+    guard(registry, "bike_dwell", sorted({r["system_id"] for r in dwell}))
+
+    art["dwell"] = {
+        "min_bike_id_coverage": BIKE_ID_MIN_COVERAGE,
+        "series": dwell,
+        # Years a supported system publishes trips for but cannot carry dwell.
+        # Stated, never quietly absent — the membership section's discipline.
+        "withheld": [
+            {
+                "system_id": c["system_id"],
+                "year": c["year"],
+                "trips": c["trips"],
+                "with_bike_id": c["with_bike_id"],
+                "basis": ("no bike identifier published" if c["with_bike_id"] == 0
+                          else "bike identifier incomplete"),
+            }
+            for c in coverage
+            if c["coverage"] < BIKE_ID_MIN_COVERAGE
+            and any(e[0] == c["system_id"] for e in eras)
+        ],
+        # Systems with no bike identifier anywhere. Rendered as a labelled gap,
+        # exactly like e-bike share for Montreal.
+        "unsupported": {
+            s: v for s, v in registry["metrics"]["bike_dwell"]["systems"].items()
+            if not v.get("supported")
+        },
+        "notes": {
+            s: v["note"] for s, v in
+            registry["metrics"]["bike_dwell"]["systems"].items()
+            if v.get("supported") and v.get("note")
+        },
     }
 
     # --- what was excluded, so the site can say so --------------------------

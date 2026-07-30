@@ -18,6 +18,17 @@ interface Props {
   /** Roughly how many x ticks to aim for; actual count snaps to the data. */
   xTicks?: number;
   caption?: string;
+  /**
+   * Open the y domain below zero and draw the zero line as the axis.
+   *
+   * Off by default, and the default keeps the original behaviour exactly: the
+   * domain runs 0..max and negative values would be clipped below the plot.
+   * Every series on this site was non-negative until net flow by hour of day,
+   * where the sign is the entire signal — the hours a system's docks are
+   * emptying read as negative and the hours they refill read as positive, and a
+   * chart that could not draw the sign would be showing the wrong quantity.
+   */
+  signed?: boolean;
 }
 
 const PAD = { top: 12, right: 12, bottom: 26, left: 46 };
@@ -38,13 +49,14 @@ export function LineChart({
   height = 260,
   xTicks = 6,
   caption,
+  signed = false,
 }: Props) {
   const titleId = useId();
   const [hover, setHover] = useState<number | null>(null);
   const W = 720;
   const H = height;
 
-  const { xs, xMin, xMax, yMax } = useMemo(() => {
+  const { xs, xMin, xMax, yMax, yMin } = useMemo(() => {
     const all = series.flatMap((s) => s.points);
     const xsSet = [...new Set(all.map((p) => p.x))].sort((a, b) => a - b);
     return {
@@ -52,12 +64,18 @@ export function LineChart({
       xMin: xsSet[0] ?? 0,
       xMax: xsSet[xsSet.length - 1] ?? 1,
       yMax: Math.max(1, ...all.map((p) => p.y)),
+      // Symmetric about zero when signed, so equal imbalance in either
+      // direction is equally far from the axis. An asymmetric domain would
+      // make a -0.6 look larger than a +0.6.
+      yMin: signed ? -Math.max(1, ...all.map((p) => Math.abs(p.y))) : 0,
     };
-  }, [series]);
+  }, [series, signed]);
 
+  const yTop = signed ? Math.max(yMax, -yMin) : yMax;
   const px = (x: number) =>
     PAD.left + ((x - xMin) / Math.max(1, xMax - xMin)) * (W - PAD.left - PAD.right);
-  const py = (y: number) => H - PAD.bottom - (y / yMax) * (H - PAD.top - PAD.bottom);
+  const py = (y: number) =>
+    H - PAD.bottom - ((y - yMin) / (yTop - yMin)) * (H - PAD.top - PAD.bottom);
 
   // A break in `points` becomes an `M` rather than an `L`, so gaps stay gaps.
   const path = (pts: { x: number; y: number }[], step: number) => {
@@ -74,7 +92,7 @@ export function LineChart({
   const step = xs.length > 1 ? Math.min(...xs.slice(1).map((x, i) => x - xs[i])) : 1;
   const tickEvery = Math.max(1, Math.round(xs.length / xTicks));
   const ticks = xs.filter((_, i) => i % tickEvery === 0);
-  const yTicks = [0, yMax / 2, yMax];
+  const yTicks = signed ? [yMin, 0, yTop] : [0, yMax / 2, yMax];
 
   const nearest = hover === null ? null : xs.reduce((a, b) =>
     Math.abs(b - hover) < Math.abs(a - hover) ? b : a, xs[0]);
@@ -100,9 +118,13 @@ export function LineChart({
 
         {yTicks.map((y) => (
           <g key={y}>
+            {/* On a signed chart the zero line is not one gridline among
+                three — it is the boundary the reader is decoding sign
+                against, so it is drawn at full rule weight. */}
             <line
               x1={PAD.left} x2={W - PAD.right} y1={py(y)} y2={py(y)}
-              stroke="hsl(var(--rule-2))" strokeWidth={1}
+              stroke={signed && y === 0 ? "hsl(var(--border))" : "hsl(var(--rule-2))"}
+              strokeWidth={1}
             />
             <text
               x={PAD.left - 8} y={py(y)} textAnchor="end" dominantBaseline="middle"

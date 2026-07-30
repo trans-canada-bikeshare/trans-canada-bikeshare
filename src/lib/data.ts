@@ -21,6 +21,9 @@ import stationsMetaJson from "@/data/generated/stations_meta.json";
 import flowsJson from "@/data/generated/flows.json";
 // 5 KB gzip — eager, for the same reason flows.json is.
 import membershipJson from "@/data/generated/membership.json";
+// 2.3 KB and 1.2 KB gzip.
+import rebalancingJson from "@/data/generated/rebalancing.json";
+import dwellJson from "@/data/generated/dwell.json";
 import type { SystemId } from "@/lib/systems";
 
 export interface SystemMetaRow {
@@ -269,6 +272,195 @@ export function memberShare(p: MembershipPoint): number | null {
 
 export function membershipFor(id: SystemId): MembershipPoint[] {
   return membership.series.filter((r) => r.system_id === id);
+}
+
+/* ---------------------------------------------------------------- operations */
+
+export interface HourPoint {
+  system_id: SystemId;
+  /** local hour of the event's own timestamp, 0-23 */
+  hour: number;
+  departures: number;
+  returns: number;
+}
+
+export interface HourBasis {
+  system_id: SystemId;
+  linked_trips: number;
+  /** distinct days with a trip, the denominator for a per-day reading */
+  days: number;
+  /** linked trips whose BOTH timestamps land exactly on the hour. Mobi
+   *  publishes nothing finer, so Vancouver's is ~98% and the other two are
+   *  effectively zero — which is why the page states the resolution. */
+  on_hour_grid: number;
+}
+
+export interface RebalancingYear {
+  system_id: SystemId;
+  year: number;
+  /** operating days: days the system had at least one linked departure */
+  days: number;
+  months: number;
+  /** summed over days and stations, |daily net flow|. Moves are this over two,
+   *  derived here rather than published so the ratio is rounded once. */
+  abs_net: number;
+  linked_trips: number;
+  /** the archive covers this year end to end — 1 January to 31 December */
+  full_year: boolean;
+}
+
+export const rebalancing = rebalancingJson as {
+  hourly_first_year: number;
+  hourly: HourPoint[];
+  hourly_basis: HourBasis[];
+  yearly: RebalancingYear[];
+  /** latest calendar year the archive covers end to end for every system */
+  headline_year: number | null;
+  caveat: string;
+  qualified: Record<string, { note?: string }>;
+};
+
+/**
+ * The implied minimum number of bike moves per day.
+ *
+ * A LOWER BOUND, and the reason it is one travels with it everywhere: it counts
+ * the imbalance a day leaves behind, assuming the network is reset overnight
+ * and nothing is moved while the day runs. Any real operation moves more.
+ */
+export function movesPerDay(r: RebalancingYear): number {
+  return r.days === 0 ? 0 : r.abs_net / 2 / r.days;
+}
+
+/** The same bound per 1,000 trips — the form that compares across systems ten
+ *  times apart in size. */
+export function movesPer1k(r: RebalancingYear): number {
+  return r.linked_trips === 0 ? 0 : (1000 * r.abs_net) / 2 / r.linked_trips;
+}
+
+export function rebalancingFor(id: SystemId): RebalancingYear[] {
+  return rebalancing.yearly.filter((r) => r.system_id === id);
+}
+
+/** The headline year's row: the latest year every system covers end to end, so
+ *  all three are read over the same 365 days. */
+export function headlineRebalancing(id: SystemId): RebalancingYear | undefined {
+  return rebalancing.yearly.find(
+    (r) => r.system_id === id && r.year === rebalancing.headline_year,
+  );
+}
+
+export function hourBasis(id: SystemId): HourBasis | undefined {
+  return rebalancing.hourly_basis.find((b) => b.system_id === id);
+}
+
+/** Net flow in an hour as a share of that system's linked trips in the window.
+ *  Shares, not counts, for the reason the seasonality chart uses them: Montreal
+ *  runs nine times Vancouver's volume and the shapes are the comparison. */
+export function hourlyShare(id: SystemId): { x: number; y: number }[] {
+  const basis = hourBasis(id);
+  if (!basis || basis.linked_trips === 0) return [];
+  return rebalancing.hourly
+    .filter((r) => r.system_id === id)
+    .sort((a, b) => a.hour - b.hour)
+    .map((r) => ({
+      x: r.hour,
+      y: (100 * (r.returns - r.departures)) / basis.linked_trips,
+    }));
+}
+
+/** The same hour in bikes per average operating day — the operational reading,
+ *  used for the note rather than the axis. */
+export function hourlyPerDay(id: SystemId, hour: number): number | null {
+  const basis = hourBasis(id);
+  const row = rebalancing.hourly.find((r) => r.system_id === id && r.hour === hour);
+  if (!basis || !row || basis.days === 0) return null;
+  return (row.returns - row.departures) / basis.days;
+}
+
+/** The hour a system's docks empty fastest, and the hour they refill fastest.
+ *  Derived, because naming them in prose is how a sentence outlives its data. */
+export function hourExtremes(id: SystemId): { ebb: number; flood: number } | null {
+  const pts = hourlyShare(id);
+  if (!pts.length) return null;
+  const ebb = pts.reduce((a, b) => (b.y < a.y ? b : a));
+  const flood = pts.reduce((a, b) => (b.y > a.y ? b : a));
+  return { ebb: ebb.x, flood: flood.x };
+}
+
+/** Share of a system's linked trips whose timestamps are hour-only. */
+export function hourGridShare(id: SystemId): number | null {
+  const b = hourBasis(id);
+  return b && b.linked_trips > 0 ? b.on_hour_grid / b.linked_trips : null;
+}
+
+export interface DwellRow {
+  system_id: SystemId;
+  /** the contiguous run of years the chain was built inside */
+  era_first_year: number;
+  era_last_year: number;
+  year: number;
+  months: number;
+  /** dwell intervals: same bike, same dock, return to next departure */
+  intervals: number;
+  /** the bike's next departure was from a DIFFERENT dock — something moved it,
+   *  so the interval is not dwell and is excluded from the quantiles */
+  relocated: number;
+  /** next departure recorded before the return it follows */
+  out_of_order: number;
+  /** intervals that are exact multiples of an hour. ~100% for Vancouver, whose
+   *  source publishes no finer than the hour. */
+  on_hour_grid: number;
+  p25_s: number;
+  median_s: number;
+  p75_s: number;
+}
+
+export const dwell = dwellJson as {
+  min_bike_id_coverage: number;
+  series: DwellRow[];
+  withheld: {
+    system_id: SystemId; year: number; trips: number;
+    with_bike_id: number; basis: string;
+  }[];
+  unsupported: Record<string, { reason?: string; display?: string }>;
+  notes: Record<string, string>;
+};
+
+export function dwellFor(id: SystemId): DwellRow[] {
+  return dwell.series.filter((r) => r.system_id === id);
+}
+
+/** The year ranges a system can carry dwell in, as the artifact reports them.
+ *  Two for Vancouver, one for Toronto, none for Montreal. */
+export function dwellEras(id: SystemId): { first: number; last: number }[] {
+  const seen = new Map<string, { first: number; last: number }>();
+  for (const r of dwellFor(id)) {
+    seen.set(`${r.era_first_year}-${r.era_last_year}`, {
+      first: r.era_first_year,
+      last: r.era_last_year,
+    });
+  }
+  return [...seen.values()].sort((a, b) => a.first - b.first);
+}
+
+export function dwellWithheldFor(id: SystemId) {
+  return dwell.withheld
+    .filter((r) => r.system_id === id)
+    .sort((a, b) => a.year - b.year);
+}
+
+/** Share of a system's intervals that fall on an exact hour. Vancouver's
+ *  quartiles are hour boundaries because its source has no finer value; the
+ *  page renders this rather than asserting it. */
+export function dwellGridShare(r: DwellRow): number {
+  return r.intervals === 0 ? 0 : r.on_hour_grid / r.intervals;
+}
+
+/** Share of a bike's dock-to-dock intervals that ended somewhere else. Not a
+ *  count of rebalancing trips: a trip missing from the archive looks the same. */
+export function relocatedShare(r: DwellRow): number {
+  const total = r.intervals + r.relocated;
+  return total === 0 ? 0 : r.relocated / total;
 }
 
 export const incompleteMonths = incompleteJson as {

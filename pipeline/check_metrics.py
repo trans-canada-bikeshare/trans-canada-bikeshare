@@ -49,6 +49,13 @@ ARTIFACT_METRIC: dict[str, str] = {
     # Declared 2026-07-30, after the gate refused it too. Montreal appears
     # here under `partial_until`, not as a supported system.
     "membership": "membership_mix",
+    # Spec 024. `operational_signals` was one registry entry covering two
+    # metrics with different support: the trip-only signals every system can
+    # carry, and dwell, which needs a bike identifier Montreal has never
+    # published. One key could only be as narrow as its narrowest signal, so
+    # the split is what lets Montreal into the comparable core.
+    "rebalancing": "rebalancing_pressure",
+    "dwell": "bike_dwell",
 }
 
 # Artifacts that carry system ids without being a comparative metric. Each

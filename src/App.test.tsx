@@ -253,6 +253,18 @@ describe("App", () => {
     }
   });
 
+  it("reports the out-of-sample error beside the in-sample one", () => {
+    render(<App />);
+    const section = document.getElementById("forecast")!;
+    // The number must be the artifact's, not prose.
+    for (const m of forecast.models) {
+      expect(section.textContent).toContain(
+        `${m.fit.cv_median_abs_pct_error.toFixed(1)}%`,
+      );
+    }
+    expect(section.textContent).toMatch(/one day in 5 held out/i);
+  });
+
   it("declares no government affiliation", () => {
     render(<App />);
     expect(

@@ -311,6 +311,33 @@ now, but it was written after the browser found it, not before.
   with weather over 2017-2026, anchored at 2025. The copy says that in those
   words rather than implying a prediction about next week.
 
+## Changes made after review
+
+**Cross-validated fit added** (the builder's own flagged limitation, closed at
+the owner's approval). Five-fold CV over days with deterministic folds by date
+order — days, not month blocks, because a held-out block's level is
+unidentified and unpredictable by construction, while day folds measure
+exactly whether the five weather coefficients generalise. Every day is held
+out exactly once; the identifiability guard never fired.
+
+| system | R² ln(trips), in-sample | out-of-sample | median error, in-sample | out-of-sample |
+|---|---|---|---|---|
+| van-mobi | 0.8965 | 0.8901 | 11.92% | 12.34% |
+| mtl-bixi | 0.9400 | 0.9367 | 12.29% | 12.62% |
+| tor-bikeshare | 0.9086 | 0.9043 | 14.58% | 14.98% |
+
+The out-of-sample figures sit 0.3-0.6 R² points and under half an error point
+behind the fitted ones, so the in-sample statistics were not an artifact of
+the 86-114 monthly levels. Tests pin the gap under one point and cv_r2_log
+above 0.75; if either ever fails, the finding is real and must not be
+massaged green. The panel's fit note now carries the out-of-sample error
+beside the in-sample one, derived from the artifact.
+
+Not done, deliberately (agreed between builder and reviewer): the
+leverage-term prediction interval (~42k floats of (X'X)^-1 against a 320 KB
+budget for a band whose copy is already accurate about what it is) and the
+bar-ceiling clamp (unreachable from any valid input).
+
 ## Out of Scope
 
 - Hourly weather (spec 013 settled this: 24x the volume for no gain daily).

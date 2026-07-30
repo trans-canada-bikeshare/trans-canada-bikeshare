@@ -431,10 +431,21 @@ export function ForecastPanel() {
         </strong>{" "}
         and its typical day is still off by{" "}
         {weakest.fit.median_abs_pct_error.toFixed(1)}% — which is the honest
-        headline for all three. Weather and the calendar are most of what moves
-        a riding day, and they are nowhere near all of it: nothing here knows
-        about a holiday, a transit strike, a road closure, a fare change or a
-        station that was down.
+        headline for all three. These are in-sample figures, so each model was
+        also refitted {models[0].fit.cv_folds} times with one day in{" "}
+        {models[0].fit.cv_folds} held out; on the days it never saw, the
+        typical prediction is off by{" "}
+        {models.map((m, i) => (
+          <span key={m.system_id}>
+            {i > 0 ? ", " : ""}
+            {m.fit.cv_median_abs_pct_error.toFixed(1)}% ({cityOf(m.system_id)})
+          </span>
+        ))}
+        — within a fraction of a point of the fitted figures, so the weather
+        coefficients are not an artifact of the monthly levels. Weather and the
+        calendar are most of what moves a riding day, and they are nowhere near
+        all of it: nothing here knows about a holiday, a transit strike, a road
+        closure, a fare change or a station that was down.
       </Note>
 
       <Note>

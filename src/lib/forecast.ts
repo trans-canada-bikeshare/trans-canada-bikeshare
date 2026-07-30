@@ -50,6 +50,12 @@ export interface ForecastFit {
   max_daily_date: string;
   /** How much higher the AVERAGE day runs than the typical day this predicts. */
   smearing_factor: number;
+  /** out-of-sample: 5-fold CV over days, deterministic folds by date order */
+  cv_folds: number;
+  cv_held_out_days: number;
+  cv_r2_log: number;
+  cv_median_abs_pct_error: number;
+  cv_always_in_train?: number;
 }
 
 export interface MonthBlock {

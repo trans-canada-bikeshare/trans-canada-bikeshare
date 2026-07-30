@@ -167,6 +167,101 @@ def _round_stats(d: dict) -> dict:
     return {k: (round(v, STAT_DP) if isinstance(v, float) else v) for k, v in d.items()}
 
 
+def _ols(design: "np.ndarray", log_trips: "np.ndarray") -> "np.ndarray":
+    """The one OLS core, shared by the full fit and every CV fold.
+
+    A rank-deficient design has infinitely many least-squares solutions and
+    lstsq silently returns the minimum-norm one — coefficients that fit
+    equally well and mean something different, chosen by the linear algebra
+    library rather than by the data. That would also break byte
+    reproducibility across any change in that library, which is the gate this
+    feature has to pass. Stop instead. Coefficients are rounded to COEF_DP
+    before anything is computed from them, so LAPACK jitter at 1e-13 is
+    absorbed.
+    """
+    beta, _residuals, rank, _singular = np.linalg.lstsq(design, log_trips, rcond=None)
+    if rank < design.shape[1]:
+        raise NotEnoughData(
+            f"design matrix has rank {rank} for {design.shape[1]} columns: some "
+            "feature is a linear combination of the others, so the coefficients "
+            "would not be unique"
+        )
+    return np.round(beta, COEF_DP)
+
+
+def _cross_validate(days: list[dict], blocks: list[str], folds: int = 5) -> dict:
+    """K-fold cross-validation over DAYS, deterministic, no randomness.
+
+    Fold assignment is index mod K over the date-sorted day list. Folding over
+    days rather than month blocks is deliberate: holding out a whole block
+    would leave its level unidentified — the model could not predict it at all
+    — while day folds keep every level identified and measure exactly the
+    thing in question, which is whether the five weather coefficients
+    generalise to days the fit never saw.
+
+    Identifiability guard: a day whose month block would lose its LAST
+    training day in some fold stays in training for that fold instead, and is
+    counted in `always_in_train`. Never silently dropped, and no fold is ever
+    allowed to go rank-deficient by construction.
+
+    Out-of-sample errors use the same conventions as the in-sample statistics:
+    log-scale residuals, and trip-scale errors through a raw exp() with no
+    smearing.
+    """
+    names = feature_names(blocks)
+    n = len(days)
+    trips_all = np.array([d["trips"] for d in days], dtype=float)
+    log_all = np.log(trips_all)
+    design_all = np.array(
+        [[1.0] + [feature_vector(d, blocks)[n_] for n_ in names] for d in days],
+        dtype=float,
+    )
+    block_of = [d["block"] for d in days]
+
+    oos_pred_log = np.full(n, np.nan)
+    always_in_train = 0
+    for f in range(folds):
+        test_idx = [i for i in range(n) if i % folds == f]
+        train_mask = np.ones(n, dtype=bool)
+        train_mask[test_idx] = False
+        # Guard: every block must keep at least one training day.
+        train_blocks = {block_of[i] for i in range(n) if train_mask[i]}
+        kept_test = []
+        for i in test_idx:
+            if block_of[i] not in train_blocks:
+                train_mask[i] = True
+                always_in_train += 1
+            else:
+                kept_test.append(i)
+        if not kept_test:
+            continue
+        beta = _ols(design_all[train_mask], log_all[train_mask])
+        for i in kept_test:
+            oos_pred_log[i] = float(design_all[i] @ beta)
+
+    held = ~np.isnan(oos_pred_log)
+    held_n = int(held.sum())
+    if held_n < n // 2:
+        raise NotEnoughData(
+            f"cross-validation held out only {held_n} of {n} days — the "
+            "identifiability guard has swallowed the test set"
+        )
+    resid = log_all[held] - oos_pred_log[held]
+    ss_oos = float((resid ** 2).sum())
+    ss_tot = float(((log_all[held] - log_all[held].mean()) ** 2).sum())
+    pred_trips = np.exp(oos_pred_log[held])
+    pct = np.abs(trips_all[held] - pred_trips) / trips_all[held]
+    out = {
+        "cv_folds": int(folds),
+        "cv_held_out_days": held_n,
+        "cv_r2_log": float(1.0 - ss_oos / ss_tot),
+        "cv_median_abs_pct_error": float(np.median(pct) * 100.0),
+    }
+    if always_in_train:
+        out["cv_always_in_train"] = int(always_in_train)
+    return out
+
+
 def fit_system(days: list[dict], blocks: list[str]) -> dict:
     """Ordinary least squares of ln(daily trips) on the feature vector.
 
@@ -185,20 +280,7 @@ def fit_system(days: list[dict], blocks: list[str]) -> dict:
     trips = np.array([d["trips"] for d in days], dtype=float)
     log_trips = np.log(trips)
 
-    beta, _residuals, rank, _singular = np.linalg.lstsq(design, log_trips, rcond=None)
-    # A rank-deficient design has infinitely many least-squares solutions and
-    # lstsq silently returns the minimum-norm one — coefficients that fit
-    # equally well and mean something different, chosen by the linear algebra
-    # library rather than by the data. That would also break byte
-    # reproducibility across any change in that library, which is the gate this
-    # feature has to pass. Stop instead.
-    if rank < design.shape[1]:
-        raise NotEnoughData(
-            f"design matrix has rank {rank} for {design.shape[1]} columns: some "
-            "feature is a linear combination of the others, so the coefficients "
-            "would not be unique"
-        )
-    beta = np.round(beta, COEF_DP)
+    beta = _ols(design, log_trips)
 
     predicted_log = design @ beta
     predicted = np.exp(predicted_log)
@@ -255,6 +337,11 @@ def fit_system(days: list[dict], blocks: list[str]) -> dict:
             # average runs; published rather than silently applied, so the page
             # can say which quantity it is drawing.
             "smearing_factor": float(np.exp(residual_log).mean()),
+            # Out-of-sample. The in-sample R² above partly reflects fitting
+            # one level per calendar month; this is the number that cannot.
+            # The first model this spec built had excellent in-sample
+            # statistics while overstating a checked day by 43%.
+            **_cross_validate(days, blocks),
         }),
     }
 

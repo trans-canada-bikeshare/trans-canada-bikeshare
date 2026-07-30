@@ -361,3 +361,25 @@ describe("the claims the section makes", () => {
     expect(forecast.inputs.map((i) => i.key)).not.toContain("snow_ground_cm");
   });
 });
+
+describe("cross-validation statistics", () => {
+  // Added after review. The first model had in-sample R2 above 0.89 while
+  // being 43% wrong on a checked day; this is the number that cannot be
+  // flattered by the monthly levels.
+  it("ships an out-of-sample fit for every system, and it holds up", () => {
+    for (const m of forecast.models) {
+      expect(m.fit.cv_folds).toBe(5);
+      expect(m.fit.cv_held_out_days).toBe(m.fit.days);
+      expect(m.fit.cv_r2_log).toBeGreaterThan(0.75);
+      expect(m.fit.cv_r2_log).toBeLessThanOrEqual(m.fit.r2_log + 0.005);
+      // The page says the CV error sits within a fraction of a point of the
+      // fitted figure; hold the sentence to under one point.
+      expect(
+        m.fit.cv_median_abs_pct_error - m.fit.median_abs_pct_error,
+      ).toBeLessThan(1.0);
+      expect(
+        m.fit.cv_median_abs_pct_error,
+      ).toBeGreaterThanOrEqual(m.fit.median_abs_pct_error - 0.5);
+    }
+  });
+});

@@ -392,3 +392,43 @@ def test_no_month_level_is_fitted_on_a_single_day(con, artifact):
         """, [model["system_id"]]).fetchall())
         for block in model["blocks"]:
             assert counts[block] > 3, (model["system_id"], block)
+
+
+# --- cross-validation (added after review; closes the builder's flagged gap) --
+
+def test_cv_statistics_exist_and_hold_out_every_day(artifact):
+    for m in artifact["models"]:
+        f = m["fit"]
+        assert f["cv_folds"] == 5, m["system_id"]
+        # The identifiability guard may keep a day in training, but with
+        # 15-31 day blocks and 5 folds it should never actually fire.
+        assert f["cv_held_out_days"] == f["days"], m["system_id"]
+        assert "cv_always_in_train" not in f, m["system_id"]
+
+
+def test_cv_is_out_of_sample_not_a_restatement(artifact):
+    """CV must be worse than (or ~equal to) in-sample, never better.
+
+    An out-of-sample statistic that beats the in-sample one is a leak: the
+    held-out day influenced the fold's fit somehow.
+    """
+    for m in artifact["models"]:
+        f = m["fit"]
+        assert f["cv_r2_log"] <= f["r2_log"] + 0.005, m["system_id"]
+        assert f["cv_median_abs_pct_error"] >= f["median_abs_pct_error"] - 0.5, m["system_id"]
+
+
+def test_cv_shows_the_weather_coefficients_generalise(artifact):
+    """The reason this statistic exists.
+
+    The first model this spec built had in-sample R² above 0.89 while being
+    43% wrong on a checked day. If cv_r2_log ever collapses, the page's
+    framing is wrong and the number must NOT be massaged to keep this green —
+    the plan's own red line is 0.75.
+    """
+    for m in artifact["models"]:
+        f = m["fit"]
+        assert f["cv_r2_log"] > 0.75, (m["system_id"], f["cv_r2_log"])
+        # The page says the CV error sits within a fraction of a point of the
+        # fitted figure; hold that sentence to under one point.
+        assert f["cv_median_abs_pct_error"] - f["median_abs_pct_error"] < 1.0, m["system_id"]

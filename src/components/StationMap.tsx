@@ -3,6 +3,8 @@ import type { SystemId } from "@/lib/systems";
 import { SYSTEMS, seriesColor, resolvedSeriesColor } from "@/lib/systems";
 import { compact, full } from "@/lib/format";
 import { loadStations, flowRate, type StationPin } from "@/lib/data";
+import type { ExpressionSpecification } from "maplibre-gl";
+import { FLOW_STOPS, FLOW_DOMAIN } from "@/lib/flowScale";
 import "maplibre-gl/dist/maplibre-gl.css";
 
 export type MapMode = "volume" | "flow";
@@ -33,32 +35,37 @@ const STYLE = {
 } as const;
 
 /**
- * Diverging scale for net flow rate, clipped at ±15%.
+ * Diverging scale for net flow rate, clipped at ±15%, per theme.
  *
- * Not the series colour: net flow has a meaningful zero, and colouring it with
- * a single-hue ramp would hide the sign — the one thing the encoding exists to
- * show. Amber drains (gives out more bikes than it takes), indigo accumulates.
+ * Not the series colour: net flow has a meaningful zero, and a single-hue ramp
+ * would hide the sign — the one thing the encoding exists to show. Amber
+ * drains (gives out more bikes than it takes), indigo accumulates.
  *
- * The domain is ±0.15 rather than the observed range. A few stations reach
- * ±0.9, and scaling to them would collapse every ordinary dock onto neutral
- * grey. So a fully saturated dot means "at least this imbalanced", which the
- * section states — an encoding that clips has to say it clips.
+ * The domain is ±0.15 rather than the observed range. Stations do reach ±0.44
+ * (Vancouver) and ±0.73 (Toronto), and scaling to them would collapse every
+ * ordinary dock onto neutral grey. A fully saturated dot therefore means "at
+ * least this imbalanced", which the section states — an encoding that clips
+ * has to say it clips.
  *
- * Literal colours, because MapLibre parses in JS and cannot read a CSS custom
- * property. These are chosen to hold up on both the light and dark basemap
- * rather than swapped per theme, so the two views stay directly comparable.
+ * Two palettes, not one. An earlier version used a single set and claimed it
+ * "holds up on both the light and dark basemap"; measured against the actual
+ * renders it did not — indigo came out at 1.58:1 on the dark basemap, against
+ * WCAG 1.4.11's 3:1, so the most strongly accumulating stations were the
+ * hardest ones to see. Literal values because MapLibre parses colours in JS
+ * and cannot read a CSS custom property; the map already rebuilds on a theme
+ * change, so switching them costs nothing.
  */
-const FLOW_SCALE: unknown[] = [
-  "interpolate",
-  ["linear"],
-  ["get", "rate"],
-  -0.15, "#b45309",
-  -0.04, "#d9a441",
-  0, "#9aa0a6",
-  0.04, "#5b8dd6",
-  0.15, "#3730a3",
-];
+function buildScale(theme: "light" | "dark"): ExpressionSpecification {
+  return [
+    "interpolate", ["linear"], ["get", "rate"],
+    ...FLOW_DOMAIN.flatMap((d, i) => [d, FLOW_STOPS[theme][i]]),
+  ] as ExpressionSpecification;
+}
 
+const FLOW_SCALE: Record<"light" | "dark", ExpressionSpecification> = {
+  light: buildScale("light"),
+  dark: buildScale("dark"),
+};
 /**
  * One system's stations on a map.
  *
@@ -243,16 +250,16 @@ export function StationMap({ system, theme, mode = "volume" }: Props) {
               // scaling to them would flatten every ordinary dock to neutral.
               // The clipping is stated where the map is, because a saturated
               // dot means "at least this imbalanced", not "exactly".
-              "circle-color": (mode === "flow" ? FLOW_SCALE : dot) as never,
+              "circle-color": mode === "flow" ? FLOW_SCALE[theme] : dot,
               // Dormant stations read as outlines, not absences. The ring is
               // drawn at full strength for both states so it clears the 3:1
               // of WCAG 1.4.11 — the fill alone carries the distinction.
               "circle-opacity":
                 mode === "flow"
-                  ? 0.75
+                  ? 0.9
                   : ["case", ["==", ["get", "active"], 1], 0.55, 0.1],
               "circle-stroke-width": 1,
-              "circle-stroke-color": (mode === "flow" ? FLOW_SCALE : dot) as never,
+              "circle-stroke-color": mode === "flow" ? FLOW_SCALE[theme] : dot,
               "circle-stroke-opacity": 0.9,
             },
           });
@@ -300,6 +307,8 @@ export function StationMap({ system, theme, mode = "volume" }: Props) {
   }, [visible, theme, system, stations, scaleMax, meta.city, mode]);
 
   const active = stations.filter((s) => s.a).length;
+  const givers = stations.filter((s) => s.f < 0).length;
+  const takers = stations.filter((s) => s.f > 0).length;
 
   return (
     <div>
@@ -317,7 +326,18 @@ export function StationMap({ system, theme, mode = "volume" }: Props) {
         </p>
         {loaded && (
           <p className="font-mono text-[11px] tabular-nums text-muted-foreground">
-            {full(active)} mapped · {full(stations.length - active)} dormant
+            {mode === "flow" ? (
+              // Dormancy is not drawn in flow mode — opacity is flat and there
+              // are no hollow dots — so reporting it here would describe an
+              // encoding that is not on screen.
+              <>
+                {full(givers)} give out · {full(takers)} take in
+              </>
+            ) : (
+              <>
+                {full(active)} mapped · {full(stations.length - active)} dormant
+              </>
+            )}
           </p>
         )}
       </div>
@@ -330,10 +350,21 @@ export function StationMap({ system, theme, mode = "volume" }: Props) {
             controls. */}
         {loaded && stations.length > 0 && (
           <p className="sr-only">
-            {full(stations.length)} {meta.city} stations are plotted:{" "}
-            {full(active)} used in the last six months of this system&rsquo;s data
-            and {full(stations.length - active)} dormant. Dot size is lifetime
-            events on one scale shared by all three maps.
+            {mode === "flow" ? (
+              <>
+                {full(stations.length)} {meta.city} stations are plotted by net
+                flow. {full(givers)} give out more bikes than they take in,{" "}
+                {full(takers)} take in more, and {full(stations.length - givers - takers)}{" "}
+                are exactly balanced. Dot size is lifetime events.
+              </>
+            ) : (
+              <>
+                {full(stations.length)} {meta.city} stations are plotted:{" "}
+                {full(active)} used in the last six months of this system&rsquo;s
+                data and {full(stations.length - active)} dormant. Dot size is
+                lifetime events on one scale shared by all three maps.
+              </>
+            )}
           </p>
         )}
         <div

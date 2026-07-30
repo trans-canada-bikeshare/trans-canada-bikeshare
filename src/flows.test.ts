@@ -82,21 +82,25 @@ describe("net flow per station", () => {
     }
   });
 
-  // Across a whole system the imbalance has to be small: every trip is one
-  // departure and one return, so the only way a system nets far from zero is
-  // an accounting error. The residual is trips with no return station, which
-  // are departures with no matching return, so the sum must be NEGATIVE.
-  it("nets negative overall, bounded by unreturned trips", () => {
+  // Net flow counts only trips with both ends recorded, so every trip is one
+  // departure and one return and the whole system must cancel to exactly zero.
+  //
+  // The first version of this metric counted every departure but only the
+  // returns it could resolve, leaving a phantom -1 at the origin of each
+  // unreturned trip — 272,088 of them in Montreal, enough to bias that entire
+  // map amber for a reason that was a gap in the data rather than a movement
+  // of bikes. The test then codified the bug by asserting the sum was
+  // negative. Only stations shipped to the site are visible here, so the
+  // subtotal is bounded rather than zero; the exact identity is checked in the
+  // pipeline, where every station is in scope.
+  it("keeps the shown subtotal far smaller than the system's own traffic", () => {
     for (const id of SYSTEM_ORDER) {
       const f = flowsFor(id)!;
       const shown = pins.filter((p) => p.s === id).reduce((n, p) => n + p.f, 0);
-      expect(shown, id).toBeLessThanOrEqual(0);
-      // Stations below the map threshold or without coordinates hold the rest,
-      // so the shown subtotal cannot be more negative than the whole system's
-      // unreturned-trip count.
-      expect(Math.abs(shown), id).toBeLessThanOrEqual(
-        f.no_return_station + f.linked_trips,
-      );
+      // Unmapped and below-threshold stations hold the complement. If that
+      // complement ever approached the system's whole volume, the join behind
+      // `f` would have fanned out.
+      expect(Math.abs(shown) / f.linked_trips, id).toBeLessThan(0.02);
     }
   });
 

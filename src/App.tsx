@@ -10,6 +10,7 @@ import { SmallMultiples } from "@/components/charts/SmallMultiples";
 const StationMap = lazy(() =>
   import("@/components/StationMap").then((m) => ({ default: m.StationMap })),
 );
+import { FLOW_STOPS } from "@/lib/flowScale";
 import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
 import {
@@ -379,13 +380,44 @@ export default function App() {
                 A station's net flow is what it takes in minus what it gives
                 out, as a share of everything that touched it — so a dock with
                 20,000 events and one with 900,000 are read on the same scale.
-                Amber gives out more bikes than it takes in; indigo takes in
-                more. Colour saturates at 15% in either direction, because a
-                handful of stations reach 90% and scaling to them would flatten
-                every ordinary dock to grey.
+                Dot size is lifetime events, on the same shared scale as the
+                maps above; colour is net flow.{" "}
+                <strong className="font-medium text-foreground">
+                  Amber gives out more bikes than it takes in; indigo takes in
+                  more.
+                </strong>{" "}
+                Colour saturates at 15% in either direction, so a fully
+                saturated dot means <em>at least</em> that imbalanced — the
+                great majority of stations sit well inside it, and stretching
+                the scale to the few that do not would flatten everything else
+                to grey. Only trips with both ends recorded are counted, so
+                across a whole system the flows cancel to zero.
               </>
             }
           >
+            {/* The scale is described in the lede, but a reader scanning the
+                maps needs the swatch beside them, not a paragraph above. */}
+            <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-[12px] text-muted-foreground">
+              <span className="font-mono tabular-nums">−15%</span>
+              <span
+                aria-hidden="true"
+                className="h-2 w-40 max-w-[45vw]"
+                style={{
+                  // Straight from the map's own stops, so the legend cannot
+                  // drift from the encoding it describes.
+                  background: `linear-gradient(to right, ${FLOW_STOPS[theme].join(", ")})`,
+                }}
+              />
+              <span className="font-mono tabular-nums">+15%</span>
+              <span>
+                gives out more <span aria-hidden="true">→</span> takes in more
+                <span className="sr-only">
+                  , from amber at minus fifteen percent through neutral grey to
+                  indigo at plus fifteen percent
+                </span>
+              </span>
+            </div>
+
             <div className="grid gap-10 lg:grid-cols-3">
               {SYSTEM_ORDER.map((id) => (
                 <Suspense
@@ -403,7 +435,7 @@ export default function App() {
               {SYSTEM_ORDER.map((id) => {
                 const f = flowsFor(id);
                 if (!f) return null;
-                const pairs = flows.pairs.filter((p) => p.s === id).slice(0, 5);
+                const pairs = flows.pairs.filter((p) => p.s === id);
                 return (
                   <div key={id}>
                     <p className="eyebrow flex items-center gap-1.5">
@@ -444,12 +476,25 @@ export default function App() {
 
             <Note>
               <strong className="font-medium text-foreground">
-                The busiest pairs are not commutes.
+                The single busiest pair in every system is a loop
               </strong>{" "}
-              In all three cities they are loops at parks and ferry docks —
-              Stanley Park, Parc Jean-Drapeau, the Toronto Islands — where a
-              rider takes a bike out and brings it back to the same dock. Round
-              trips are{" "}
+              — Stanley Park, Parc Jean-Drapeau, Tommy Thompson Park — a bike
+              taken out and brought back to the same dock. Below that the three
+              cities diverge:{" "}
+              {SYSTEM_ORDER.map((id, i) => {
+                const p = flows.pairs.filter((x) => x.s === id);
+                const loops = p.filter((x) => x.r).length;
+                return (
+                  <span key={id}>
+                    {i > 0 ? ", " : ""}
+                    {loops} of {cityOf(id)}&rsquo;s {p.length} busiest
+                  </span>
+                );
+              })}
+              . Montreal&rsquo;s list runs to metro stations and street
+              corners, which is what a last-mile commute looks like; Toronto
+              and Vancouver&rsquo;s stay on the waterfront and in the parks.
+              Round trips are{" "}
               {SYSTEM_ORDER.map((id, i) => {
                 const f = flowsFor(id);
                 if (!f) return null;
@@ -482,9 +527,12 @@ export default function App() {
                 return (
                   <span key={id}>
                     {i > 0 ? " " : ""}
-                    {cityOf(id)} has {full(f.pairs_total)} distinct pairs and{" "}
-                    {full(f.no_return_station)} trips with no recorded return
-                    station, excluded here but counted in the totals above.
+                    {cityOf(id)} has {full(f.pairs_total)} distinct pairs;
+                    the {flows.top_pairs_shown} shown carry{" "}
+                    {percent(f.shown_trips / f.linked_trips, 2)} of its linked
+                    trips. {full(f.no_return_station)} trips have no recorded
+                    return station and are excluded from both the pairs and the
+                    maps, though they remain in the totals above.
                   </span>
                 );
               })}

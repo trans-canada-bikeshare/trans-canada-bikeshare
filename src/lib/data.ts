@@ -15,8 +15,8 @@ import durationJson from "@/data/generated/duration.json";
 import exclusionsJson from "@/data/generated/exclusions.json";
 import incompleteJson from "@/data/generated/incomplete_months.json";
 import stationsMetaJson from "@/data/generated/stations_meta.json";
-// Eager, unlike stations.json. At 6 KB gzip against that file's 68 KB, a
-// second lazy path would buy little and cost a failure mode — and spec 021
+// Eager, unlike stations.json. At under 2 KB gzip against that file's 68 KB,
+// a second lazy path would buy little and cost a failure mode — and spec 021
 // demonstrated how quietly a lazy path can fail.
 import flowsJson from "@/data/generated/flows.json";
 import type { SystemId } from "@/lib/systems";

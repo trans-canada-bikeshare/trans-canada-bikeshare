@@ -60,6 +60,69 @@ LEFT JOIN mapped m
 -- are ONE station. Without this bridge every system's count is inflated —
 -- Vancouver's by 104, Toronto's by 375 — and by a different amount each, which
 -- is the worst possible failure for a side-by-side comparison.
+-- ONE station resolution, materialised, used by both the dimension and the
+-- fact. It was previously inlined in dim_station only, so `fact_trips` carried
+-- the Montreal bridge but NOT the name bridge below it. The two tables
+-- therefore disagreed for Toronto and Vancouver: 781 Toronto keys covering
+-- 2,249,950 events and 266 Vancouver keys covering 529,839 existed in
+-- `fact_trips` with no row in `dim_station` at all.
+--
+-- "Union Station" is the clean example — dim_station held one row of 543,172
+-- events while fact_trips held `tor-bikeshare:7033` (487,467) and
+-- `tor-bikeshare:name:union station` (55,705) as separate stations.
+--
+-- Spec 022 then computed flows from the fact and divided by lifetime events
+-- from the dim: a partial numerator over a merged denominator. It inflated
+-- Vancouver's distinct pair count by 44%, Toronto's by 5% and Montreal's not
+-- at all — which is precisely the "different amount each" failure the comment
+-- above warns is the worst kind for a side-by-side comparison.
+CREATE OR REPLACE TABLE station_identity AS
+WITH usage AS (
+  SELECT system_id, departure_station_id AS station_id, departure_label AS label,
+         departure_ts AS ts
+  FROM conformed_trips WHERE departure_station_id IS NOT NULL
+  UNION ALL
+  SELECT system_id, return_station_id, return_label, return_ts
+  FROM conformed_trips WHERE return_station_id IS NOT NULL
+),
+-- Step 1: Montreal's era-local ids collapse to one canonical identity where
+-- the bridge resolves them; everything else keeps the id it had.
+step1 AS (
+  SELECT u.system_id,
+         u.station_id                           AS source_id,
+         coalesce(b.canonical_id, u.station_id) AS mid,
+         u.label, u.ts
+  FROM usage u
+  LEFT JOIN mtl_station_bridge b ON b.era_id = u.station_id
+),
+mid_agg AS (
+  SELECT system_id, mid,
+         arg_max(label, ts) AS station_name,
+         count(*)           AS lifetime_events
+  FROM step1 GROUP BY 1, 2
+),
+-- Step 2: a station reached by NAME is the same station reached by its
+-- published id. Built only from stations that HAVE a published id.
+name_bridge AS (
+  SELECT system_id, lower(trim(station_name)) AS key,
+         arg_max(mid, lifetime_events)        AS canonical
+  FROM mid_agg
+  WHERE mid NOT LIKE '%:name:%' AND station_name IS NOT NULL
+  GROUP BY 1, 2
+),
+resolved_mid AS (
+  SELECT m.system_id, m.mid,
+         coalesce(nb.canonical, m.mid) AS canonical_id
+  FROM mid_agg m
+  LEFT JOIN name_bridge nb
+    ON nb.system_id = m.system_id
+   AND m.mid LIKE '%:name:%'
+   AND nb.key = lower(trim(m.station_name))
+)
+SELECT DISTINCT s.system_id, s.source_id, r.canonical_id
+FROM step1 s
+JOIN resolved_mid r ON r.system_id = s.system_id AND r.mid = s.mid;
+
 CREATE OR REPLACE TABLE dim_station AS
 WITH usage AS (
   SELECT system_id, departure_station_id AS station_id, departure_label AS label,
@@ -69,37 +132,18 @@ WITH usage AS (
   SELECT system_id, return_station_id, return_label, return_ts
   FROM conformed_trips WHERE return_station_id IS NOT NULL
 ),
-raw_agg AS (
+resolved AS (
   SELECT
-    system_id,
-    -- Montreal's era-local ids collapse to one canonical identity where the
-    -- bridge resolves them; everything else keeps the id it had.
-    coalesce(b.canonical_id, u.station_id) AS station_id,
+    u.system_id,
+    si.canonical_id                 AS station_id,
     arg_max(u.label, u.ts)          AS station_name,
     min(u.ts)                       AS first_ts,
     max(u.ts)                       AS last_ts,
     count(*)                        AS lifetime_events
   FROM usage u
-  LEFT JOIN mtl_station_bridge b ON b.era_id = u.station_id
+  JOIN station_identity si
+    ON si.system_id = u.system_id AND si.source_id = u.station_id
   GROUP BY 1, 2
-),
--- name -> canonical id, built only from stations that HAVE a published id
-bridge AS (
-  SELECT system_id, lower(trim(station_name)) AS key, arg_max(station_id, lifetime_events) AS canonical
-  FROM raw_agg
-  WHERE station_id NOT LIKE '%:name:%' AND station_name IS NOT NULL
-  GROUP BY 1, 2
-),
-resolved AS (
-  SELECT
-    r.system_id,
-    coalesce(b.canonical, r.station_id) AS station_id,
-    r.station_name, r.first_ts, r.last_ts, r.lifetime_events
-  FROM raw_agg r
-  LEFT JOIN bridge b
-    ON b.system_id = r.system_id
-   AND r.station_id LIKE '%:name:%'
-   AND b.key = lower(trim(r.station_name))
 ),
 agg AS (
   SELECT
@@ -158,34 +202,40 @@ LEFT JOIN gbfs_station g
 
 CREATE OR REPLACE TABLE fact_trips AS
 SELECT
-  system_id,
-  date_key,
-  departure_ts,
-  return_ts,
-  trip_month,
-  trip_year,
-  -- Canonical station identity, so the fact and dim_station agree. Without
-  -- this the fact still carries Montreal's era-local keys and every
-  -- station-level join silently splits one dock into three.
-  coalesce(bd.canonical_id, departure_station_id) AS departure_station_id,
-  coalesce(br.canonical_id, return_station_id)    AS return_station_id,
-  departure_label,
-  return_label,
-  departure_borough,
-  return_borough,
-  membership_raw,
-  bike_id,
-  is_ebike,
-  duration_final_s        AS duration_s,
-  distance_m,
-  departure_temp_c,
-  return_temp_c,
-  stopover_s,
-  stopover_count,
-  quality_flags,
-  len(quality_flags) > 0  AS has_quality_issue,
-  source_period,
+  c.system_id,
+  c.date_key,
+  c.departure_ts,
+  c.return_ts,
+  c.trip_month,
+  c.trip_year,
+  -- Canonical station identity, from the SAME table dim_station uses, so the
+  -- fact and the dimension agree by construction rather than by comment.
+  --
+  -- This previously applied only the Montreal bridge, so the claim above was
+  -- false for Toronto and Vancouver: a station reached by name stayed separate
+  -- here while dim_station merged it. Spec 022 divided one by the other and
+  -- inflated Vancouver's distinct pair count by 44%.
+  coalesce(sd.canonical_id, c.departure_station_id) AS departure_station_id,
+  coalesce(sr.canonical_id, c.return_station_id)    AS return_station_id,
+  c.departure_label,
+  c.return_label,
+  c.departure_borough,
+  c.return_borough,
+  c.membership_raw,
+  c.bike_id,
+  c.is_ebike,
+  c.duration_final_s        AS duration_s,
+  c.distance_m,
+  c.departure_temp_c,
+  c.return_temp_c,
+  c.stopover_s,
+  c.stopover_count,
+  c.quality_flags,
+  len(c.quality_flags) > 0  AS has_quality_issue,
+  c.source_period,
   source_file
 FROM conformed_trips c
-LEFT JOIN mtl_station_bridge bd ON bd.era_id = c.departure_station_id
-LEFT JOIN mtl_station_bridge br ON br.era_id = c.return_station_id;
+LEFT JOIN station_identity sd
+  ON sd.system_id = c.system_id AND sd.source_id = c.departure_station_id
+LEFT JOIN station_identity sr
+  ON sr.system_id = c.system_id AND sr.source_id = c.return_station_id;

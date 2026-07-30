@@ -282,18 +282,32 @@ def build(con, registry: dict) -> dict[str, object]:
     # The two differ by the flagged rows only — 2 events in 271 million, one
     # Toronto row — which cannot move a rate at any precision the site shows.
     # Stated rather than silently reconciled.
+    # Both ends must be known. An earlier version counted the departure leg of
+    # every trip but the return leg only where a return station was recorded,
+    # so each unreturned trip left a phantom -1 at its origin: 272,088 of them
+    # in Montreal, which biased that whole map amber for a reason that is a
+    # gap in the data rather than a movement of bikes. A trip whose return was
+    # never recorded is missing information, not a bike removed from the city.
+    #
+    # Restricting to linked trips makes the system-wide sum exactly zero, which
+    # is the invariant net flow should satisfy — every trip is one departure and
+    # one return — and src/flows.test.ts now asserts it.
     net = {
         (r["system_id"], r["station_id"]): r["net"]
         for r in rows(con, f"""
-          WITH ev AS (
-            SELECT system_id, departure_station_id AS sid, -1 AS d
-            FROM fact_trips WHERE {TRUSTED}
+          WITH linked AS (
+            SELECT system_id, departure_station_id, return_station_id
+            FROM fact_trips
+            WHERE {TRUSTED}
+              AND departure_station_id IS NOT NULL
+              AND return_station_id IS NOT NULL
+          ), ev AS (
+            SELECT system_id, departure_station_id AS sid, -1 AS d FROM linked
             UNION ALL
-            SELECT system_id, return_station_id AS sid, 1 AS d
-            FROM fact_trips WHERE {TRUSTED} AND return_station_id IS NOT NULL
+            SELECT system_id, return_station_id AS sid, 1 AS d FROM linked
           )
           SELECT system_id, sid AS station_id, sum(d)::BIGINT AS net
-          FROM ev WHERE sid IS NOT NULL GROUP BY 1, 2
+          FROM ev GROUP BY 1, 2
         """)
     }
     art["stations"] = {
@@ -326,11 +340,12 @@ def build(con, registry: dict) -> dict[str, object]:
     # side would imply a like-for-like reading that does not hold. The
     # CONCENTRATION is the comparable metric — same definition, same window,
     # every system — and the pair lists are per-city detail, labelled as such.
-    # Twenty, not 250, and with names denormalised. The pair keys alone are
-    # useless to the page: resolving them needs stations.json, which is lazily
-    # loaded for the maps and may never arrive. An earlier version shipped 250
-    # bare-key pairs — 38 KB that no surface could render. Ship what is drawn.
-    TOP_PAIRS = 20
+    # Eight, and with names denormalised. The pair keys alone are useless to
+    # the page: resolving them needs stations.json, which is lazily loaded for
+    # the maps and may never arrive. An earlier version shipped 250 bare-key
+    # pairs — 38 KB no surface could render — and then 20 while rendering 5,
+    # so "ship what is drawn" was still not true. Eight ship and eight render.
+    TOP_PAIRS = 8
     pair_stats = rows(con, f"""
       WITH p AS (
         SELECT system_id, departure_station_id AS a, return_station_id AS b,

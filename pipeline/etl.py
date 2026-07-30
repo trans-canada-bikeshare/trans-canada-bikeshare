@@ -484,7 +484,90 @@ def run_reference(con) -> None:
             total += 1
         print(f"  {system_id}: {len(payload['data']['stations']):,} GBFS stations")
     record(con, "reference", "gbfs_stations", "SELECT count(*) FROM gbfs_station")
+    load_weather(con)
     return None
+
+
+def load_weather(con) -> None:
+    """ECCC daily climate, one airport station per city.
+
+    A day ECCC does not report stays NULL. It is never zero-filled, never
+    forward-filled and never interpolated — 0 °C is a legitimate and common
+    value in this dataset, so a zero standing in for a gap would be
+    indistinguishable from an observation. The gaps are counted instead, and
+    the quality report states them.
+    """
+    con.execute("""CREATE OR REPLACE TABLE weather_daily (
+        system_id VARCHAR, date_key DATE,
+        temp_mean_c DOUBLE, temp_max_c DOUBLE, temp_min_c DOUBLE,
+        precip_mm DOUBLE, snow_cm DOUBLE, snow_ground_cm DOUBLE)""")
+    # Which station each city's weather comes from, carried into the warehouse
+    # so the quality report and any published surface can name its source
+    # rather than restate it from memory.
+    con.execute("""CREATE OR REPLACE TABLE weather_station (
+        system_id VARCHAR, station_id VARCHAR, climate_id VARCHAR,
+        station_name VARCHAR, lat DOUBLE, lon DOUBLE)""")
+    for system_id in sorted(common.SYSTEMS):
+        st = (common.load_manifest(system_id) or {}).get("weather_station")
+        if st:
+            con.execute(
+                "INSERT INTO weather_station VALUES (?, ?, ?, ?, ?, ?)",
+                [system_id, str(st["station_id"]), str(st["climate_id"]),
+                 st["name"], st["lat"], st["lon"]],
+            )
+
+    for system_id in sorted(common.SYSTEMS):
+        files = sorted(
+            (common.DATA_RAW / system_id / "reference").glob("weather_*.csv")
+        )
+        if not files:
+            print(f"  {system_id}: no ECCC files on disk — run download.py")
+            continue
+        # Read every year at once. ECCC's header carries degree signs and
+        # parentheses, so columns are addressed by their exact published names
+        # rather than by position — a reordered export must fail loudly, not
+        # silently shift precipitation into the temperature column.
+        con.execute(
+            """
+            INSERT INTO weather_daily
+            SELECT ?,
+                   CAST("Date/Time" AS DATE),
+                   TRY_CAST("Mean Temp (°C)"    AS DOUBLE),
+                   TRY_CAST("Max Temp (°C)"     AS DOUBLE),
+                   TRY_CAST("Min Temp (°C)"     AS DOUBLE),
+                   TRY_CAST("Total Precip (mm)" AS DOUBLE),
+                   TRY_CAST("Total Snow (cm)"   AS DOUBLE),
+                   TRY_CAST("Snow on Grnd (cm)" AS DOUBLE)
+            FROM read_csv(?, header = true, all_varchar = true)
+            -- ECCC exports a fixed-length calendar year, so the current year
+            -- arrives padded with rows for dates that have not happened. Those
+            -- carry no observation in any field and are not gaps in the
+            -- record; keeping them would have reported 624 missing days where
+            -- the true figure is 155. A row is kept when ECCC measured
+            -- ANYTHING, so a genuine all-null day is indistinguishable from
+            -- padding — which is correct, since neither carries information.
+            WHERE coalesce("Mean Temp (°C)", "Max Temp (°C)", "Min Temp (°C)",
+                           "Total Precip (mm)", "Total Snow (cm)",
+                           "Snow on Grnd (cm)") IS NOT NULL
+            """,
+            [system_id, [str(p) for p in files]],
+        )
+        obs, gaps, first, last = con.execute(
+            """SELECT count(*), count(*) FILTER (temp_mean_c IS NULL),
+                      min(date_key), max(date_key)
+               FROM weather_daily WHERE system_id = ?""",
+            [system_id],
+        ).fetchone()
+        print(
+            f"  {system_id}: {obs:,} days {first}..{last}, "
+            f"{gaps:,} with no mean temperature"
+        )
+
+    record(con, "reference", "weather_days", "SELECT count(*) FROM weather_daily")
+    record(
+        con, "reference", "weather_days_missing_temp",
+        "SELECT count(*) FROM weather_daily WHERE temp_mean_c IS NULL",
+    )
 
 
 def run_clean(con) -> None:

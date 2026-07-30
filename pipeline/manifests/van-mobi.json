@@ -738,6 +738,79 @@
       "sha256": "366d1d66e41a3d1eb2d471f9f781cf6fbeabe5da5fe42d12e14e6d86bad422c2",
       "bytes": 88787,
       "downloaded_at": "2026-07-29T06:20:58+00:00"
+    },
+    "weather_2017": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2017&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "0a0ac4032d672963ff425c21429fce34f15db25b462d17a9f13782feba2b9566",
+      "bytes": 65132,
+      "downloaded_at": "2026-07-30T02:21:12+00:00"
+    },
+    "weather_2018": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2018&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "ce87122816653c123bc2ff9728d7af29a01a7c72d89b68ceba8078be04707b00",
+      "bytes": 65144,
+      "downloaded_at": "2026-07-30T02:21:12+00:00"
+    },
+    "weather_2019": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2019&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "5560ebc698f824f586087c9879f98b3da8ebfaad98dca69e1d46e726fe846c39",
+      "bytes": 64942,
+      "downloaded_at": "2026-07-30T02:21:13+00:00"
+    },
+    "weather_2020": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2020&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "6f166661f083e1fb380f34d6f4d9544d894f7c987ae652ede55e09736fd6c182",
+      "bytes": 65076,
+      "downloaded_at": "2026-07-30T02:21:13+00:00"
+    },
+    "weather_2021": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2021&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "0ce66a3e47b1968db0b807d133cf410532eb874907dd37245a898df3f7c1b451",
+      "bytes": 65012,
+      "downloaded_at": "2026-07-30T02:21:13+00:00"
+    },
+    "weather_2022": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2022&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "c0fa8cc3d351a459f6ec2d9b69d2ced776f6c2f7d80d18b917538912836bac33",
+      "bytes": 64884,
+      "downloaded_at": "2026-07-30T02:21:13+00:00"
+    },
+    "weather_2023": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2023&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "36eb34801486ef48463a09e35859bfa362e5d014e3492278d1c05b1bf80ec284",
+      "bytes": 64906,
+      "downloaded_at": "2026-07-30T02:21:14+00:00"
+    },
+    "weather_2024": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2024&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "f6ec12b0ab7c48cf819490c5939301b618eda071f2a5eb7fc3bbdf8f50d07a7c",
+      "bytes": 64926,
+      "downloaded_at": "2026-07-30T02:21:14+00:00"
+    },
+    "weather_2025": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2025&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "ecb821b973feb97649775ecc4f4d96c6758eacfef09bb1edd29faf68dd945067",
+      "bytes": 64784,
+      "downloaded_at": "2026-07-30T02:21:14+00:00"
+    },
+    "weather_2026": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51442&Year=2026&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "7e4d5026e03f9deea11a346981977d6f7a6a294fe3956d155aeb554ec3de9a39",
+      "bytes": 60195,
+      "downloaded_at": "2026-07-30T02:21:14+00:00"
+    }
+  },
+  "weather_station": {
+    "station_id": 51442,
+    "climate_id": "1108395",
+    "name": "VANCOUVER INTL A",
+    "lat": 49.19,
+    "lon": -123.18,
+    "licence": {
+      "name": "Environment and Climate Change Canada Data Servers End-use Licence",
+      "url": "https://climate.weather.gc.ca/prods_servs/attachment1_e.html",
+      "checked": "2026-07-29",
+      "attribution": "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence."
     }
   }
 }

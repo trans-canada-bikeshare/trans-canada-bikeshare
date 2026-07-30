@@ -20,7 +20,17 @@ published open data and remain governed by the source licences:
 
       Contains information licensed under the Open Government Licence – Toronto.
 
-- Weather-derived values: based on Environment and Climate Change Canada data.
+- Daily climate data: Environment and Climate Change Canada Data Servers
+  End-use Licence (https://climate.weather.gc.ca/prods_servs/attachment1_e.html,
+  checked 2026-07-29). Required attribution, reproduced on the site and in each
+  manifest:
+
+      Contains information licensed under the Environment and Climate Change
+      Canada Data Servers End-use Licence.
+
+  One airport station per city — VANCOUVER INTL A (climate 1108395), MONTREAL
+  INTL A (7025251), TORONTO INTL A (6158731) — pinned per year by checksum in
+  pipeline/manifests/*.json. See docs/features/013-weather.md.
 
 - Any additional city sources carry the licence stated in their manifest entry.
 

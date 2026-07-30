@@ -305,6 +305,15 @@ combination that stops anyone looking again. **A licence gets read, not
 recalled** — and the check date means the page was opened, so the date itself
 becomes a false assurance when it was not.
 
+**Owner decision, 2026-07-30: proceed and publish under these terms.** Asked
+directly whether spec 023 should publish weather-derived values given the
+redistribution restrictions, the answer was to proceed. The conditions are
+satisfiable for this project as it stands — the site is free, so no fee is
+charged for the ECCC product, and value-added services are expressly permitted.
+The obligation that survives is on anyone redistributing *from* here: they must
+agree to the same restrictions. That is why the restriction text lives in
+`LICENSE` and in every manifest rather than only in this entry.
+
 **The current year is pinned but marked `volatile`.** ECCC is still writing
 2026, so its export gains a row daily and its checksum cannot be stable.
 Refusing it would have made `--accept-changes` a daily routine, and a flag used

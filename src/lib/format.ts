@@ -26,6 +26,12 @@ export function duration(seconds: number): string {
   return `${m}m ${s}s`;
 }
 
+/** 7 -> "07:00". Local hour of day, on the 24-hour clock the charts label. */
+export function hourLabel(hour: number): string {
+  const h = Math.max(0, Math.min(23, Math.round(hour)));
+  return `${String(h).padStart(2, "0")}:00`;
+}
+
 /** "2025-06" -> "Jun 2025". Month keys are always YYYY-MM. */
 export function monthLabel(key: string): string {
   const [y, m] = key.split("-").map(Number);

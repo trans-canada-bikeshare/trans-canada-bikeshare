@@ -22,3 +22,11 @@ coverage/
 
 # agent worktrees and local claude state
 .claude/worktrees/
+
+# Trailing-slash entries do not match SYMLINKS with these names. Agent
+# worktrees symlink the shared archive and venv into their checkouts, and
+# without these no-slash twins a `git add -A` there stages the symlink into a
+# repository whose first invariant is that raw data never enters git.
+data-raw
+data-warehouse
+.venv

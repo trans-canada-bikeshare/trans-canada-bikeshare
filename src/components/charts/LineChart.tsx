@@ -18,6 +18,26 @@ interface Props {
   /** Roughly how many x ticks to aim for; actual count snaps to the data. */
   xTicks?: number;
   caption?: string;
+  /**
+   * Open the y domain below zero and draw the zero line as the axis.
+   *
+   * Off by default, and the default keeps the original behaviour exactly: the
+   * domain runs 0..max and negative values would be clipped below the plot.
+   * Every series on this site was non-negative until net flow by hour of day,
+   * where the sign is the entire signal — the hours a system's docks are
+   * emptying read as negative and the hours they refill read as positive, and a
+   * chart that could not draw the sign would be showing the wrong quantity.
+   */
+  signed?: boolean;
+  /**
+   * What the readout says with no pointer on the chart.
+   *
+   * The default describes a time series, where the resting point genuinely is
+   * the latest month published. On a chart whose x axis is the hour of the day
+   * that sentence is simply false — it resolves to 23:00, which is the last
+   * hour drawn and nothing to do with what has been published.
+   */
+  restLabel?: string;
 }
 
 const PAD = { top: 12, right: 12, bottom: 26, left: 46 };
@@ -38,26 +58,41 @@ export function LineChart({
   height = 260,
   xTicks = 6,
   caption,
+  signed = false,
+  restLabel = "latest published",
 }: Props) {
   const titleId = useId();
   const [hover, setHover] = useState<number | null>(null);
   const W = 720;
   const H = height;
 
-  const { xs, xMin, xMax, yMax } = useMemo(() => {
+  const { xs, xMin, xMax, yMax, yMin } = useMemo(() => {
     const all = series.flatMap((s) => s.points);
     const xsSet = [...new Set(all.map((p) => p.x))].sort((a, b) => a - b);
+    // Symmetric about zero when signed, so equal imbalance in either direction
+    // is equally far from the axis; an asymmetric domain would make a -0.6 look
+    // larger than a +0.6.
+    //
+    // The unsigned domain keeps its floor of 1 — every unsigned series here is
+    // counts or whole percents, and the floor also guards an empty series. The
+    // signed domain must NOT inherit it: net flow by hour peaks at 0.63% of a
+    // system's trips, and a floor of 1 gave the chart a ±1% axis whose labels
+    // were not the data's extremes and whose lines used two thirds of the plot.
+    const absMax = Math.max(...all.map((p) => Math.abs(p.y)), 0);
     return {
       xs: xsSet,
       xMin: xsSet[0] ?? 0,
       xMax: xsSet[xsSet.length - 1] ?? 1,
-      yMax: Math.max(1, ...all.map((p) => p.y)),
+      yMax: signed ? (absMax > 0 ? absMax : 1) : Math.max(1, ...all.map((p) => p.y)),
+      yMin: signed ? -(absMax > 0 ? absMax : 1) : 0,
     };
-  }, [series]);
+  }, [series, signed]);
 
+  const yTop = signed ? Math.max(yMax, -yMin) : yMax;
   const px = (x: number) =>
     PAD.left + ((x - xMin) / Math.max(1, xMax - xMin)) * (W - PAD.left - PAD.right);
-  const py = (y: number) => H - PAD.bottom - (y / yMax) * (H - PAD.top - PAD.bottom);
+  const py = (y: number) =>
+    H - PAD.bottom - ((y - yMin) / (yTop - yMin)) * (H - PAD.top - PAD.bottom);
 
   // A break in `points` becomes an `M` rather than an `L`, so gaps stay gaps.
   const path = (pts: { x: number; y: number }[], step: number) => {
@@ -74,7 +109,7 @@ export function LineChart({
   const step = xs.length > 1 ? Math.min(...xs.slice(1).map((x, i) => x - xs[i])) : 1;
   const tickEvery = Math.max(1, Math.round(xs.length / xTicks));
   const ticks = xs.filter((_, i) => i % tickEvery === 0);
-  const yTicks = [0, yMax / 2, yMax];
+  const yTicks = signed ? [yMin, 0, yTop] : [0, yMax / 2, yMax];
 
   const nearest = hover === null ? null : xs.reduce((a, b) =>
     Math.abs(b - hover) < Math.abs(a - hover) ? b : a, xs[0]);
@@ -100,9 +135,13 @@ export function LineChart({
 
         {yTicks.map((y) => (
           <g key={y}>
+            {/* On a signed chart the zero line is not one gridline among
+                three — it is the boundary the reader is decoding sign
+                against, so it is drawn at full rule weight. */}
             <line
               x1={PAD.left} x2={W - PAD.right} y1={py(y)} y2={py(y)}
-              stroke="hsl(var(--rule-2))" strokeWidth={1}
+              stroke={signed && y === 0 ? "hsl(var(--border))" : "hsl(var(--rule-2))"}
+              strokeWidth={1}
             />
             <text
               x={PAD.left - 8} y={py(y)} textAnchor="end" dominantBaseline="middle"
@@ -195,7 +234,7 @@ export function LineChart({
           );
         })}
         <span className="font-mono text-[11px] text-muted-foreground">
-          {nearest === null ? "latest published" : xLabel(nearest)}
+          {nearest === null ? restLabel : xLabel(nearest)}
         </span>
       </figcaption>
     </figure>

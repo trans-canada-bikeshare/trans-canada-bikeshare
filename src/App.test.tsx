@@ -2,11 +2,16 @@ import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import App from "@/App";
-import { ebikeShare, meta, tripsMonthly } from "@/lib/data";
 import {
   forecast, busiestMonth, defaultConditions, modelFor, monthBlock, predict,
 } from "@/lib/forecast";
 import { full, MONTH_SHORT } from "@/lib/format";
+import {
+  ebikeShare, meta, tripsMonthly,
+  dwell, dwellFor, dwellWithheldFor, headlineRebalancing, movesPerDay,
+  rebalancing, hourExtremes,
+} from "@/lib/data";
+import { SYSTEM_ORDER, cityOf } from "@/lib/systems";
 
 describe("App", () => {
   beforeEach(() => {
@@ -187,6 +192,65 @@ describe("App", () => {
     }
     expect(section.textContent).toMatch(/airport, not where the bikes are/i);
     expect(section.textContent).toMatch(/in-sample/i);
+  });
+
+  // The operational signals are the ones most easily read as measurements.
+  // The bound has to travel with the number, in the section, not in a footnote
+  // somewhere below it.
+  it("labels implied rebalancing as a lower bound beside the figure", () => {
+    render(<App />);
+    const ops = document.getElementById("ops")!;
+    expect(ops.textContent).toMatch(/lower bound/i);
+    expect(ops.textContent).toMatch(/fewest moves a day/i);
+    // The words the caveat turns on, carried from the registry rather than
+    // written here: an overnight reset assumed, intra-day moves ignored.
+    expect(ops.textContent).toContain(rebalancing.caveat);
+  });
+
+  it("prints the rebalancing figure the artifact computes, for all three", () => {
+    render(<App />);
+    const ops = document.getElementById("ops")!;
+    for (const id of SYSTEM_ORDER) {
+      const r = headlineRebalancing(id)!;
+      const printed = Math.round(movesPerDay(r)).toLocaleString("en-CA");
+      expect(ops.textContent, `${id} ${printed}`).toContain(printed);
+    }
+  });
+
+  it("names each system's emptiest hour from the data, not from prose", () => {
+    render(<App />);
+    const ops = document.getElementById("ops")!;
+    for (const id of SYSTEM_ORDER) {
+      const ex = hourExtremes(id)!;
+      const label = `${String(ex.ebb).padStart(2, "0")}:00`;
+      expect(ops.textContent, `${cityOf(id)} ${label}`).toContain(label);
+    }
+  });
+
+  // The membership discipline, applied to dwell: a system that cannot support
+  // it is named and explained, never quietly missing. The same section carries
+  // that system as a full column of the comparable metric above.
+  it("marks the system with no bike ids as not published, with a reason", () => {
+    render(<App />);
+    const ops = document.getElementById("ops")!;
+    const unsupported = Object.keys(dwell.unsupported);
+    expect(unsupported.length).toBeGreaterThan(0);
+    for (const id of unsupported) {
+      expect(dwellFor(id as never)).toHaveLength(0);
+      expect(ops.textContent).toContain(dwell.unsupported[id].reason);
+      expect(within(ops).getAllByText(new RegExp(cityOf(id))).length).toBeGreaterThan(0);
+    }
+    expect(ops.textContent).toMatch(/not published/i);
+  });
+
+  it("states every withheld dwell year rather than skipping it", () => {
+    render(<App />);
+    const ops = document.getElementById("ops")!;
+    for (const id of SYSTEM_ORDER) {
+      for (const w of dwellWithheldFor(id)) {
+        expect(ops.textContent, `${id} ${w.year}`).toContain(String(w.year));
+      }
+    }
   });
 
   it("declares no government affiliation", () => {

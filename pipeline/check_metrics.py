@@ -53,6 +53,13 @@ ARTIFACT_METRIC: dict[str, str] = {
     # one model per system, but the same features, the same 2017-onward window
     # and the same exclusions in all three, so the three sit side by side.
     "forecast": "forecast",
+    # Spec 024. `operational_signals` was one registry entry covering two
+    # metrics with different support: the trip-only signals every system can
+    # carry, and dwell, which needs a bike identifier Montreal has never
+    # published. One key could only be as narrow as its narrowest signal, so
+    # the split is what lets Montreal into the comparable core.
+    "rebalancing": "rebalancing_pressure",
+    "dwell": "bike_dwell",
 }
 
 # Artifacts that carry system ids without being a comparative metric. Each

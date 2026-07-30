@@ -13,12 +13,18 @@ const StationMap = lazy(() =>
 import { ForecastPanel } from "@/components/ForecastPanel";
 import { FLOW_STOPS, FLOW_DOMAIN } from "@/lib/flowScale";
 import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf, isSystemId } from "@/lib/systems";
-import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
+import {
+  compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel, hourLabel,
+} from "@/lib/format";
 import {
   meta, tripsMonthly, seasonality, stationsYearly, ebikeShare, durations,
   exclusions, incompleteMonths, monthIndex, monthKeyFromIndex, commonWindow,
   stationsMeta, omittedFor, flows, flowsFor, concentration,
   membership, membershipFor, memberShare, labelLostShape,
+  rebalancing, rebalancingFor, headlineRebalancing, movesPerDay, movesPer1k,
+  hourlyShare, hourlyPerDay, hourExtremes, hourGridShare, hourBasis,
+  dwell, dwellFor, dwellEras, dwellWithheldFor, dwellGridShareFor, relocatedShare,
+  latestFullDwellYear,
 } from "@/lib/data";
 import { forecast } from "@/lib/forecast";
 
@@ -31,6 +37,7 @@ const NAV = [
   ["members", "Members"],
   ["maps", "Maps"],
   ["flows", "Flows"],
+  ["ops", "Operations"],
   ["forecast", "Forecast"],
   ["method", "Method"],
 ] as const;
@@ -124,6 +131,38 @@ export default function App() {
         .filter((pt) => pt.y > 0),
     }));
   }, []);
+
+  // Net flow by local hour, as a share of each system's own linked trips —
+  // shares for the same reason seasonality uses them, so three volumes an order
+  // of magnitude apart can be read as one shape.
+  const hourSeries: Series[] = useMemo(
+    () =>
+      SYSTEM_ORDER.map((id) => ({
+        id,
+        label: SYSTEMS[id].city,
+        color: seriesColor(id),
+        points: hourlyShare(id),
+      })),
+    [],
+  );
+
+  // Only years the archive covers end to end. A year clipped at the edge of the
+  // archive looks exactly like a year the system only ran part of, and drawing
+  // it would put a winter-only 2026 beside eleven complete ones.
+  const rebalanceSeries: Series[] = useMemo(
+    () =>
+      SYSTEM_ORDER.map((id) => ({
+        id,
+        label: SYSTEMS[id].city,
+        color: seriesColor(id),
+        points: rebalancingFor(id)
+          .filter((r) => r.full_year)
+          .map((r) => ({ x: r.year, y: movesPer1k(r) })),
+      })),
+    [],
+  );
+
+  const clippedYears = rebalancing.yearly.filter((r) => !r.full_year).length;
 
   const totalTrips = meta.systems.reduce((n, s) => n + s.trips, 0);
   // Derived, so the sentence cannot rot when the data updates.
@@ -725,6 +764,320 @@ export default function App() {
                 );
               })}
             </Note>
+          </Section>
+
+          <Section
+            id="ops"
+            eyebrow="Operations"
+            title="The imbalance a day leaves behind"
+            lede={
+              <>
+                Bikes do not redistribute themselves. Both figures here are
+                derived from trip records alone — nothing in any of these
+                archives records a van moving a bike — so they measure the
+                imbalance riders create, which is the floor under whatever
+                rebalancing each operator actually does.{" "}
+                <strong className="font-medium text-foreground">
+                  Below the zero line a system&rsquo;s docks are emptying faster
+                  than they refill; above it they are filling.
+                </strong>{" "}
+                Only trips with both ends recorded count, so every system&rsquo;s
+                twenty-four hours sum to exactly zero — what leaves comes back.
+                Each hour is plotted as a share of that system&rsquo;s own linked
+                trips, {rebalancing.hourly_first_year} onward, because Montreal
+                runs {Math.round(
+                  (hourBasis("mtl-bixi")?.linked_trips ?? 0) /
+                    Math.max(1, hourBasis("van-mobi")?.linked_trips ?? 1),
+                )}
+                × Vancouver&rsquo;s volume and the shapes are the comparison.
+              </>
+            }
+          >
+            {/* The lede explains the sign, but a reader who scrolled to the
+                chart needs the unit at the chart. Both axes are otherwise bare
+                numbers. */}
+            <p className="eyebrow mb-3">
+              Net flow by hour · share of the system&rsquo;s own linked trips
+            </p>
+            <LineChart
+              series={hourSeries}
+              signed
+              xLabel={(x) => hourLabel(x)}
+              yLabel={(y) => `${y > 0 ? "+" : ""}${y.toFixed(2)}%`}
+              xTicks={12}
+              restLabel="hover for any hour"
+              caption="Net flow by local hour: returns minus departures, as a share of each system's linked trips"
+            />
+
+            <Note>
+              {SYSTEM_ORDER.map((id, i) => {
+                const ex = hourExtremes(id);
+                if (!ex) return null;
+                const ebb = hourlyPerDay(id, ex.ebb);
+                const flood = hourlyPerDay(id, ex.flood);
+                return (
+                  <span key={id}>
+                    {i === 0 ? (
+                      <strong className="font-medium text-foreground">
+                        The deepest hour is the morning commute.
+                      </strong>
+                    ) : null}{" "}
+                    {cityOf(id)} empties fastest at {hourLabel(ex.ebb)} —{" "}
+                    {ebb === null ? "—" : full(Math.round(-ebb))} more bikes out
+                    than in on an average day — and refills fastest at{" "}
+                    {hourLabel(ex.flood)}
+                    {flood === null
+                      ? ""
+                      : `, taking in ${full(Math.round(flood))} more than it gives out`}
+                    .{" "}
+                  </span>
+                );
+              })}
+              {Object.keys(rebalancing.qualified).map((id) => {
+                const share = hourGridShare(id as typeof SYSTEM_ORDER[number]);
+                if (share === null) return null;
+                return (
+                  <span key={id}>
+                    <strong className="font-medium text-foreground">
+                      {cityOf(id)} is bucketed at a coarser resolution than the
+                      other two.
+                    </strong>{" "}
+                    Its source publishes departure and return times on the hour
+                    and nothing finer — {percent(share, 1)} of its linked trips
+                    carry a time that is exactly on the hour, against{" "}
+                    {SYSTEM_ORDER.filter((s) => s !== id)
+                      .map((s) => `${percent(hourGridShare(s) ?? 0, 3)} in ${cityOf(s)}`)
+                      .join(" and ")}
+                    . The hour a bike is counted in is therefore the hour the
+                    source labelled it, whose position inside that hour the
+                    source does not state.{" "}
+                  </span>
+                );
+              })}
+            </Note>
+
+            {rebalancing.headline_year !== null && (
+              <div className="mt-12">
+                <StatGrid
+                  stats={SYSTEM_ORDER.flatMap((id) => {
+                    const r = headlineRebalancing(id);
+                    if (!r) return [];
+                    return [
+                      {
+                        label: `${cityOf(id)} · fewest moves a day`,
+                        value: full(Math.round(movesPerDay(r))),
+                        accent: seriesColor(id),
+                        detail: (
+                          <>
+                            <strong className="font-medium text-foreground">
+                              A lower bound
+                            </strong>
+                            , not a count — {movesPer1k(r).toFixed(0)} per 1,000
+                            trips across {full(r.days)} days of {r.year}
+                          </>
+                        ),
+                      },
+                    ];
+                  })}
+                />
+              </div>
+            )}
+
+            <Note>
+              <strong className="font-medium text-foreground">
+                {rebalancing.caveat}
+              </strong>{" "}
+              It is the smallest number of bike moves that could return every
+              dock to where it started the day: summed over stations, each
+              station&rsquo;s daily net flow, halved because one move fixes a
+              surplus and a deficit at once. All three are read over the same{" "}
+              {full(headlineRebalancing("van-mobi")?.days ?? 0)} days of{" "}
+              {rebalancing.headline_year}, the latest calendar year the archive
+              covers end to end for every system.
+            </Note>
+
+            <div className="mt-12">
+              <p className="eyebrow mb-3">
+                Fewest moves a day · per 1,000 linked trips · full years only
+              </p>
+              <LineChart
+                series={rebalanceSeries}
+                xLabel={(x) => String(Math.round(x))}
+                yLabel={(y) => y.toFixed(0)}
+                caption="Fewest bike moves per day, per 1,000 linked trips, by year"
+              />
+            </div>
+
+            <Note>
+              Per 1,000 trips rather than in absolute moves, so systems{" "}
+              {Math.round(
+                (headlineRebalancing("mtl-bixi")?.linked_trips ?? 0) /
+                  Math.max(1, headlineRebalancing("van-mobi")?.linked_trips ?? 1),
+              )}
+              × apart in size sit on one axis.{" "}
+              <strong className="font-medium text-foreground">
+                Every system&rsquo;s rides have become less lopsided as it grew
+              </strong>{" "}
+              — {SYSTEM_ORDER.map((id, i) => {
+                const yrs = rebalancingFor(id).filter((r) => r.full_year);
+                if (yrs.length < 2) return null;
+                const a = yrs[0];
+                const b = yrs[yrs.length - 1];
+                return (
+                  <span key={id}>
+                    {i > 0 ? ", " : ""}
+                    {cityOf(id)} from {movesPer1k(a).toFixed(0)} in {a.year} to{" "}
+                    {movesPer1k(b).toFixed(0)} in {b.year}
+                  </span>
+                );
+              })}
+              {" "}— while the absolute number of moves rose with ridership.{" "}
+              {clippedYears} year
+              {clippedYears === 1 ? " is" : "s are"} left off this chart: the
+              archive covers only part of{" "}
+              {rebalancing.yearly
+                .filter((r) => !r.full_year)
+                .map((r) => `${cityOf(r.system_id)} ${r.year}`)
+                .join(", ")}
+              , and a year the archive clipped cannot be told apart from a year
+              the system only operated part of.
+            </Note>
+
+            <div className="mt-14">
+              <p className="eyebrow">Per-bike dwell · per-city detail</p>
+              <p className="mt-3 max-w-2xl text-[13px] leading-relaxed text-muted-foreground">
+                How long a bike sits at a dock between being returned and being
+                taken out again from that same dock. This needs a bike
+                identifier, which the three systems publish differently, so it
+                is not a three-city comparison and is not drawn as one. An
+                interval whose next departure is from a{" "}
+                <em>different</em> dock means something moved the bike, and is
+                excluded rather than counted as dwell. A year enters only if at
+                least {percent(dwell.min_bike_id_coverage, 0)} of its trips name
+                a bike — a chain built from a partly identified year skips the
+                trips it cannot see and reports the gap between two other trips
+                instead.
+              </p>
+
+              <div className="mt-8 grid gap-8 lg:grid-cols-3">
+                {SYSTEM_ORDER.map((id) => {
+                  const rows = dwellFor(id);
+                  const eras = dwellEras(id);
+                  const withheld = dwellWithheldFor(id);
+                  const unsupported = dwell.unsupported[id];
+                  return (
+                    <div key={id}>
+                      <p className="eyebrow flex items-center gap-1.5">
+                        <span
+                          aria-hidden="true"
+                          className="inline-block h-2 w-2 shrink-0"
+                          style={{ backgroundColor: seriesColor(id) }}
+                        />
+                        {cityOf(id)}
+                        {eras.length > 0 && (
+                          <span className="text-muted-foreground">
+                            ·{" "}
+                            {eras
+                              .map((e) => `${e.first}–${e.last}`)
+                              .join(", ")}
+                          </span>
+                        )}
+                      </p>
+
+                      {unsupported ? (
+                        <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+                          <strong className="font-medium text-foreground">
+                            {unsupported.display ?? "not published"}.
+                          </strong>{" "}
+                          {unsupported.reason}
+                        </p>
+                      ) : (
+                        <>
+                          <ul className="mt-3 space-y-1.5">
+                            {rows.map((r) => (
+                              <li
+                                key={`${r.era_first_year}-${r.year}`}
+                                className="flex items-baseline gap-2 text-[13px] leading-snug"
+                              >
+                                <span className="w-9 shrink-0 font-mono tabular-nums text-muted-foreground">
+                                  {r.year}
+                                </span>
+                                <span className="font-mono tabular-nums text-foreground">
+                                  {duration(r.median_s)}
+                                </span>
+                                <span className="text-muted-foreground">
+                                  {duration(r.p25_s)}–{duration(r.p75_s)}
+                                  {r.months < 12 && (
+                                    <> · {r.months} months only</>
+                                  )}
+                                </span>
+                              </li>
+                            ))}
+                          </ul>
+                          <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
+                            Median, then the middle half.{" "}
+                            {(() => {
+                              // The latest WHOLE year, not the newest row: the
+                              // newest is the archive's trailing stub, and a
+                              // three-month winter share read as the current
+                              // one is exactly the sort of number this site
+                              // exists not to print.
+                              const latest = latestFullDwellYear(id);
+                              if (!latest) return null;
+                              // Across everything shown, because it qualifies
+                              // the interval count in the same sentence.
+                              const grid = dwellGridShareFor(id);
+                              return (
+                                <>
+                                  {full(
+                                    rows.reduce((n, r) => n + r.intervals, 0),
+                                  )}{" "}
+                                  intervals;{" "}
+                                  {percent(relocatedShare(latest), 1)} of{" "}
+                                  {latest.year}&rsquo;s dock-to-dock intervals
+                                  ended at another dock and are excluded.
+                                  {grid > 0.5 && (
+                                    <>
+                                      {" "}
+                                      <strong className="font-medium text-foreground">
+                                        Resolved to whole hours
+                                      </strong>{" "}
+                                      — {percent(grid, 1)} of these intervals
+                                      are an exact multiple of an hour, because
+                                      the source publishes no finer time. Read
+                                      each figure as ±1 hour.
+                                    </>
+                                  )}
+                                </>
+                              );
+                            })()}
+                          </p>
+                          {withheld.length > 0 && (
+                            <p className="mt-2 text-[13px] leading-relaxed text-muted-foreground">
+                              <strong className="font-medium text-foreground">
+                                Withheld:{" "}
+                                {withheld.map((w) => w.year).join(", ")}.
+                              </strong>{" "}
+                              {withheld
+                                .map(
+                                  (w) =>
+                                    `${w.year} names a bike on ${percent(
+                                      w.with_bike_id / w.trips,
+                                      1,
+                                    )} of its ${compact(w.trips)} trips`,
+                                )
+                                .join("; ")}
+                              . Those trips are counted everywhere else on this
+                              site; only their bike is unknown.
+                            </p>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
           </Section>
 
           <Section

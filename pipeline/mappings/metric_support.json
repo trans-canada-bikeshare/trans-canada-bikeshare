@@ -168,24 +168,46 @@
     }
    }
   },
-  "operational_signals": {
-   "label": "Operational signals",
-   "definition": "Rebalancing pressure and dwell, derived from consecutive trips of the same bike.",
-   "unit": "various",
+  "rebalancing_pressure": {
+   "label": "Rebalancing pressure",
+   "definition": "Two views of the same quantity, both from trip records alone. Net flow by LOCAL hour of day: a departure is -1 and a return is +1, bucketed by the hour of its own timestamp. Implied minimum daily rebalancing: summed over stations, the absolute daily net flow divided by two — the fewest bike moves that could reset that day's imbalance. Linked trips only (both ends recorded), so the hourly nets sum to zero over a system's day.",
+   "unit": "net trips per hour; bike moves per day",
+   "comparable": true,
+   "systems": {
+    "van-mobi": {
+     "supported": true,
+     "qualified": true,
+     "note": "Mobi publishes departure and return times ON THE HOUR — 100% of rows in every era except 2019-04 and 2025-05. The hour buckets are therefore the source's own hour labels, whose phase within the hour is not stated; the daily figure is unaffected, since it aggregates by date. Measured, not assumed: the share of Vancouver trips whose return hour differs from their departure hour is 27.5%, against 25.8% predicted by its own published durations."
+    },
+    "mtl-bixi": {
+     "supported": true
+    },
+    "tor-bikeshare": {
+     "supported": true
+    }
+   },
+   "caveat": "A DERIVED LOWER BOUND, not an observed count of rebalancing. It assumes an overnight reset, ignores every move made inside the day, and excludes trips without both ends. Every surface showing it must say so beside the number."
+  },
+  "bike_dwell": {
+   "label": "Dwell at a dock",
+   "definition": "Time from a bike's return at a dock to that same bike's next departure from that same dock. Consecutive events are ordered by time within (system, bike id) and never across systems, whose bike-id namespaces overlap. An interval whose next departure is from a DIFFERENT station is a relocation, not dwell, and is excluded.",
+   "unit": "seconds",
    "comparable": false,
    "systems": {
     "van-mobi": {
      "supported": true,
-     "signal": "Bike column"
+     "signal": "Bike column",
+     "note": "2017-2020 and 2024-2026 ONLY. bike_id coverage is 56.7% in 2021, 0% in 2022 and 18.6% in 2023; those years are withheld and the gap is stated on the page. Mobi's hour-only timestamps make Vancouver's dwell resolve to whole hours, which the page states beside the figures."
     },
     "mtl-bixi": {
      "supported": false,
-     "reason": "No bike identifier in any era, so consecutive trips of one bike cannot be reconstructed.",
+     "reason": "BIXI publishes no bike identifier in ANY era, 2014 through 2026, so consecutive trips of one bike cannot be reconstructed. Verified across the full archive, not inferred.",
      "display": "not published"
     },
     "tor-bikeshare": {
      "supported": true,
-     "signal": "Bike Id, from 2019"
+     "signal": "Bike Id",
+     "note": "2019 onward, at 100.0% coverage every year. 2016-2018 publish no bike identifier at all."
     }
    }
   }

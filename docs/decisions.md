@@ -429,6 +429,7 @@ review demonstrated live; months where most trips carry no label are withheld
 (Vancouver 2025-05 was measured on eleven days and nothing said so); and the
 quality report is order-deterministic.
 
+<<<<<<< HEAD
 ## 2026-07-30: A model is validated against days that happened, not against its own R²
 
 Spec 023's first ridership model was additive in month-of-year and calendar
@@ -477,6 +478,83 @@ Two smaller rules came out of the same work:
   the daily-low dial produced three "that is not a day" refusals and hid the
   one thing the control exists to show. The dials are now coupled. This is the
   2026-07-29 rule about rendering, extended: interaction is output too.
+=======
+## 2026-07-30: A registry key is split by what each signal needs, not by its narrowest one
+
+`operational_signals` covered two things: signals any trip record supports, and
+dwell, which needs a bike identifier. One key can only ever be as narrow as its
+narrowest signal, so it marked Montreal unsupported wholesale — and Montreal is
+88M of the archive's 135.6M trips. The flagship system was excluded from a
+comparable metric by a field it does not need.
+
+Split into `rebalancing_pressure` (comparable, all three) and `bike_dwell` (not
+comparable; Montreal unsupported, Vancouver and Toronto era-limited). Both gates
+then enforce the two different answers instead of one wrong one.
+
+**The rule this generalises to: a registry key is one metric with one support
+answer.** Two signals with different support are two keys. The tell that a key
+is doing too much is a `supported: false` whose reason applies to only part of
+what the key describes — which is exactly what Montreal's read here.
+
+`rebalancing_pressure` also carries the metric's caveat as a registry **field**,
+not a comment: the artifact copies it and the page renders it verbatim. An
+implied lower bound is the number on this site most easily read as a
+measurement, and the sentence that says so should not be able to drift away
+from it.
+
+## 2026-07-30: Mobi publishes the hour and nothing finer
+
+Found while checking why Vancouver's dwell quartiles were 3600 / 10800 / 50400
+seconds in **every year**. `data-raw/van-mobi/2025-01.csv` has 62,518 rows and
+**24 distinct time-of-day strings**. In the warehouse, 100% of Vancouver rows
+carry both timestamps exactly on the hour in every era but two files (`2019-04`
+and `2025-05`), against 0.000% of Montreal's and 0.003% of Toronto's.
+
+It is the source, not the pipeline. `Duration (sec.)` is intact and is what the
+duration metric uses, so nothing already published moves. But it binds every
+future time-of-day surface:
+
+- **Vancouver's hour buckets are the source's own hour labels.** The bucketing
+  is genuine — 27.5% of its linked trips have a return hour differing from
+  their departure hour, against 25.8% predicted by its own durations, in line
+  with the other two — but whether the label floors or rounds the true time is
+  not stated and cannot be recovered. The phase inside the hour is unknown.
+- **Anything finer than an hour is unavailable for Vancouver.** Dwell, dock
+  turnaround, minute-level demand: not a modelling choice, an absence.
+
+`docs/source-audit.md` recorded "minute precision" from a sample whose rows all
+read `0:00`. That reading is consistent with hour-only data and settled nothing,
+and it stood for two specs. **A precision claim needs the distinct-value count,
+not a row that happens to look like the claim.**
+
+Registry treatment: `qualified: true` with the note, the shape Montreal already
+carries under `station_flows`. Not `supported: false` — the hour-of-day
+comparison holds, with a stated resolution — and not silence.
+
+## 2026-07-30: A day the system did not operate is not a day
+
+Montreal's archive ends 2026-06-30 and trips departing on the last days return
+after it. Dating each event by its own timestamp is right; treating the dates
+those returns land on as days the system ran is not. Twenty-one July dates carry
+Montreal returns and no departures, one of them 617 returns against a
+3,000-move norm, and averaging over them **diluted Montreal's implied
+rebalancing by 3.8%**. Toronto has the same edge at 2026-04-01.
+
+This is the incomplete-month gate's problem one level down. That gate is keyed
+on the departure month, so a month with no departures at all is invisible to it
+— not an incomplete month but a month that does not exist, carrying events
+anyway.
+
+**Rule: a per-day denominator counts days the system operated, evidenced by an
+event that starts there.** And more generally, every archive has two edges, and
+a metric averaged over time has to say which days it divided by.
+
+The related decision, same spec: **a year the archive clips cannot be told apart
+from a year the system only operated part of.** Montreal's 2014 opens in April
+because BIXI opens in April; its 2026 stops in June because the archive does.
+From inside the data those are identical, so the yearly chart draws only years
+covered 1 January to 31 December and the page names the five it dropped.
+>>>>>>> worktree-agent-a7155e643693e23e4
 
 ## Next
 

@@ -105,17 +105,25 @@ describe("App", () => {
     const before = section.textContent!;
     const slider = within(section).getByLabelText(/daily high in/i);
     const month = busiestMonth();
-    // Somewhere else inside the envelope every model shares for this month.
-    const target = Math.min(
+    // The coldest high every model has seen in this month: inside all three
+    // envelopes, and above the starting low, so the dials do not couple and the
+    // expected conditions here are exactly the ones on screen.
+    const target = Math.max(
       ...forecast.models.map((m) => monthBlock(m, month)!.ranges.temp_max_c.min),
     );
+    const conditions = { ...defaultConditions(month), temp_max_c: target };
+    expect(conditions.temp_min_c).toBeLessThan(target);
+
     fireEvent.change(slider, { target: { value: String(target) } });
     expect(section.textContent).not.toBe(before);
 
-    const conditions = { ...defaultConditions(month), temp_max_c: target };
     for (const model of forecast.models) {
       const result = predict(model, conditions);
-      if (!result.ok) continue;
+      // Not `continue` on a refusal: a loop that skips every system asserts
+      // nothing and passes, which is how this test quietly stopped checking
+      // anything when the dials were first coupled.
+      expect(result.ok, model.system_id).toBe(true);
+      if (!result.ok) return;
       expect(section.textContent, model.system_id).toContain(
         full(Math.round(result.trips)),
       );

@@ -484,7 +484,117 @@ def run_reference(con) -> None:
             total += 1
         print(f"  {system_id}: {len(payload['data']['stations']):,} GBFS stations")
     record(con, "reference", "gbfs_stations", "SELECT count(*) FROM gbfs_station")
+    load_weather(con)
     return None
+
+
+def load_weather(con) -> None:
+    """ECCC daily climate, one airport station per city.
+
+    A day ECCC does not report stays NULL. It is never zero-filled, never
+    forward-filled and never interpolated — 0 °C is a legitimate and common
+    value in this dataset, so a zero standing in for a gap would be
+    indistinguishable from an observation. The gaps are counted instead, and
+    the quality report states them.
+    """
+    con.execute("""CREATE OR REPLACE TABLE weather_daily (
+        system_id VARCHAR, date_key DATE,
+        temp_mean_c DOUBLE, temp_max_c DOUBLE, temp_min_c DOUBLE,
+        precip_mm DOUBLE, snow_cm DOUBLE, snow_ground_cm DOUBLE)""")
+    # Which station each city's weather comes from, carried into the warehouse
+    # so the quality report and any published surface can name its source
+    # rather than restate it from memory.
+    con.execute("""CREATE OR REPLACE TABLE weather_station (
+        system_id VARCHAR, station_id VARCHAR, climate_id VARCHAR,
+        station_name VARCHAR, lat DOUBLE, lon DOUBLE)""")
+    for system_id in sorted(common.SYSTEMS):
+        st = (common.load_manifest(system_id) or {}).get("weather_station")
+        if st:
+            con.execute(
+                "INSERT INTO weather_station VALUES (?, ?, ?, ?, ?, ?)",
+                [system_id, str(st["station_id"]), str(st["climate_id"]),
+                 st["name"], st["lat"], st["lon"]],
+            )
+
+    for system_id in sorted(common.SYSTEMS):
+        files = sorted(
+            (common.DATA_RAW / system_id / "reference").glob("weather_*.csv")
+        )
+        if not files:
+            print(f"  {system_id}: no ECCC files on disk — run download.py")
+            continue
+        # Read every year at once. ECCC's header carries degree signs and
+        # parentheses, so columns are addressed by their exact published names
+        # rather than by position — a reordered export must fail loudly, not
+        # silently shift precipitation into the temperature column.
+        con.execute(
+            """
+            INSERT INTO weather_daily
+            SELECT ?,
+                   CAST("Date/Time" AS DATE),
+                   TRY_CAST("Mean Temp (°C)"    AS DOUBLE),
+                   TRY_CAST("Max Temp (°C)"     AS DOUBLE),
+                   TRY_CAST("Min Temp (°C)"     AS DOUBLE),
+                   TRY_CAST("Total Precip (mm)" AS DOUBLE),
+                   TRY_CAST("Total Snow (cm)"   AS DOUBLE),
+                   TRY_CAST("Snow on Grnd (cm)" AS DOUBLE)
+            FROM read_csv(?, header = true, all_varchar = true)
+            -- ECCC exports a fixed-length calendar year, so the current year
+            -- arrives padded with rows for dates that have not happened. Those
+            -- carry no observation and are not gaps in the record; keeping
+            -- them would report 624 days with no mean temperature where the
+            -- table-wide figure is 146.
+            --
+            -- A row is kept when any of the six STORED measures is present —
+            -- not when ECCC measured anything at all. Two van-mobi days
+            -- (2025-07-14, 2025-09-17) carry only wind and are dropped here.
+            -- Wind is not stored, so nothing is lost, but the distinction is
+            -- real and an earlier version of this comment overstated it.
+            WHERE coalesce("Mean Temp (°C)", "Max Temp (°C)", "Min Temp (°C)",
+                           "Total Precip (mm)", "Total Snow (cm)",
+                           "Snow on Grnd (cm)") IS NOT NULL
+            """,
+            [system_id, [str(p) for p in files]],
+        )
+        # The CSV names the station it came from. Checking it against the
+        # manifest is what makes a mis-set stationID in the bulk URL fail
+        # loudly instead of silently storing another city's weather under this
+        # system_id — the one error this ingest could otherwise not detect.
+        want = con.execute(
+            "SELECT climate_id, station_name FROM weather_station WHERE system_id = ?",
+            [system_id],
+        ).fetchone()
+        if want:
+            found = con.execute(
+                'SELECT DISTINCT "Climate ID", "Station Name" '
+                "FROM read_csv(?, header = true, all_varchar = true)",
+                [[str(p) for p in files]],
+            ).fetchall()
+            unexpected = [f for f in found if f[0] != want[0]]
+            if unexpected:
+                raise SystemExit(
+                    f"{system_id}: ECCC files carry climate ID(s) {unexpected} "
+                    f"but the manifest declares {want[0]} ({want[1]}). The "
+                    "station in the download URL does not match the one this "
+                    "system is supposed to use."
+                )
+
+        obs, gaps, first, last = con.execute(
+            """SELECT count(*), count(*) FILTER (temp_mean_c IS NULL),
+                      min(date_key), max(date_key)
+               FROM weather_daily WHERE system_id = ?""",
+            [system_id],
+        ).fetchone()
+        print(
+            f"  {system_id}: {obs:,} days {first}..{last}, "
+            f"{gaps:,} with no mean temperature"
+        )
+
+    record(con, "reference", "weather_days", "SELECT count(*) FROM weather_daily")
+    record(
+        con, "reference", "weather_days_missing_temp",
+        "SELECT count(*) FROM weather_daily WHERE temp_mean_c IS NULL",
+    )
 
 
 def run_clean(con) -> None:

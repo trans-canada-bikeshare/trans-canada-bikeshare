@@ -590,7 +590,13 @@ export default function App() {
               Sources: Mobi by Rogers, BIXI Montréal, and Bike Share Toronto open
               data. Contains information licensed under the Open Government
               Licence – Toronto. BIXI's open data page states no licence terms;
-              that is unresolved and recorded as such in the repository.
+              that is unresolved and recorded as such in the repository. Daily
+              climate data is{" "}
+              <strong className="font-medium text-foreground">
+                based on Environment and Climate Change Canada data
+              </strong>
+              , used under a licence whose redistribution restrictions are
+              recorded in the repository.
             </Note>
           </Section>
         </div>

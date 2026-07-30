@@ -107,6 +107,100 @@
       "sha256": "8a297424622cfca2b749b9260c8e35f72ae6e682df62c3158ccce2332df0179e",
       "bytes": 379991,
       "downloaded_at": "2026-07-29T06:01:54+00:00"
+    },
+    "weather_2014": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2014&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "d71b894ecbb5bab331bc3962006bbc15035a59491bc323557dba16d5cbcbcb20",
+      "bytes": 65076,
+      "downloaded_at": "2026-07-30T02:21:06+00:00"
+    },
+    "weather_2015": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2015&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "687ff242c5aa71542a6884b71050c7ab7926d1c75340a761a71cf8d2026da941",
+      "bytes": 65004,
+      "downloaded_at": "2026-07-30T02:21:06+00:00"
+    },
+    "weather_2016": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2016&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "99ed5008dbca94c3977faa4fcc28d5aa4bb214cb9a8c33452c12472e9bee74a5",
+      "bytes": 65074,
+      "downloaded_at": "2026-07-30T02:21:06+00:00"
+    },
+    "weather_2017": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2017&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "12fa3ed84b963c9da3827497f71efeb56345dca1c60a1731b19d3ad81508e25b",
+      "bytes": 64962,
+      "downloaded_at": "2026-07-30T02:21:07+00:00"
+    },
+    "weather_2018": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2018&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "f707f52eec2d904128b3a95b25024c660c516fa790280f7be413f571e984d7ad",
+      "bytes": 65006,
+      "downloaded_at": "2026-07-30T02:21:07+00:00"
+    },
+    "weather_2019": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2019&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "4a925bdfe7fedcf07ee027ad875499a764b063ec4b3f96a96a16135ff0889f1f",
+      "bytes": 64977,
+      "downloaded_at": "2026-07-30T02:21:07+00:00"
+    },
+    "weather_2020": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2020&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "eb032810b7af3dd5be6181ba1c9cfefc7ba2188af104ec1d58eeed31137a181d",
+      "bytes": 65064,
+      "downloaded_at": "2026-07-30T02:21:07+00:00"
+    },
+    "weather_2021": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2021&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "3ada7cb56443e2da261df101d5d5f2eb3ad5f77c0f62741395b2aa2cbfd3dadc",
+      "bytes": 64840,
+      "downloaded_at": "2026-07-30T02:21:08+00:00"
+    },
+    "weather_2022": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2022&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "b01df555a7c45bedb1a76212f57e7e8e8ec01551c14d226dd958fd4405bcd663",
+      "bytes": 64969,
+      "downloaded_at": "2026-07-30T02:21:08+00:00"
+    },
+    "weather_2023": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2023&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "ed15bc97f10802913a49c44d0d12ca268bc7dea630df1c279d7702390864b1c2",
+      "bytes": 64702,
+      "downloaded_at": "2026-07-30T02:21:08+00:00"
+    },
+    "weather_2024": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2024&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "6b3fe0ae20729748450fc5ae6604822592436d6b77be587df7b458b87da848fb",
+      "bytes": 64764,
+      "downloaded_at": "2026-07-30T02:21:08+00:00"
+    },
+    "weather_2025": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2025&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "f4a1e01e038b7f78d0417e79b8584bc766c9783121b5651c155f9eae2a6683b8",
+      "bytes": 64905,
+      "downloaded_at": "2026-07-30T02:21:09+00:00"
+    },
+    "weather_2026": {
+      "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51157&Year=2026&Month=1&Day=1&timeframe=2&submit=Download+Data",
+      "sha256": "03a90e6d678ee886fd02852c624eed06fd8fcd67d176528594d558cefc34ea68",
+      "bytes": 60064,
+      "downloaded_at": "2026-07-30T02:21:09+00:00",
+      "volatile": true
+    }
+  },
+  "weather_station": {
+    "station_id": 51157,
+    "climate_id": "7025251",
+    "name": "MONTREAL INTL A",
+    "lat": 45.47,
+    "lon": -73.74,
+    "licence": {
+      "name": "Licence Agreement for Use of Environment and Climate Change Canada Data",
+      "heading": "LIMITED USE SOFTWARE AND DATA PRODUCT LICENCE AGREEMENT",
+      "url": "https://climate.weather.gc.ca/prods_servs/attachment1_e.html",
+      "checked": "2026-07-30",
+      "attribution": "based on Environment and Climate Change Canada data",
+      "redistribution": "Redistribution is permitted only if no fee is charged explicitly for the ECCC product, and any party it is redistributed to must agree to the same redistribution restrictions before use. Charges for value-added services are permitted."
     }
   }
 }

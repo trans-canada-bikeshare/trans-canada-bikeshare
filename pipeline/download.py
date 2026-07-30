@@ -106,12 +106,21 @@ def apply_result(
     """
     pinned = entry.get("sha256")
     if pinned and pinned != sha:
-        if not accept_changes:
+        # A `volatile` entry is one the source is still writing — ECCC's bulk
+        # export for the CURRENT calendar year gains an observation every day,
+        # so its checksum is guaranteed to move. Refusing it would make
+        # --accept-changes a daily routine, and a flag used routinely stops
+        # protecting the entries that actually matter. The pin still records
+        # exactly what was used; it is just expected to advance.
+        if entry.get("volatile"):
+            status = "moved"
+        elif not accept_changes:
             raise Drift(
                 f"content changed: pinned {pinned[:12]}… but downloaded "
                 f"{sha[:12]}… — re-run with --accept-changes to repin"
             )
-        status = "repinned"
+        else:
+            status = "repinned"
     else:
         status = "pinned" if not pinned else "verified"
     entry["sha256"] = sha

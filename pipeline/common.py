@@ -165,7 +165,14 @@ def local_path(system_id: str, period: str, content_format: str | None) -> Path:
 
 
 def reference_path(system_id: str, name: str) -> Path:
-    return DATA_RAW / system_id / "reference" / f"{name}.json"
+    """Where a pinned reference file lives.
+
+    Extension follows the name: GBFS feeds are JSON, ECCC climate years are
+    CSV. Anything else defaults to JSON, which is what every reference entry
+    was before spec 013 added weather.
+    """
+    ext = ".csv" if name.startswith("weather_") else ".json"
+    return DATA_RAW / system_id / "reference" / f"{name}{ext}"
 
 
 def save_manifest(system_id: str, manifest: dict) -> None:

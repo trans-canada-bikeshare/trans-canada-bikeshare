@@ -164,6 +164,49 @@ def main() -> int:
                     WHERE f.membership_raw IS NOT NULL
                     GROUP BY 1, 2, 3 ORDER BY 1, 4 DESC""")])
 
+    if q("SELECT count(*) FROM information_schema.tables "
+         "WHERE table_name = 'weather_daily'")[0][0]:
+        doc += ["## Weather coverage", "",
+                "ECCC daily climate, one airport station per city (spec 013). "
+                "A day the record does not cover stays absent or NULL — never "
+                "zero-filled, because 0 °C is a legitimate and common value "
+                "here and a zero standing in for a gap would be "
+                "indistinguishable from an observation.", "",
+                "Counted against each system's own trip window, since weather "
+                "outside it conditions nothing.", ""]
+        doc += table(
+            ["system", "station", "window days", "days with a row",
+             "no row", "row but no mean temp", "no mean temp (total)"],
+            [(s, st, fmt(w), fmt(r), fmt(a), fmt(t), fmt(n))
+             for s, st, w, r, a, t, n in q("""
+                WITH win AS (
+                  SELECT system_id, min(departure_ts)::DATE AS f,
+                         max(departure_ts)::DATE AS l
+                  FROM fact_trips
+                  WHERE NOT list_contains(quality_flags, 'implausible_date')
+                  GROUP BY 1),
+                cal AS (
+                  SELECT w.system_id,
+                         unnest(generate_series(w.f, w.l, INTERVAL 1 DAY))::DATE AS d
+                  FROM win w)
+                SELECT cal.system_id,
+                       any_value(s.station_name),
+                       count(*),
+                       count(wd.date_key),
+                       count(*) - count(wd.date_key),
+                       -- The date_key guard matters: over a LEFT JOIN a bare
+                       -- `temp_mean_c IS NULL` also matches days with no row
+                       -- at all, so the two columns could not be added
+                       -- without counting the same days twice.
+                       count(*) FILTER (wd.date_key IS NOT NULL
+                                        AND wd.temp_mean_c IS NULL),
+                       count(*) FILTER (wd.temp_mean_c IS NULL)
+                FROM cal
+                LEFT JOIN weather_daily wd
+                  ON wd.system_id = cal.system_id AND wd.date_key = cal.d
+                LEFT JOIN weather_station s ON s.system_id = cal.system_id
+                GROUP BY 1 ORDER BY 1""")])
+
     doc += ["## Trips per month", "", "<details><summary>Full series</summary>", ""]
     doc += table(["system", "month", "trips"],
                  [(s, m, fmt(n)) for s, m, n in q("""

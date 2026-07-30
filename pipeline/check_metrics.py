@@ -49,6 +49,10 @@ ARTIFACT_METRIC: dict[str, str] = {
     # Declared 2026-07-30, after the gate refused it too. Montreal appears
     # here under `partial_until`, not as a supported system.
     "membership": "membership_mix",
+    # Declared 2026-07-30 with spec 023. `forecast` is a comparable metric:
+    # one model per system, but the same features, the same 2017-onward window
+    # and the same exclusions in all three, so the three sit side by side.
+    "forecast": "forecast",
 }
 
 # Artifacts that carry system ids without being a comparative metric. Each

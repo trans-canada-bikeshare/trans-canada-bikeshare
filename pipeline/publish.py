@@ -27,6 +27,7 @@ from pathlib import Path
 import duckdb
 
 import common
+import forecast
 
 REGISTRY = common.MAPPINGS_DIR / "metric_support.json"
 
@@ -615,6 +616,16 @@ def build(con, registry: dict) -> dict[str, object]:
             for r in top_pairs
         ],
     }
+
+    # --- weather-driven ridership model, one per system ---------------------
+    # Coefficients and fit statistics, never predictions: the browser computes
+    # the number so a reader can move the inputs, and every prediction the site
+    # draws is reproducible from figures visible in the artifact. The training
+    # decisions live in pipeline/forecast.py, next to the code that makes them.
+    forecast_art = forecast.build(con, first_year=first, trusted=TRUSTED)
+    guard(registry, "forecast",
+          sorted({m["system_id"] for m in forecast_art["models"]}))
+    art["forecast"] = forecast_art
 
     # --- what was excluded, so the site can say so --------------------------
     art["exclusions"] = rows(con, """

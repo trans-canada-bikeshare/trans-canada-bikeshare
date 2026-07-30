@@ -1,8 +1,12 @@
-import { render, screen, within } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it } from "vitest";
 import App from "@/App";
 import { ebikeShare, meta, tripsMonthly } from "@/lib/data";
+import {
+  forecast, busiestMonth, defaultConditions, modelFor, monthBlock, predict,
+} from "@/lib/forecast";
+import { full, MONTH_SHORT } from "@/lib/format";
 
 describe("App", () => {
   beforeEach(() => {
@@ -75,6 +79,106 @@ describe("App", () => {
     // ...and it must not be drawn as a series.
     const plotted = new Set(ebikeShare.series.map((r) => r.system_id));
     for (const id of unsupported) expect(plotted.has(id as never)).toBe(false);
+  });
+
+  // The forecast section renders three predictions from published
+  // coefficients. These check what a headed browser cannot assert cheaply: that
+  // the number on screen is the one the model produces, and that the section
+  // carries the caveat the ECCC licence and spec 013 both require.
+  it("renders the prediction each model actually produces", () => {
+    render(<App />);
+    const section = document.getElementById("forecast")!;
+    const conditions = defaultConditions(busiestMonth());
+    for (const model of forecast.models) {
+      const result = predict(model, conditions);
+      expect(result.ok, model.system_id).toBe(true);
+      if (!result.ok) return;
+      expect(section.textContent, model.system_id).toContain(
+        full(Math.round(result.trips)),
+      );
+    }
+  });
+
+  it("moves the prediction when the reader moves the weather", () => {
+    render(<App />);
+    const section = document.getElementById("forecast")!;
+    const before = section.textContent!;
+    const slider = within(section).getByLabelText(/daily high in/i);
+    const month = busiestMonth();
+    // Somewhere else inside the envelope every model shares for this month.
+    const target = Math.min(
+      ...forecast.models.map((m) => monthBlock(m, month)!.ranges.temp_max_c.min),
+    );
+    fireEvent.change(slider, { target: { value: String(target) } });
+    expect(section.textContent).not.toBe(before);
+
+    const conditions = { ...defaultConditions(month), temp_max_c: target };
+    for (const model of forecast.models) {
+      const result = predict(model, conditions);
+      if (!result.ok) continue;
+      expect(section.textContent, model.system_id).toContain(
+        full(Math.round(result.trips)),
+      );
+    }
+  });
+
+  // A model asked for a day outside its training range must say so rather than
+  // extrapolate. Vancouver's January has never been as cold as Montreal's, so
+  // one set of dials produces an answer in one city and a refusal in another.
+  it("refuses outside the envelope and names the range it was fitted on", () => {
+    render(<App />);
+    const section = document.getElementById("forecast")!;
+    fireEvent.click(within(section).getByRole("button", { name: MONTH_SHORT[0] }));
+
+    const coldest = modelFor("van-mobi")!;
+    const span = monthBlock(coldest, 1)!.ranges.temp_max_c;
+    fireEvent.change(within(section).getByLabelText(/daily high in/i), {
+      target: { value: String(span.min - 5) },
+    });
+    expect(section.textContent).toMatch(/outside what this model has seen/i);
+    expect(section.textContent).toMatch(/refuses rather than extrapolating/i);
+    // The stated range must be the model's own, not a rounded retelling.
+    expect(section.textContent).toContain(span.max.toFixed(1));
+  });
+
+  // Found by driving the built page, not by a failing assertion: dragging the
+  // daily high below the daily low makes a day that cannot exist, and all three
+  // models then refuse for that reason instead of showing the difference
+  // between the cities, which is the only thing the control is there to show.
+  it("keeps the day physical when one temperature dial passes the other", () => {
+    render(<App />);
+    const section = document.getElementById("forecast")!;
+    fireEvent.click(within(section).getByRole("button", { name: MONTH_SHORT[0] }));
+    const floor = Math.min(
+      ...forecast.models.map((m) => monthBlock(m, 1)!.ranges.temp_max_c.min),
+    );
+    fireEvent.change(within(section).getByLabelText(/daily high in/i), {
+      target: { value: String(floor) },
+    });
+    expect(section.textContent).not.toMatch(/not a day/i);
+    const low = within(section).getByLabelText(/daily low in/i) as HTMLInputElement;
+    expect(Number(low.value)).toBeLessThanOrEqual(floor);
+    // The coldest city still answers where the mildest one cannot.
+    const cold = forecast.models.reduce((a, b) =>
+      monthBlock(a, 1)!.ranges.temp_max_c.min <= monthBlock(b, 1)!.ranges.temp_max_c.min
+        ? a : b,
+    );
+    expect(monthBlock(cold, 1)!.ranges.temp_max_c.min).toBe(floor);
+  });
+
+  it("carries the airport-station caveat wherever a weather number appears", () => {
+    render(<App />);
+    const section = document.getElementById("forecast")!;
+    for (const model of forecast.models) {
+      expect(section.textContent, model.system_id).toContain(
+        model.weather_station.name,
+      );
+      expect(section.textContent, model.system_id).toContain(
+        `${model.weather_station.km_from_centroid.toFixed(1)} km`,
+      );
+    }
+    expect(section.textContent).toMatch(/airport, not where the bikes are/i);
+    expect(section.textContent).toMatch(/in-sample/i);
   });
 
   it("declares no government affiliation", () => {

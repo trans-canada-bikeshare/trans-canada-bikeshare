@@ -23,6 +23,12 @@ filter, window, null handling. Nine metrics: `trips`, `seasonality`,
 `duration`, `active_stations`, `station_flows`, `ebike_share`,
 `membership_mix`, `forecast`, `operational_signals`.
 
+**Ten since 2026-07-30.** [Spec 024](024-operational-signals.md) split
+`operational_signals` into `rebalancing_pressure` (comparable, all three) and
+`bike_dwell` (not comparable; Montreal unsupported). One key could only ever be
+as narrow as its narrowest signal, and this one had marked Montreal unsupported
+wholesale for a bike identifier that only dwell needs.
+
 Each metric carries a `comparable` flag. Each unsupported system carries the
 reason it is unsupported, because a gap the site shows and explains is worth
 more than a metric quietly missing a city.

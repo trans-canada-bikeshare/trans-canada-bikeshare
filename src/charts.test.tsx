@@ -49,6 +49,33 @@ describe("LineChart", () => {
     expect(labels).toContain("100");
   });
 
+  // Found in the headed browser, not by a test: net flow by hour peaks at
+  // 0.63% of a system's trips, and the unsigned domain's floor of 1 gave the
+  // signed chart a ±1% axis. The lines used two thirds of the plot and the
+  // axis labels were not the data's extremes.
+  it("scales a signed domain to the data even when every value is under one", () => {
+    const { container } = render(
+      <LineChart signed
+                 series={series([{ x: 0, y: -0.63 }, { x: 1, y: 0.62 }])}
+                 xLabel={String} yLabel={(y) => y.toFixed(2)} />,
+    );
+    const labels = [...container.querySelectorAll("text")].map((t) => t.textContent);
+    expect(labels).toContain("-0.63");
+    expect(labels).toContain("0.63");
+    expect(labels).not.toContain("1.00");
+  });
+
+  it("survives a series with no points", () => {
+    const { container } = render(
+      <LineChart signed series={series([])} xLabel={String} yLabel={(y) => y.toFixed(0)} />,
+    );
+    const labels = [...container.querySelectorAll("text")].map((t) => t.textContent);
+    expect(labels).toContain("0");
+    // Every drawn coordinate has to be a number, not a NaN from dividing by an
+    // empty domain.
+    for (const y of plottedY(container)) expect(Number.isFinite(y)).toBe(true);
+  });
+
   // The failure this prop exists to prevent. On the unsigned domain a negative
   // value maps below the baseline and is drawn outside the plot box entirely.
   it("draws negative values inside the plot rather than below it", () => {
@@ -64,6 +91,20 @@ describe("LineChart", () => {
       expect(y).toBeGreaterThanOrEqual(PAD.top);
       expect(y).toBeLessThanOrEqual(H - PAD.bottom);
     }
+  });
+
+  // "latest published" is true of a monthly series and false of an hour-of-day
+  // one, where it resolves to 23:00 — the last hour drawn, not anything about
+  // what a source has published.
+  it("lets a chart say what its resting readout means", () => {
+    const points = [{ x: 0, y: 1 }, { x: 23, y: 2 }];
+    const withDefault = render(<LineChart series={series(points)} xLabel={String} />);
+    expect(withDefault.container.textContent).toContain("latest published");
+    const withOwn = render(
+      <LineChart series={series(points)} xLabel={String} restLabel="hover for any hour" />,
+    );
+    expect(withOwn.container.textContent).toContain("hover for any hour");
+    expect(withOwn.container.textContent).not.toContain("latest published");
   });
 
   it("draws the zero line at full rule weight when signed", () => {

@@ -443,17 +443,43 @@ export function dwellEras(id: SystemId): { first: number; last: number }[] {
   return [...seen.values()].sort((a, b) => a.first - b.first);
 }
 
+/**
+ * The latest year a system published a whole twelve months of intervals.
+ *
+ * The relocation share is quoted from one year, and the newest row is the
+ * archive's trailing stub: Toronto's 2026 is January to March, where 4.7% is a
+ * winter figure being read as the current one. Falls back to the newest row
+ * only if no complete year exists.
+ */
+export function latestFullDwellYear(id: SystemId): DwellRow | undefined {
+  const rows = dwellFor(id);
+  const full = rows.filter((r) => r.months === 12);
+  return (full.length ? full : rows)[Math.max(0, (full.length || rows.length) - 1)];
+}
+
 export function dwellWithheldFor(id: SystemId) {
   return dwell.withheld
     .filter((r) => r.system_id === id)
     .sort((a, b) => a.year - b.year);
 }
 
-/** Share of a system's intervals that fall on an exact hour. Vancouver's
+/** Share of a year's intervals that fall on an exact hour. Vancouver's
  *  quartiles are hour boundaries because its source has no finer value; the
  *  page renders this rather than asserting it. */
 export function dwellGridShare(r: DwellRow): number {
   return r.intervals === 0 ? 0 : r.on_hour_grid / r.intervals;
+}
+
+/** The same share across everything a system publishes.
+ *
+ *  The page states it beside the whole interval count, so it has to be the
+ *  whole set: quoting one year gave Vancouver 86.4% (its 2025 archive contains
+ *  one file with finer times) directly after a sentence counting 4.6 million
+ *  intervals, and the two numbers did not describe the same thing. */
+export function dwellGridShareFor(id: SystemId): number {
+  const rows = dwellFor(id);
+  const n = rows.reduce((a, r) => a + r.intervals, 0);
+  return n === 0 ? 0 : rows.reduce((a, r) => a + r.on_hour_grid, 0) / n;
 }
 
 /** Share of a bike's dock-to-dock intervals that ended somewhere else. Not a

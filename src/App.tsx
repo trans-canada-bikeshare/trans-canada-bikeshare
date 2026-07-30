@@ -22,7 +22,8 @@ import {
   membership, membershipFor, memberShare, labelLostShape,
   rebalancing, rebalancingFor, headlineRebalancing, movesPerDay, movesPer1k,
   hourlyShare, hourlyPerDay, hourExtremes, hourGridShare, hourBasis,
-  dwell, dwellFor, dwellEras, dwellWithheldFor, dwellGridShare, relocatedShare,
+  dwell, dwellFor, dwellEras, dwellWithheldFor, dwellGridShareFor, relocatedShare,
+  latestFullDwellYear,
 } from "@/lib/data";
 
 const NAV = [
@@ -789,12 +790,19 @@ export default function App() {
               </>
             }
           >
+            {/* The lede explains the sign, but a reader who scrolled to the
+                chart needs the unit at the chart. Both axes are otherwise bare
+                numbers. */}
+            <p className="eyebrow mb-3">
+              Net flow by hour · share of the system&rsquo;s own linked trips
+            </p>
             <LineChart
               series={hourSeries}
               signed
               xLabel={(x) => hourLabel(x)}
               yLabel={(y) => `${y > 0 ? "+" : ""}${y.toFixed(2)}%`}
               xTicks={12}
+              restLabel="hover for any hour"
               caption="Net flow by local hour: returns minus departures, as a share of each system's linked trips"
             />
 
@@ -886,6 +894,9 @@ export default function App() {
             </Note>
 
             <div className="mt-12">
+              <p className="eyebrow mb-3">
+                Fewest moves a day · per 1,000 linked trips · full years only
+              </p>
               <LineChart
                 series={rebalanceSeries}
                 xLabel={(x) => String(Math.round(x))}
@@ -1003,9 +1014,16 @@ export default function App() {
                           <p className="mt-3 text-[13px] leading-relaxed text-muted-foreground">
                             Median, then the middle half.{" "}
                             {(() => {
-                              const latest = rows[rows.length - 1];
+                              // The latest WHOLE year, not the newest row: the
+                              // newest is the archive's trailing stub, and a
+                              // three-month winter share read as the current
+                              // one is exactly the sort of number this site
+                              // exists not to print.
+                              const latest = latestFullDwellYear(id);
                               if (!latest) return null;
-                              const grid = dwellGridShare(latest);
+                              // Across everything shown, because it qualifies
+                              // the interval count in the same sentence.
+                              const grid = dwellGridShareFor(id);
                               return (
                                 <>
                                   {full(

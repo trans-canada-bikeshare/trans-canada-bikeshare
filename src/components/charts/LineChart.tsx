@@ -29,6 +29,15 @@ interface Props {
    * chart that could not draw the sign would be showing the wrong quantity.
    */
   signed?: boolean;
+  /**
+   * What the readout says with no pointer on the chart.
+   *
+   * The default describes a time series, where the resting point genuinely is
+   * the latest month published. On a chart whose x axis is the hour of the day
+   * that sentence is simply false — it resolves to 23:00, which is the last
+   * hour drawn and nothing to do with what has been published.
+   */
+  restLabel?: string;
 }
 
 const PAD = { top: 12, right: 12, bottom: 26, left: 46 };
@@ -50,6 +59,7 @@ export function LineChart({
   xTicks = 6,
   caption,
   signed = false,
+  restLabel = "latest published",
 }: Props) {
   const titleId = useId();
   const [hover, setHover] = useState<number | null>(null);
@@ -59,15 +69,22 @@ export function LineChart({
   const { xs, xMin, xMax, yMax, yMin } = useMemo(() => {
     const all = series.flatMap((s) => s.points);
     const xsSet = [...new Set(all.map((p) => p.x))].sort((a, b) => a - b);
+    // Symmetric about zero when signed, so equal imbalance in either direction
+    // is equally far from the axis; an asymmetric domain would make a -0.6 look
+    // larger than a +0.6.
+    //
+    // The unsigned domain keeps its floor of 1 — every unsigned series here is
+    // counts or whole percents, and the floor also guards an empty series. The
+    // signed domain must NOT inherit it: net flow by hour peaks at 0.63% of a
+    // system's trips, and a floor of 1 gave the chart a ±1% axis whose labels
+    // were not the data's extremes and whose lines used two thirds of the plot.
+    const absMax = Math.max(...all.map((p) => Math.abs(p.y)), 0);
     return {
       xs: xsSet,
       xMin: xsSet[0] ?? 0,
       xMax: xsSet[xsSet.length - 1] ?? 1,
-      yMax: Math.max(1, ...all.map((p) => p.y)),
-      // Symmetric about zero when signed, so equal imbalance in either
-      // direction is equally far from the axis. An asymmetric domain would
-      // make a -0.6 look larger than a +0.6.
-      yMin: signed ? -Math.max(1, ...all.map((p) => Math.abs(p.y))) : 0,
+      yMax: signed ? (absMax > 0 ? absMax : 1) : Math.max(1, ...all.map((p) => p.y)),
+      yMin: signed ? -(absMax > 0 ? absMax : 1) : 0,
     };
   }, [series, signed]);
 
@@ -217,7 +234,7 @@ export function LineChart({
           );
         })}
         <span className="font-mono text-[11px] text-muted-foreground">
-          {nearest === null ? "latest published" : xLabel(nearest)}
+          {nearest === null ? restLabel : xLabel(nearest)}
         </span>
       </figcaption>
     </figure>

@@ -2,7 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   rebalancing, rebalancingFor, headlineRebalancing, movesPerDay, movesPer1k,
   hourlyShare, hourBasis, hourGridShare, hourExtremes,
-  dwell, dwellFor, dwellEras, dwellWithheldFor, dwellGridShare, relocatedShare,
+  dwell, dwellFor, dwellEras, dwellWithheldFor, dwellGridShare, dwellGridShareFor,
+  relocatedShare, latestFullDwellYear,
 } from "@/lib/data";
 import { SYSTEM_ORDER } from "@/lib/systems";
 
@@ -240,6 +241,22 @@ describe("per-bike dwell", () => {
     }
   });
 
+  // The relocation share the page quotes must come from a whole year. Caught
+  // in the headed browser: it read off the newest row, which is the archive's
+  // trailing stub — Toronto's January-to-March 2026 — and printed a winter
+  // figure under the present tense.
+  it("quotes the relocation share from a complete year", () => {
+    for (const id of SYSTEM_ORDER) {
+      const rows = dwellFor(id);
+      if (!rows.length) continue;
+      const quoted = latestFullDwellYear(id)!;
+      expect(quoted.months, `${id} ${quoted.year}`).toBe(12);
+      // ...and it must still be the most recent complete one.
+      const newerFull = rows.filter((r) => r.months === 12 && r.year > quoted.year);
+      expect(newerFull, id).toHaveLength(0);
+    }
+  });
+
   // Vancouver's quartiles are hour boundaries because its source has no finer
   // value, and the page says so from this number. Toronto's are not, so the
   // caveat must not appear under Toronto.
@@ -251,5 +268,9 @@ describe("per-bike dwell", () => {
     for (const r of dwellFor("tor-bikeshare")) {
       expect(dwellGridShare(r), `tor ${r.year}`).toBeLessThan(0.1);
     }
+    // The figure the page prints qualifies the whole interval count beside it,
+    // so it has to be measured over the whole set rather than over one year.
+    expect(dwellGridShareFor("van-mobi")).toBeGreaterThan(0.9);
+    expect(dwellGridShareFor("tor-bikeshare")).toBeLessThan(0.1);
   });
 });

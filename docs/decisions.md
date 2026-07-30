@@ -216,6 +216,56 @@ Two regression guards, both cheap: a test that nothing handed to MapLibre
 contains `var(`, and a build-time assertion that the worker assets reached
 `dist/assets`.
 
+## 2026-07-29: One station identity, materialised, or the fact and the dim drift
+
+`fact_trips` and `dim_station` resolved station ids **differently**, and had
+since spec 012. Both applied the Montreal era bridge; only `dim_station` also
+applied the name bridge below it, which merges a station reached by its name
+into the same station reached by its published id. So 781 Toronto keys covering
+2,249,950 events, and 266 Vancouver keys covering 529,839, existed in the fact
+with no row in the dimension at all. Montreal, the city the bridging work was
+built for, was unaffected.
+
+`40_model.sql` carried a comment asserting the two agreed. It had been false
+for two of three cities for as long as it had existed, and nothing checked it.
+
+Spec 022 then divided one by the other — flows from the fact, lifetime events
+from the dim — producing a partial numerator over a merged denominator. It
+inflated Vancouver's distinct-pair count by **44%**, Toronto's by 5%, and
+Montreal's not at all. That is exactly the failure the same file warns about
+twenty lines earlier: *"inflated by a different amount each, which is the worst
+possible failure for a side-by-side comparison."* The warning was right, was
+about this very mechanism, and did not prevent it.
+
+Decision: **the resolution is a materialised table, `station_identity`, and
+every consumer joins it.** Not a CTE inlined in whichever query needs it, and
+not a comment claiming two computations match. A shared identity that is only
+shared by convention will drift the moment one side gains a step the other
+does not.
+
+The rule generalises past stations: **when two tables must agree on a key, the
+agreement is a table, not a claim.** Any invariant stated only in a comment is
+one nobody has tested.
+
+## 2026-07-29: A number in prose needs a query, not a memory
+
+Three false figures shipped in spec 022's first draft, each written from
+recollection of an earlier query rather than the one that matched the claim:
+
+- *"a handful of stations reach 90%"* — no station on the map exceeds 0.735.
+  The 90% came from a query over stations **without coordinates**, which are
+  never drawn.
+- *"In all three cities they are loops at parks"* — true for Toronto (14 of 20)
+  and Vancouver (11), false for Montreal (5), and the third row rendered
+  directly beneath the sentence was a metro-to-street commute.
+- The loop counts written into the spec minutes after the list shrank from 20
+  entries to 8, without re-deriving them.
+
+The fix that actually holds is not more care. Every one of these is now
+**derived in the component from the artifact**, so the sentence cannot drift
+from the data it describes. Where a figure genuinely must be prose — a spec, a
+commit message — it gets re-run at the moment of writing, not recalled.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

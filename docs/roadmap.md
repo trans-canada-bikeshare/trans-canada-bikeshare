@@ -177,6 +177,33 @@ monthly-refresh runbook.
 
 ## Known gaps, carried
 
+- ~~Montreal ships 35 physical docks as 70 identities~~ — **fixed 2026-07-29.**
+  `35_bridge.sql` gained a fourth matcher for pk-era stations the live GBFS
+  feed has since dropped, reached through the 2021 snapshot in
+  `conformed_stations`. 53 more identities bridge (41 by name, 12 by position);
+  duplicate-name pins fall from 71 in 35 groups to 2 in 1. The name match is
+  distance-guarded, because `bridge_name` drops the parenthetical cross-streets
+  and would otherwise have merged `Parc MacDonald (Earnscliffe / Dupuis)` with
+  `Parc MacDonald (Clanranald / Isabella)` 321 m away — two docks at one park.
+  Where the snapshot has no usable position (`Smith / Peel` at -1,-1) the full
+  published names must match exactly instead.
+  **Remaining:** one pair, `Drummond / Ste-Catherine`, 0 m apart.
+- **A literal `"NULL"` station name is treated as a station.**
+  `tor-bikeshare:NULL` carries 7,947 events and counts toward Toronto's
+  identity total; `norm_key`/`norm_name` in `30_conform.sql` do not null out
+  the four-character string. Pre-existing.
+- **The name bridge can pick a mislabelled larger station.**
+  `tor-bikeshare:name:hanlan's point ferry dock` (22 events) resolves to
+  station 8030, which is Centre Island — because 8030's own last-writer-wins
+  trip label is "hanlan's point ferry dock". `arg_max` by events protects
+  against a small noisy station but not a large one. 22 events in 77M; noted
+  because the mechanism could bite harder elsewhere.
+- **`check-artifacts` cannot prove the warehouse rebuilds from raw.** It
+  compares committed JSON against a publish run over the *existing* warehouse.
+  Spec 022's review closed the load-bearing part by hand — `station_identity`
+  and `fact_trips` were recomputed from the committed SQL and matched — but
+  stages 10–30 remain unverified against raw by any command in this repo.
+
 Recorded here rather than in a comment nobody reads, because each is a place
 the project's own principles are not yet fully met.
 

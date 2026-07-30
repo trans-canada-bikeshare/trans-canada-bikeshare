@@ -273,6 +273,53 @@ def build(con, registry: dict) -> dict[str, object]:
           FROM dim_station GROUP BY 1 ORDER BY 1
         """),
     }
+    # Net flow per station: returns minus departures, one integer. The rate a
+    # reader cares about is net/events, and `t` is already published — deriving
+    # it in the browser avoids rounding the same quantity twice.
+    #
+    # Basis note. `f` and `t` do NOT count the same events, in two ways:
+    #
+    #   1. `t` comes from dim_station, built without the TRUSTED filter, while
+    #      this query applies it. That is 2 events in 271 million, one Toronto
+    #      row, and cannot move a rate at any precision the site shows.
+    #   2. `f` counts only trips with BOTH ends recorded; `t` counts every
+    #      event, so it includes the departure of each of the 293,688 trips
+    #      whose return was never recorded. Worst case for any published
+    #      station is 1.44% of its `t` (Oakdale Community Centre, 5 of 348).
+    #
+    # The second is a consequence of making net flow linked-only, and an
+    # earlier version of this comment still claimed the two differed "by the
+    # flagged rows only". The page states the same thing in its own words:
+    # unreturned trips are out of net flow but their departure is in the dot
+    # size. Stated rather than silently reconciled.
+    # Both ends must be known. An earlier version counted the departure leg of
+    # every trip but the return leg only where a return station was recorded,
+    # so each unreturned trip left a phantom -1 at its origin: 272,088 of them
+    # in Montreal, which biased that whole map amber for a reason that is a
+    # gap in the data rather than a movement of bikes. A trip whose return was
+    # never recorded is missing information, not a bike removed from the city.
+    #
+    # Restricting to linked trips makes the system-wide sum exactly zero, which
+    # is the invariant net flow should satisfy — every trip is one departure and
+    # one return — and src/flows.test.ts now asserts it.
+    net = {
+        (r["system_id"], r["station_id"]): r["net"]
+        for r in rows(con, f"""
+          WITH linked AS (
+            SELECT system_id, departure_station_id, return_station_id
+            FROM fact_trips
+            WHERE {TRUSTED}
+              AND departure_station_id IS NOT NULL
+              AND return_station_id IS NOT NULL
+          ), ev AS (
+            SELECT system_id, departure_station_id AS sid, -1 AS d FROM linked
+            UNION ALL
+            SELECT system_id, return_station_id AS sid, 1 AS d FROM linked
+          )
+          SELECT system_id, sid AS station_id, sum(d)::BIGINT AS net
+          FROM ev GROUP BY 1, 2
+        """)
+    }
     art["stations"] = {
         "stations": [
             {
@@ -283,8 +330,130 @@ def build(con, registry: dict) -> dict[str, object]:
                 "x": round(r["lon"], 5),
                 "t": r["lifetime_events"],
                 "a": bool(r["is_active"]),
+                # A station with events but no LINKED trip has no net flow and
+                # is absent here. One such station exists (Montreal, 1 event);
+                # it never reaches this lookup only because of the 100-event
+                # threshold. Fail loudly rather than defaulting to zero, which
+                # would render as "perfectly balanced".
+                "f": net[(r["system_id"], r["station_id"])],
             }
             for r in station_rows
+        ],
+    }
+
+    # --- station flows ------------------------------------------------------
+    # The OD matrix is not shippable: 1,189,574 distinct pairs for Montreal
+    # alone. Every pair list here is a truncation, so the truncation ships as a
+    # number — total pairs, and the share the shown ones carry.
+    #
+    # It is also not comparable. The 300 busiest pairs carry 19.08% of
+    # Vancouver's linked trips and 3.35% of Montreal's, so three top-N lists
+    # side by side would imply a like-for-like reading that does not hold. The
+    # CONCENTRATION is the comparable metric — same definition, same window,
+    # every system — and the pair lists are per-city detail, labelled as such.
+    # Eight, and with names denormalised. The pair keys alone are useless to
+    # the page: resolving them needs stations.json, which is lazily loaded for
+    # the maps and may never arrive. An earlier version shipped 250 bare-key
+    # pairs — 38 KB no surface could render — and then 20 while rendering 5,
+    # so "ship what is drawn" was still not true. Eight ship and eight render.
+    TOP_PAIRS = 8
+    pair_stats = rows(con, f"""
+      WITH p AS (
+        SELECT system_id, departure_station_id AS a, return_station_id AS b,
+               count(*) AS n
+        FROM fact_trips
+        WHERE {TRUSTED} AND departure_station_id IS NOT NULL
+          AND return_station_id IS NOT NULL
+        GROUP BY 1, 2, 3
+      ), ranked AS (
+        SELECT *, row_number() OVER (PARTITION BY system_id ORDER BY n DESC, a, b) AS rk
+        FROM p
+      )
+      SELECT system_id,
+             count(*)                                   AS pairs_total,
+             sum(n)                                     AS linked_trips,
+             sum(n) FILTER (rk <= 10)                   AS top_10,
+             sum(n) FILTER (rk <= 100)                  AS top_100,
+             sum(n) FILTER (rk <= 1000)                 AS top_1000,
+             sum(n) FILTER (rk <= {TOP_PAIRS})          AS top_shown
+      FROM ranked GROUP BY 1 ORDER BY 1
+    """)
+    guard(registry, "station_flows", sorted({r["system_id"] for r in pair_stats}))
+
+    top_pairs = rows(con, f"""
+      WITH p AS (
+        SELECT system_id, departure_station_id AS a, return_station_id AS b,
+               count(*) AS n
+        FROM fact_trips
+        WHERE {TRUSTED} AND departure_station_id IS NOT NULL
+          AND return_station_id IS NOT NULL
+        GROUP BY 1, 2, 3
+      ), ranked AS (
+        -- Deterministic tie-break, so the artifact byte-reproduces.
+        SELECT *, row_number() OVER (PARTITION BY system_id ORDER BY n DESC, a, b) AS rk
+        FROM p
+      )
+      SELECT r.system_id, r.a, r.b, r.n,
+             da.station_name AS a_name, db.station_name AS b_name
+      FROM ranked r
+      LEFT JOIN dim_station da
+        ON da.system_id = r.system_id AND da.station_id = r.a
+      LEFT JOIN dim_station db
+        ON db.system_id = r.system_id AND db.station_id = r.b
+      WHERE r.rk <= {TOP_PAIRS}
+      ORDER BY r.system_id, r.n DESC, r.a, r.b
+    """)
+    # A named pair whose name is missing would render as an empty row. There is
+    # no honest fallback for "which dock is this", so stop instead.
+    nameless = [r for r in top_pairs if not r["a_name"] or not r["b_name"]]
+    if nameless:
+        raise SystemExit(
+            f"publish: {len(nameless)} top pair(s) have an unnamed endpoint, "
+            f"first {nameless[0]['a']} -> {nameless[0]['b']}"
+        )
+
+    # Round trips are a departure and a return at the same station, so they
+    # cancel in net flow and contribute nothing to imbalance. They are still
+    # trips, and Vancouver's share is three times the other two, which is a
+    # real difference in how the network is used rather than a quirk.
+    round_trips = {
+        r["system_id"]: r for r in rows(con, f"""
+          SELECT system_id,
+                 count(*) FILTER (departure_station_id = return_station_id) AS round_trips,
+                 count(*) FILTER (return_station_id IS NULL)                AS no_return_station,
+                 count(*)                                                   AS trips
+          FROM fact_trips WHERE {TRUSTED} GROUP BY 1 ORDER BY 1
+        """)
+    }
+    art["flows"] = {
+        "top_pairs_shown": TOP_PAIRS,
+        "systems": [
+            {
+                "system_id": s["system_id"],
+                "pairs_total": s["pairs_total"],
+                "linked_trips": s["linked_trips"],
+                "shown_trips": s["top_shown"],
+                "top_10": s["top_10"],
+                "top_100": s["top_100"],
+                "top_1000": s["top_1000"],
+                "round_trips": round_trips[s["system_id"]]["round_trips"],
+                "no_return_station": round_trips[s["system_id"]]["no_return_station"],
+                "trips": round_trips[s["system_id"]]["trips"],
+            }
+            for s in pair_stats
+        ],
+        "pairs": [
+            {
+                "s": r["system_id"],
+                "a": r["a_name"],
+                "b": r["b_name"],
+                "n": r["n"],
+                # A pair whose two ends are the same dock is a round trip, and
+                # reads very differently from a commute. Flagged rather than
+                # filtered, because for Vancouver they are the top pairs.
+                "r": r["a"] == r["b"],
+            }
+            for r in top_pairs
         ],
     }
 

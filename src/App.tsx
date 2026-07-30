@@ -10,12 +10,13 @@ import { SmallMultiples } from "@/components/charts/SmallMultiples";
 const StationMap = lazy(() =>
   import("@/components/StationMap").then((m) => ({ default: m.StationMap })),
 );
+import { FLOW_STOPS, FLOW_DOMAIN } from "@/lib/flowScale";
 import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
 import {
   meta, tripsMonthly, seasonality, stationsYearly, ebikeShare, durations,
   exclusions, incompleteMonths, monthIndex, monthKeyFromIndex, commonWindow,
-  stationsMeta, omittedFor,
+  stationsMeta, omittedFor, flows, flowsFor, concentration,
 } from "@/lib/data";
 
 const NAV = [
@@ -25,6 +26,7 @@ const NAV = [
   ["stations", "Stations"],
   ["ebikes", "E-bikes"],
   ["maps", "Maps"],
+  ["flows", "Flows"],
   ["method", "Method"],
 ] as const;
 
@@ -107,7 +109,10 @@ export default function App() {
               Trans-Canada Bikeshare
             </span>
           </a>
-          <nav className="hidden items-center gap-5 md:flex" aria-label="Sections">
+          {/* lg, not md: at 768px the seven links plus the wordmark push the
+              theme toggle past the viewport edge. Adding "Flows" as a seventh
+              item is what tipped it over. */}
+          <nav className="hidden items-center gap-5 lg:flex" aria-label="Sections">
             {NAV.map(([id, label]) => (
               <a
                 key={id}
@@ -363,6 +368,195 @@ export default function App() {
               by its home city, which is how BIXI brands it. Those outliers are
               drawn but sit outside the opening frame, which is fitted to each
               network's core so its shape stays legible; pan east to reach them.
+            </Note>
+          </Section>
+
+          <Section
+            id="flows"
+            eyebrow="Flows"
+            title="Where the bikes pile up, and where they run out"
+            lede={
+              <>
+                A station's net flow is what it takes in minus what it gives
+                out, as a share of everything that touched it — so a dock with
+                20,000 events and one with 900,000 are read on the same scale.
+                Dot size is lifetime events, on the same shared scale as the
+                maps above; colour is net flow.{" "}
+                <strong className="font-medium text-foreground">
+                  Amber gives out more bikes than it takes in; indigo takes in
+                  more.
+                </strong>{" "}
+                Colour saturates at 15% in either direction, so a fully
+                saturated dot means <em>at least</em> that imbalanced — the
+                great majority of stations sit well inside it, and stretching
+                the scale to the few that do not would flatten everything else
+                to grey. Only trips with both ends recorded are counted, so
+                across every station in a system the flows cancel to zero —
+                though not across the dots drawn here, because the stations
+                these maps cannot place hold the remainder.
+              </>
+            }
+          >
+            {/* The scale is described in the lede, but a reader scanning the
+                maps needs the swatch beside them, not a paragraph above. */}
+            <div className="mb-6 flex flex-wrap items-center gap-x-3 gap-y-2 text-[12px] text-muted-foreground">
+              <span className="font-mono tabular-nums">−15%</span>
+              <span
+                aria-hidden="true"
+                className="h-2 w-40 max-w-[45vw]"
+                style={{
+                  // Positioned by the map's OWN domain, not spaced evenly.
+                  // Five unpositioned CSS stops sit at 0/25/50/75/100%, which
+                  // put the -4% stop where the scale means -7.5% — a 1.9x
+                  // overstatement across the middle, in the one element built
+                  // for decoding the colour.
+                  background: `linear-gradient(to right, ${FLOW_DOMAIN.map(
+                    (d, i) =>
+                      `${FLOW_STOPS[theme][i]} ${((100 * (d - FLOW_DOMAIN[0])) /
+                        (FLOW_DOMAIN[FLOW_DOMAIN.length - 1] - FLOW_DOMAIN[0])).toFixed(1)}%`,
+                  ).join(", ")})`,
+                }}
+              />
+              <span className="font-mono tabular-nums">+15%</span>
+              <span>
+                gives out more <span aria-hidden="true">→</span> takes in more
+                <span className="sr-only">
+                  , from amber at minus fifteen percent through neutral grey to
+                  indigo at plus fifteen percent
+                </span>
+              </span>
+            </div>
+
+            <div className="grid gap-10 lg:grid-cols-3">
+              {SYSTEM_ORDER.map((id) => (
+                <Suspense
+                  key={id}
+                  fallback={
+                    <div className="h-[300px] border border-border md:h-[380px]" />
+                  }
+                >
+                  <StationMap system={id} theme={theme} mode="flow" />
+                </Suspense>
+              ))}
+            </div>
+
+            <div className="mt-12 grid gap-8 lg:grid-cols-3">
+              {SYSTEM_ORDER.map((id) => {
+                const f = flowsFor(id);
+                if (!f) return null;
+                const pairs = flows.pairs.filter((p) => p.s === id);
+                return (
+                  <div key={id}>
+                    <p className="eyebrow flex items-center gap-1.5">
+                      <span
+                        aria-hidden="true"
+                        className="inline-block h-2 w-2 shrink-0"
+                        style={{ backgroundColor: seriesColor(id) }}
+                      />
+                      {cityOf(id)} · busiest pairs
+                    </p>
+                    <ul className="mt-3 space-y-1.5">
+                      {pairs.map((p, i) => (
+                        <li key={i} className="text-[13px] leading-snug">
+                          <span className="font-mono tabular-nums text-muted-foreground">
+                            {compact(p.n)}
+                          </span>{" "}
+                          {p.r ? (
+                            <>
+                              <span className="text-foreground">{p.a}</span>{" "}
+                              <span className="text-muted-foreground">
+                                and back
+                              </span>
+                            </>
+                          ) : (
+                            <>
+                              <span className="text-foreground">{p.a}</span>{" "}
+                              <span className="text-muted-foreground">→</span>{" "}
+                              <span className="text-foreground">{p.b}</span>
+                            </>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                );
+              })}
+            </div>
+
+            <Note>
+              <strong className="font-medium text-foreground">
+                The single busiest pair in every system is a loop
+              </strong>{" "}
+              —{" "}
+              {SYSTEM_ORDER.map((id, i) => {
+                const top = flows.pairs.find((x) => x.s === id);
+                return (
+                  <span key={id}>
+                    {i > 0 ? ", " : ""}
+                    {top?.a}
+                  </span>
+                );
+              })}{" "}
+              — a bike taken out and brought back to the same dock. Loops among
+              each city&rsquo;s busiest pairs:{" "}
+              {SYSTEM_ORDER.map((id, i) => {
+                const p = flows.pairs.filter((x) => x.s === id);
+                const loops = p.filter((x) => x.r).length;
+                return (
+                  <span key={id}>
+                    {i > 0 ? ", " : ""}
+                    {loops} of {cityOf(id)}&rsquo;s {p.length}
+                  </span>
+                );
+              })}
+              . What differs is where the rest go: all{" "}
+              {flows.pairs.filter((x) => x.s === "mtl-bixi" && !x.r).length} of
+              Montreal&rsquo;s non-loop pairs run to or from a Métro station,
+              while Vancouver&rsquo;s stay inside Stanley Park and
+              Toronto&rsquo;s single one crosses between ferry docks. Round
+              trips are{" "}
+              {SYSTEM_ORDER.map((id, i) => {
+                const f = flowsFor(id);
+                if (!f) return null;
+                return (
+                  <span key={id}>
+                    {i > 0 ? ", " : ""}
+                    {percent(f.round_trips / f.trips, 1)} of {cityOf(id)}
+                    &rsquo;s trips
+                  </span>
+                );
+              })}
+              . They cancel in net flow, because they are a departure and a
+              return at the same dock.{" "}
+              <strong className="font-medium text-foreground">
+                A top-N list is not a comparison.
+              </strong>{" "}
+              The 1,000 busiest pairs carry{" "}
+              {SYSTEM_ORDER.map((id, i) => (
+                <span key={id}>
+                  {i > 0 ? ", " : ""}
+                  {percent(concentration(id, 1000) ?? 0, 1)} in {cityOf(id)}
+                </span>
+              ))}
+              , so the same &ldquo;top 1,000&rdquo; describes much of one
+              network and a sliver of another. That concentration is the
+              comparable figure; the lists above are per-city detail.{" "}
+              {SYSTEM_ORDER.map((id, i) => {
+                const f = flowsFor(id);
+                if (!f) return null;
+                return (
+                  <span key={id}>
+                    {i > 0 ? " " : ""}
+                    {cityOf(id)} has {full(f.pairs_total)} distinct pairs;
+                    the {flows.top_pairs_shown} shown carry{" "}
+                    {percent(f.shown_trips / f.linked_trips, 2)} of its linked
+                    trips. {full(f.no_return_station)} trips have no recorded
+                    return station: they are excluded from the pairs and from
+                    net flow, but their departure still counts toward the
+                    station&rsquo;s lifetime events, so it is in the dot size.
+                  </span>
+                );
+              })}
             </Note>
           </Section>
 

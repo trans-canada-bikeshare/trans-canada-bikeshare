@@ -15,6 +15,10 @@ import durationJson from "@/data/generated/duration.json";
 import exclusionsJson from "@/data/generated/exclusions.json";
 import incompleteJson from "@/data/generated/incomplete_months.json";
 import stationsMetaJson from "@/data/generated/stations_meta.json";
+// Eager, unlike stations.json. At under 2 KB gzip against that file's 68 KB,
+// a second lazy path would buy little and cost a failure mode — and spec 021
+// demonstrated how quietly a lazy path can fail.
+import flowsJson from "@/data/generated/flows.json";
 import type { SystemId } from "@/lib/systems";
 
 export interface SystemMetaRow {
@@ -84,6 +88,21 @@ export interface StationPin {
   /** lon */ x: number;
   /** lifetime events */ t: number;
   /** currently active */ a: boolean;
+  /** net flow: returns minus departures */ f: number;
+}
+
+/**
+ * Net flow as a rate, in [-1, 1]. Positive means a station takes in more bikes
+ * than it gives out.
+ *
+ * Derived here rather than published, because `f` and `t` are both exact
+ * integers and rounding their ratio in the artifact would round the same
+ * quantity twice. It is also the form that compares across cities and across
+ * station sizes: a net of +5,000 means something different at a dock with
+ * 20,000 events than at one with 900,000.
+ */
+export function flowRate(p: StationPin): number {
+  return p.t === 0 ? 0 : p.f / p.t;
 }
 
 export const stationsMeta = stationsMetaJson as {
@@ -116,6 +135,54 @@ export function loadStations(): Promise<StationPin[]> {
  *  the network is smaller than it is. */
 export function omittedFor(id: SystemId) {
   return stationsMeta.omitted.find((o) => o.system_id === id);
+}
+
+export interface FlowSystem {
+  system_id: SystemId;
+  /** every distinct origin-destination pair, not just the shown ones */
+  pairs_total: number;
+  /** trips with both ends resolvable */
+  linked_trips: number;
+  shown_trips: number;
+  top_10: number;
+  top_100: number;
+  top_1000: number;
+  round_trips: number;
+  no_return_station: number;
+  trips: number;
+}
+
+export interface FlowPair {
+  /** system_id */ s: SystemId;
+  /** origin station name */ a: string;
+  /** destination station name */ b: string;
+  /** trips */ n: number;
+  /** round trip — both ends are the same dock */ r: boolean;
+}
+
+export const flows = flowsJson as {
+  top_pairs_shown: number;
+  systems: FlowSystem[];
+  pairs: FlowPair[];
+};
+
+export function flowsFor(id: SystemId): FlowSystem | undefined {
+  return flows.systems.find((f) => f.system_id === id);
+}
+
+/**
+ * Share of a system's linked trips carried by its busiest `n` pairs.
+ *
+ * This is the cross-city comparison the flows section makes, and the reason
+ * the top-pair lists beside it are labelled per-city detail: the 300 busiest
+ * pairs carry 19.08% of Vancouver's linked trips and 3.35% of Montreal's, so
+ * the same "top N" describes much of one network and almost none of another.
+ */
+export function concentration(id: SystemId, n: 10 | 100 | 1000): number | null {
+  const f = flowsFor(id);
+  if (!f || f.linked_trips === 0) return null;
+  const carried = n === 10 ? f.top_10 : n === 100 ? f.top_100 : f.top_1000;
+  return carried / f.linked_trips;
 }
 
 export const incompleteMonths = incompleteJson as {

@@ -14,9 +14,19 @@ deep dive this project generalizes. Built and maintained by
 
 ## Status
 
-Early. The name is decided and the bones are being laid. The first spec
-(docs/features/001) will verify each city's data column by column before any
-pipeline code is written.
+**Built, not yet deployed.** The pipeline ingests every year all three systems
+publish — 135.6M trips over a ~20 GB pinned archive — into a DuckDB star
+schema, and the site renders trips, seasonality, stations, e-bike share,
+membership, interactive maps and station flows from small committed
+aggregates. Deployment (spec 027) is written as a runbook and deliberately not
+executed; three owner decisions gate it, recorded in `docs/runbook.md`.
+
+To reproduce it, or to fold in a new month of data, follow
+[`docs/runbook.md`](docs/runbook.md) — one known caveat there: Vancouver's
+2022-10 source file currently 500s at origin, so a clean-room rebuild needs
+the archived copy the manifest documents. The spec-by-spec record lives in
+[`docs/features/`](docs/features/) and the choices that bind the work in
+[`docs/decisions.md`](docs/decisions.md).
 
 ## Planned scope
 

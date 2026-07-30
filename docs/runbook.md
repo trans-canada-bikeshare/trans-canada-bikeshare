@@ -11,7 +11,11 @@ python3 -m venv .venv
 npm install
 
 .venv/bin/python pipeline/discover.py          # refresh manifests from source
+.venv/bin/python pipeline/weather.py           # derive ECCC weather years from the trip window
 .venv/bin/python pipeline/download.py          # ~20 GB, resumable, checksummed
+#   ^ van-mobi 2022-10 will FAIL here while Google Drive 500s — see Known
+#     gaps below for the archived-copy recovery. etl.py refuses to run with
+#     a pinned file absent, deliberately.
 .venv/bin/python pipeline/inventory.py         # verify the archive
 .venv/bin/python pipeline/census.py            # header layouts, to maintain era maps
 .venv/bin/python pipeline/etl.py --stage all   # extract -> clean -> conform -> model
@@ -42,7 +46,11 @@ would ship silently.
 
 When a system publishes a new period:
 
-1. `discover.py` — new periods are added automatically. **A changed URL for an
+1. `discover.py` — new periods are added automatically. Then `weather.py`,
+   which derives the ECCC year range from the manifest's own trip periods —
+   a new trip year pulls its weather without anyone editing a list. The
+   current calendar year's weather file is marked `volatile` and repins
+   without complaint; every closed year refuses drift. **A changed URL for an
    existing period is reported and not applied**; look at it before passing
    `--accept-changes`, because a source that repoints under you makes the
    archive unreproducible.
@@ -50,9 +58,16 @@ When a system publishes a new period:
 3. `census.py` — **run this before ETL.** If it shows a header layout the era
    map does not cover, extraction will abort. That abort is the feature.
 4. `etl.py --stage all`, then `publish.py`, then `quality_report.py`.
-5. `make check` and the JS suite.
+5. `make check` and both test suites. Two aborts are FEATURES, not failures:
+   an unmapped column header stops extraction, and an unmapped membership
+   label stops publish — map the new value explicitly in
+   `pipeline/mappings/` and rerun. A new Vancouver pass name will also trip
+   the pinned label-count test, which exists so the mapping cannot grow
+   silently.
 6. Commit the regenerated artifacts, the manifests, and the quality report
-   together.
+   together. **The site updates by exactly this** — every count, window, gap
+   sentence and chart derives from the committed artifacts, so a republish is
+   the whole update; there is no other copy to edit.
 
 ## Deploy — NOT YET RUN
 

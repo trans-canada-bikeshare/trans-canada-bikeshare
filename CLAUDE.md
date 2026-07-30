@@ -43,6 +43,18 @@ These hold in every feature. `/feature review` blocks on them.
 
 ## Status
 
-Early. No pipeline and no site yet. When an action calls for a test suite, a
-build, or an artifact check that does not exist yet, say so — never invent a
-command, and never report a skipped check as passed.
+Built end to end: pipeline (`pipeline/`, DuckDB star schema over the full
+archive), site (`src/`, Vite/React reading committed aggregates), and real
+gates. The commands are:
+
+```
+make check                      # manifest + metric registry + artifact freshness
+.venv/bin/python -m pytest pipeline/tests
+npm test && npm run typecheck && npm run build
+```
+
+`docs/runbook.md` is the operational truth: rebuild from nothing, monthly
+refresh, known gaps. Rendered surfaces are verified in a **headed** browser
+(`docs/decisions.md`, 2026-07-29) — headless and backgrounded tabs throttle
+rAF and cannot tell a drawn map from a blank one. Never report a skipped
+check as passed.

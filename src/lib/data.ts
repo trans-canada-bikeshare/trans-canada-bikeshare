@@ -220,7 +220,38 @@ export const membership = membershipJson as {
     system_id: SystemId; month: string; member: number; casual: number;
     trips: number; basis: string;
   }[];
+  /** distinct pass labels each system publishes */
+  label_counts: Record<string, number>;
 };
+
+/**
+ * The shape of a system's withheld window, derived rather than described.
+ *
+ * The gap sentence used to hardcode Toronto's figures inside a loop over every
+ * system, so any other city gaining a withheld window would have rendered
+ * Toronto's numbers under its own name.
+ */
+export function labelLostShape(id: SystemId) {
+  const lost = membership.label_lost
+    .filter((r) => r.system_id === id)
+    .sort((a, b) => a.month.localeCompare(b.month));
+  if (!lost.length) return null;
+  const withLabel = lost.filter((r) => r.member > 0);
+  const lastLabelled = withLabel[withLabel.length - 1];
+  const firstBlank = lost.find((r) => r.member === 0);
+  return {
+    from: lost[0].month,
+    to: lost[lost.length - 1].month,
+    months: lost.length,
+    trips: lost.reduce((n, r) => n + r.trips, 0),
+    /** the busiest month the label still appeared in, and how thin it was */
+    peakLabelled: withLabel.length
+      ? withLabel.reduce((a, b) => (a.member > b.member ? a : b))
+      : null,
+    lastLabelled: lastLabelled ?? null,
+    firstBlank: firstBlank ?? null,
+  };
+}
 
 /** Member share of the trips that carry a label at all.
  *

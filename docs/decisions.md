@@ -333,6 +333,9 @@ a fact of the files rather than a judgement:
 2024-01..2026-03   {Member, Casual}                77.2%, 72.6%, 88.9%
 ```
 
+(Trip-weighted year shares — members divided by labelled trips across the whole
+year. Every figure in this entry uses that basis.)
+
 Inside the middle era "Annual Member" decays to nothing — 50,961 trips in
 March 2023, 12,226 in July, 138 in August, absent from September — while
 ridership is at its yearly peak. Annual members do not vanish.
@@ -357,9 +360,17 @@ worse lie than the one it fixed, because it is gradual enough to look real.
 Also passed on: dropping Toronto's membership entirely, which the two stable
 eras do not deserve.
 
-What survives is coherent. Toronto reads 83% and 83% before the break and 81%,
-78%, 90% after; Vancouver runs 70-86% throughout. The broken era was the only
-thing suggesting Toronto differed.
+What survives is coherent. On the same trip-weighted basis as the table above,
+Toronto reads **74.6% and 78.0%** before the break and **77.2%, 72.6%, 88.9%**
+after, while Vancouver's yearly figures sit in the same range. An earlier
+version of this paragraph quoted 83/83 and 81/78/90 — the *unweighted mean of
+monthly shares*, a different basis from the table three paragraphs above it,
+with nothing saying so. It also called Vancouver "steady 70-86% throughout";
+Vancouver's monthly share actually runs **59.2% to 93.4%** and falls outside
+that band in 42 of 114 months, because it swings about 25 points every summer.
+The point stands — the broken era was the only thing suggesting Toronto
+differed from Vancouver — but it stands on the yearly basis, and a comparison
+has to say which basis it is on.
 
 **Lift this** if Toronto republishes those years with the label intact. It is
 recorded in `pipeline/publish.py` as `UNRELIABLE_LABEL_ERAS`, the withheld

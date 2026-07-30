@@ -469,6 +469,16 @@ def build(con, registry: dict) -> dict[str, object]:
         },
         # Months the source published trips for but stopped labelling.
         "label_lost": unlabelled_months,
+        # How many distinct pass labels each system publishes. The page says
+        # so, and an earlier version said "ninety" for Vancouver when it is 87
+        # — a number typed by hand in a paragraph where everything else was
+        # derived.
+        "label_counts": {
+            r["system_id"]: r["labels"] for r in rows(con, """
+              SELECT system_id, count(*) AS labels
+              FROM dim_membership GROUP BY 1 ORDER BY 1
+            """)
+        },
     }
 
     # --- station flows ------------------------------------------------------

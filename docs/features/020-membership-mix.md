@@ -75,8 +75,11 @@ carries the counts; the readme documents only the 2014-2016 schemas. Imputing
 from behaviour would be inventing data.
 
 **The whole era is withheld**, with the vocabulary as the boundary rather than
-a chosen month. See `docs/decisions.md`. What survives is coherent — Toronto
-83%/83% before, 81%/78%/90% after, against Vancouver's steady 70-86%.
+a chosen month. See `docs/decisions.md`. What survives is coherent: on a
+trip-weighted yearly basis Toronto reads 74.6%/78.0% before the break and
+77.2%/72.6%/88.9% after, in the same range as Vancouver's yearly figures.
+Vancouver's *monthly* share swings 59.2-93.4% with the seasons, so any
+comparison has to state which basis it is on.
 
 ## Acceptance Criteria
 
@@ -108,13 +111,16 @@ a chosen month. See `docs/decisions.md`. What survives is coherent — Toronto
       enforces it; Toronto's unreliable era is withheld rather than drawn
 - [x] Copy derives from the data — the gap dates, month count and trip total in
       the note all read from `label_lost`
-- ~~Row accounting~~ — n/a, no ETL change. The 7.8M trips in the withheld era
-      are still counted in every other series; only their membership is unknown
+- [x] Row accounting — no ETL change, and the **21,182,323** trips in the
+      withheld era remain in every other series; only their membership is
+      unknown. (An earlier draft of this line said 7.8M, wrong by 2.7x, on
+      the row-accounting line of all places. The site always rendered the
+      right figure because it derives it.)
 - [x] No raw data committed
 
 ## Out of Scope
 
-- Pass-type detail. Vancouver publishes 90 named products; grouping them to
+- Pass-type detail. Vancouver publishes 87 named products; grouping them to
   member/casual is what makes the metric comparable at all, and the grouping is
   committed in `pipeline/mappings/membership_groups.csv`.
 - Inferring membership for Montreal after 2022. There is nothing to infer from,

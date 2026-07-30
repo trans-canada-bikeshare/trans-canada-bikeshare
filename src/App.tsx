@@ -17,7 +17,7 @@ import {
   meta, tripsMonthly, seasonality, stationsYearly, ebikeShare, durations,
   exclusions, incompleteMonths, monthIndex, monthKeyFromIndex, commonWindow,
   stationsMeta, omittedFor, flows, flowsFor, concentration,
-  membership, membershipFor, memberShare,
+  membership, membershipFor, memberShare, labelLostShape,
 } from "@/lib/data";
 
 const NAV = [
@@ -345,10 +345,11 @@ export default function App() {
               <>
                 Share of labelled trips taken by a member rather than a casual
                 rider. Each system publishes its own pass names — Vancouver
-                alone has ninety — and they are grouped to member and casual
-                through a committed mapping, never by resemblance. The
-                denominator is labelled trips only: an unlabelled trip is
-                unknown, not casual.
+                alone has {membership.label_counts["van-mobi"]} — and they are
+                grouped to member and casual through a committed mapping, never
+                by resemblance. The denominator is labelled trips only: an
+                unlabelled trip is unknown, not casual. This is not a
+                three-city comparison and is not presented as one.
               </>
             }
           >
@@ -382,6 +383,15 @@ export default function App() {
               </div>
             )}
 
+            {Object.entries(membership.unsupported).map(([id, info]) => (
+              <Note key={id}>
+                <strong className="font-medium text-foreground">
+                  {cityOf(id)} — {info.display ?? "not published"}.
+                </strong>{" "}
+                {info.reason}
+              </Note>
+            ))}
+
             <Note>
               {Object.entries(membership.partial_note).map(([id, info]) => (
                 <span key={id}>
@@ -396,26 +406,33 @@ export default function App() {
                 </span>
               ))}
               {SYSTEM_ORDER.map((id) => {
-                const lost = membership.label_lost.filter((r) => r.system_id === id);
-                if (!lost.length) return null;
-                const months = lost.map((r) => r.month).sort();
-                const trips = lost.reduce((n, r) => n + r.trips, 0);
+                const gap = labelLostShape(id);
+                if (!gap) return null;
                 return (
                   <span key={id}>
                     <strong className="font-medium text-foreground">
-                      {cityOf(id)} has a gap from {months[0]} to{" "}
-                      {months[months.length - 1]}.
+                      {cityOf(id)} has a gap from {monthLabel(gap.from)} to{" "}
+                      {monthLabel(gap.to)}.
                     </strong>{" "}
-                    Across those {months.length} months the source&rsquo;s
-                    &ldquo;Annual Member&rdquo; label decays to nothing — 50,961
-                    trips in March 2023, 138 in August, none at all from
-                    September — while ridership is at its yearly peak. Annual
-                    members do not vanish; the labelling did. The periods either
-                    side use a different, stable vocabulary and agree with each
-                    other, so the whole affected era is withheld rather than
-                    drawn as a five-year decline that never happened.{" "}
-                    {full(trips)} trips are still counted everywhere else on
-                    this site; only their membership is unknown.{" "}
+                    Across those {gap.months} months the source&rsquo;s member
+                    label decays to nothing
+                    {gap.peakLabelled && gap.lastLabelled && gap.firstBlank ? (
+                      <>
+                        {" "}
+                        — {full(gap.peakLabelled.member)} member trips in{" "}
+                        {monthLabel(gap.peakLabelled.month)},{" "}
+                        {full(gap.lastLabelled.member)} by{" "}
+                        {monthLabel(gap.lastLabelled.month)}, and none at all
+                        from {monthLabel(gap.firstBlank.month)}
+                      </>
+                    ) : null}{" "}
+                    — while ridership is at its yearly peak. Members do not
+                    vanish; the labelling did. The periods either side use a
+                    different, stable vocabulary and agree with each other, so
+                    the whole affected era is withheld rather than drawn as a
+                    multi-year decline that never happened. {full(gap.trips)}{" "}
+                    trips are still counted everywhere else on this site; only
+                    their membership is unknown.{" "}
                   </span>
                 );
               })}

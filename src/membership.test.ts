@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { membership, membershipFor, memberShare } from "@/lib/data";
+import { membership, membershipFor, memberShare, labelLostShape } from "@/lib/data";
 import { SYSTEM_ORDER } from "@/lib/systems";
 
 const all = [...membership.series, ...membership.partial];
@@ -85,6 +85,37 @@ describe("membership artifact", () => {
       expect(rs.reduce((n, r) => n + r.member, 0), `${id} members`).toBeGreaterThan(0);
       expect(rs.reduce((n, r) => n + r.casual, 0), `${id} casual`).toBeGreaterThan(0);
     }
+  });
+
+  // The gap sentence used to hardcode Toronto's figures inside a loop over
+  // every system, so another city gaining a withheld window would have
+  // rendered Toronto's numbers under its own name. These pin the derivation.
+  it("derives a withheld window's shape from the artifact", () => {
+    const gap = labelLostShape("tor-bikeshare");
+    expect(gap, "Toronto should have a withheld window").not.toBeNull();
+    expect(gap!.from).toBe("2018-01");
+    expect(gap!.to).toBe("2023-12");
+    expect(gap!.months).toBe(72);
+    // The withheld trips are still counted in every other series. A wrong
+    // figure here is the row-accounting claim being wrong.
+    expect(gap!.trips).toBe(21_182_323);
+    // The decay the copy describes: a healthy month, a dying one, then none.
+    expect(gap!.peakLabelled!.member).toBeGreaterThan(100_000);
+    expect(gap!.lastLabelled!.member).toBeLessThan(1_000);
+    expect(gap!.firstBlank!.member).toBe(0);
+    expect(gap!.lastLabelled!.month < gap!.firstBlank!.month).toBe(true);
+  });
+
+  it("returns null for a system with nothing withheld", () => {
+    expect(labelLostShape("van-mobi")).toBeNull();
+  });
+
+  it("publishes a label count for every system, and it is not a round number someone typed", () => {
+    for (const id of SYSTEM_ORDER) {
+      expect(membership.label_counts[id], id).toBeGreaterThan(0);
+    }
+    // The lede renders this. It read "ninety" while the mapping had 87.
+    expect(membership.label_counts["van-mobi"]).toBe(87);
   });
 
   it("orders each system's months", () => {

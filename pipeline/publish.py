@@ -44,8 +44,23 @@ def supported_systems(registry: dict, metric: str) -> list[str]:
     return sorted(k for k, v in entry["systems"].items() if v.get("supported"))
 
 
+def partial_systems(registry: dict, metric: str) -> list[str]:
+    """Systems that publish this metric for only part of their range.
+
+    A third case the registry has always expressed and nothing enforced.
+    Montreal carries `is_member` for 2014-2021 and loses it at the 2022 format
+    break, so it is neither supported (a column beside the others would imply a
+    comparison that stops five years early) nor unsupported ("not published"
+    would be false for 35 million labelled trips).
+    """
+    entry = registry["metrics"][metric]
+    return sorted(k for k, v in entry["systems"].items()
+                  if not v.get("supported") and v.get("partial_until"))
+
+
 def guard(registry: dict, metric: str, systems: list[str]) -> None:
     allowed = set(supported_systems(registry, metric))
+    allowed |= set(partial_systems(registry, metric))
     offenders = sorted(set(systems) - allowed)
     if offenders:
         reasons = "; ".join(
@@ -339,6 +354,121 @@ def build(con, registry: dict) -> dict[str, object]:
             }
             for r in station_rows
         ],
+    }
+
+    # --- membership mix ------------------------------------------------------
+    # Two systems publish this for their whole range; Montreal publishes it for
+    # 2014-2021 and loses it at the 2022 format break. Its series ships under a
+    # separate key so it is never read as a third comparable column, and never
+    # hidden either — "not published" would be false for 35 million labelled
+    # trips.
+    MEMBERSHIP = f"""
+      SELECT f.system_id AS system_id,
+             strftime(f.trip_month, '%Y-%m') AS month,
+             count(*) FILTER (m.membership_group = 'member')     AS member,
+             count(*) FILTER (m.membership_group = 'casual')     AS casual,
+             count(*) FILTER (m.membership_group NOT IN ('member','casual')) AS other,
+             count(*) FILTER (f.membership_raw IS NULL)          AS unlabelled,
+             count(*)                                            AS trips
+      FROM fact_trips f
+      LEFT JOIN dim_membership m
+        ON m.system_id = f.system_id AND m.membership_raw = f.membership_raw
+      WHERE {TRUSTED} AND f.system_id = ?
+      GROUP BY 1, 2, f.trip_month ORDER BY 1, 2
+    """
+    # An unmapped label must stop the run rather than land in a bucket by
+    # resemblance. dim_membership maps 93 labels and "Maintenance" deliberately
+    # maps to `operational`, which is neither member nor casual.
+    unmapped = rows(con, f"""
+      SELECT f.system_id, f.membership_raw, count(*) AS n
+      FROM fact_trips f
+      LEFT JOIN dim_membership m
+        ON m.system_id = f.system_id AND m.membership_raw = f.membership_raw
+      WHERE {TRUSTED} AND f.membership_raw IS NOT NULL
+        AND m.membership_group IS NULL
+      GROUP BY 1, 2 ORDER BY 3 DESC
+    """)
+    if unmapped:
+        raise SystemExit(
+            "publish: unmapped membership label(s), which would silently "
+            f"vanish from every share: {[(r['system_id'], r['membership_raw']) for r in unmapped[:5]]}"
+        )
+
+    # Bike Share Toronto's member label dies inside one labelling era.
+    #
+    # The files partition cleanly by vocabulary, and the boundaries are a fact
+    # of the data rather than a judgement:
+    #
+    #   2016-01..2017-12   {Member, Casual}                74.6%, 78.0% member
+    #   2018-01..2023-12   {Annual Member, Casual Member}  81.8% -> 6.4%
+    #   2024-01..2026-03   {Member, Casual}                77.2%, 72.6%, 88.9%
+    #
+    # Inside the middle era "Annual Member" decays to nothing — 50,961 trips in
+    # 2023-03, 12,226 in July, 138 in August, absent from September — while
+    # ridership is at its yearly peak. Annual members do not vanish. Verified
+    # against the source CSVs (same header, same column, values decaying), and
+    # against CKAN: the 2023 resource was last modified 2024-01-09 and has
+    # never been corrected, there is no summary dataset carrying the counts,
+    # and the package readme documents only the 2014-2016 schemas.
+    #
+    # The era either side of it uses a stable vocabulary and both agree at
+    # ~75-80%, which is also where the broken era STARTS. So the era begins
+    # sound and ends impossible, and nothing in the data says when it stopped
+    # being trustworthy. The whole era is therefore excluded: dropping data we
+    # cannot vouch for beats keeping data we cannot validate, and the boundary
+    # is the vocabulary rather than a month somebody picked.
+    #
+    # LIFT THIS if Toronto ever republishes 2018-2023 with the label intact.
+    # See docs/decisions.md and docs/features/020-membership-mix.md.
+    UNRELIABLE_LABEL_ERAS = {
+        "tor-bikeshare": [("2018-01", "2023-12")],
+    }
+
+    def usable(row: dict) -> bool:
+        for lo, hi in UNRELIABLE_LABEL_ERAS.get(row["system_id"], []):
+            if lo <= row["month"] <= hi:
+                return False
+        # Also structural, and kept for any system: a month publishing only one
+        # group has stopped publishing the distinction at all.
+        return row["member"] > 0 and row["casual"] > 0
+
+    supported = supported_systems(registry, "membership_mix")
+    partial = partial_systems(registry, "membership_mix")
+    all_supported = [r for s in supported for r in complete(rows(con, MEMBERSHIP, [s]))]
+    all_partial = [r for s in partial for r in complete(rows(con, MEMBERSHIP, [s]))
+                   if r["member"] + r["casual"] > 0]
+    member_series = [r for r in all_supported if usable(r)]
+    partial_series = [r for r in all_partial if usable(r)]
+    # Not dropped silently. The page states these and the quality report
+    # carries them, because a month the source stopped labelling is a fact
+    # about the source, not an absence.
+    unlabelled_months = [
+        {**{k: r[k] for k in ("system_id", "month", "member", "casual", "trips")},
+         # Which rule removed it, so the page can distinguish "the source
+         # published no distinction" from "we judged the label unreliable".
+         "basis": ("labelling era unreliable"
+                   if any(lo <= r["month"] <= hi
+                          for lo, hi in UNRELIABLE_LABEL_ERAS.get(r["system_id"], []))
+                   else "no distinction published")}
+        for r in all_supported + all_partial if not usable(r)
+    ]
+    guard(registry, "membership_mix",
+          sorted({r["system_id"] for r in member_series + partial_series}))
+    art["membership"] = {
+        "series": member_series,
+        # Kept apart deliberately. The site renders it as its own panel with
+        # the end of its coverage stated, not as a line beside the other two.
+        "partial": partial_series,
+        "partial_note": {
+            s: registry["metrics"]["membership_mix"]["systems"][s]
+            for s in partial
+        },
+        "unsupported": {
+            s: v for s, v in registry["metrics"]["membership_mix"]["systems"].items()
+            if not v.get("supported") and not v.get("partial_until")
+        },
+        # Months the source published trips for but stopped labelling.
+        "label_lost": unlabelled_months,
     }
 
     # --- station flows ------------------------------------------------------

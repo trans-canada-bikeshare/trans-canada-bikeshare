@@ -321,6 +321,51 @@ routinely stops protecting the entries that genuinely must not move. Every
 closed year remains immutable and drift-refusing; only the open one is allowed
 to advance, and the pin still records exactly what was used.
 
+## 2026-07-30: Toronto's member label dies inside an era, so the era is withheld
+
+Spec 020 found that Bike Share Toronto's published files lose the member label
+across 2018-2023. The vocabulary partitions the archive, and the boundaries are
+a fact of the files rather than a judgement:
+
+```
+2016-01..2017-12   {Member, Casual}                74.6%, 78.0% member
+2018-01..2023-12   {Annual Member, Casual Member}  81.8% -> 6.4%
+2024-01..2026-03   {Member, Casual}                77.2%, 72.6%, 88.9%
+```
+
+Inside the middle era "Annual Member" decays to nothing — 50,961 trips in
+March 2023, 12,226 in July, 138 in August, absent from September — while
+ridership is at its yearly peak. Annual members do not vanish.
+
+**It is Toronto's defect and it is unrecoverable.** The raw CSVs carry the same
+header and the same `User Type` column with the values decaying inside it. CKAN
+reports the 2023 resource last modified 2024-01-09 and never corrected; no
+summary dataset carries the counts; the package readme documents only the
+2014-2016 schemas. Imputing membership from trip behaviour would be inventing
+data, which is the one thing this project cannot do.
+
+**Decision: withhold the entire 2018-2023 era.** Not a chosen month — the
+vocabulary is the boundary. The era begins at 81.8%, consistent with the eras
+either side and with Vancouver, and ends at 6.4%; nothing in the data says when
+it stopped being trustworthy, so no month inside it can be vouched for.
+Dropping data that cannot be validated beats keeping data that cannot be
+checked.
+
+Passed on: excluding only 2023-07..12, which was the first plan. It would have
+left a five-year decline in membership on the chart that never happened — a
+worse lie than the one it fixed, because it is gradual enough to look real.
+Also passed on: dropping Toronto's membership entirely, which the two stable
+eras do not deserve.
+
+What survives is coherent. Toronto reads 83% and 83% before the break and 81%,
+78%, 90% after; Vancouver runs 70-86% throughout. The broken era was the only
+thing suggesting Toronto differed.
+
+**Lift this** if Toronto republishes those years with the label intact. It is
+recorded in `pipeline/publish.py` as `UNRELIABLE_LABEL_ERAS`, the withheld
+months ship in `membership.json` as `label_lost`, and the site explains the gap
+from that artifact rather than asserting it.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

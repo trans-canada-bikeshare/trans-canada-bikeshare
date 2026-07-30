@@ -46,6 +46,9 @@ ARTIFACT_METRIC: dict[str, str] = {
     # Declared 2026-07-29, after this gate refused spec 022's new artifact on
     # its first publish run — which is the behaviour it was written for.
     "flows": "station_flows",
+    # Declared 2026-07-30, after the gate refused it too. Montreal appears
+    # here under `partial_until`, not as a supported system.
+    "membership": "membership_mix",
 }
 
 # Artifacts that carry system ids without being a comparative metric. Each
@@ -83,6 +86,24 @@ def load_registry() -> dict:
 def supported_systems(registry: dict, metric: str) -> set[str]:
     entry = registry["metrics"][metric]
     return {k for k, v in entry["systems"].items() if v.get("supported")}
+
+
+def partial_systems(registry: dict, metric: str) -> set[str]:
+    """Systems publishing a metric for only part of their range.
+
+    The registry has carried `partial_until` since spec 009 and nothing read
+    it. Montreal's membership field exists for 2014-2021 and vanishes at the
+    2022 format break: publishing it as a supported column would imply a
+    comparison that ends five years before the others, and refusing it
+    entirely would hide 35 million labelled trips behind a "not published"
+    that is simply false.
+
+    A partial system may appear in the artifact. It is reported separately
+    from a supported one, because the distinction is the whole point.
+    """
+    entry = registry["metrics"][metric]
+    return {k for k, v in entry["systems"].items()
+            if not v.get("supported") and v.get("partial_until")}
 
 
 def systems_in(node: object) -> set[str]:
@@ -161,7 +182,8 @@ def check(generated: Path | None = None, verbose: bool = True) -> list[str]:
             continue
 
         allowed = supported_systems(registry, metric)
-        offenders = sorted((systems & known) - allowed)
+        partial = partial_systems(registry, metric)
+        offenders = sorted((systems & known) - allowed - partial)
         if offenders:
             reasons = "; ".join(
                 f"{s}: "
@@ -177,9 +199,16 @@ def check(generated: Path | None = None, verbose: bool = True) -> list[str]:
         elif verbose:
             comparable = registry["metrics"][metric].get("comparable")
             tag = "" if comparable else "  [not comparable — per-city only]"
+            shown_partial = sorted((systems & known) & partial)
+            if shown_partial:
+                until = ", ".join(
+                    f"{s} to {registry['metrics'][metric]['systems'][s]['partial_until']}"
+                    for s in shown_partial
+                )
+                tag += f"  [partial: {until}]"
             print(
                 f"  {name:<20} {metric:<16} "
-                f"{len(systems & known)}/{len(allowed)} supported systems{tag}"
+                f"{len(systems & known & allowed)}/{len(allowed)} supported systems{tag}"
             )
 
     # A metric the registry defines but nothing publishes is not a failure —

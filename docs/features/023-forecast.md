@@ -236,13 +236,16 @@ before any reading, against `vite preview` on the production build.
   Montreal 83,022 / Toronto 41,136, each matching the independent Python
   evaluation to the digit.
 - Dragging **Daily high** from 27.9 °C to 19.6 °C changed all three
-  simultaneously to 5,251 / 65,545 / 30,769.
+  simultaneously to 4,525 / 61,113 / 31,377; ticking **Weekend** changed them
+  to 6,534 / 73,733 / 35,825; pushing **Precipitation** to 25 mm took Montreal
+  and Toronto to 37,214 / 18,198 and put Vancouver outside its July envelope,
+  whose wettest July day is 19.0 mm.
 - Switching to **January** re-centred every dial and the panels answered
   1,597 / 3,070 / 7,811.
-- Dragging January's daily high to **-11.4 °C** produced the refusal in
+- Dragging January's daily high below **-11 °C** produced the refusal in
   Vancouver — "Outside what this model has seen", quoting the fitted range
   -6.4 to 14.3 °C and the value asked for — while Montreal and Toronto, whose
-  Januaries reach -20.4 °C and -16.4 °C, still answered.
+  Januaries reach -20.4 °C and -16.4 °C, answered 2,066 and 4,862.
 - The July **snowfall** control renders as a statement rather than a dead
   slider, because no July in any of the three cities has recorded any.
 - The three bars read 7.2% / 84.2% / 41.7% of a shared ceiling of 98,618, with
@@ -267,6 +270,17 @@ now, but it was written after the browser found it, not before.
   actually built rather than a placeholder.
 - **The specification changed after validating against actuals** — see above.
   Finding it needed a query the acceptance criteria did not ask for.
+- **The registry definition was written for the discarded model** and had to be
+  corrected a second time, after the specification changed. Caught by grepping
+  for the old model's vocabulary rather than by any gate; the definition is
+  prose in a config file and nothing checks it against the code.
+- **One App test had stopped asserting anything.** `moves the prediction when
+  the reader moves the weather` skipped every system on a refusal, and its
+  target value began crossing the daily low once the dials were coupled, so it
+  passed while checking nothing. Fixed to fail rather than skip. The pinned
+  prediction tests were then proved capable of failing, by perturbing
+  `exp(logTrips)` by 137 trips and watching all three cross-implementation
+  cases go red.
 - **The rank guard**, and the two singular designs it caught in the tests.
 - **The three bars needed a ceiling a prediction cannot overshoot.** The first
   version scaled them to the largest monthly mean, which an ordinary warm dry

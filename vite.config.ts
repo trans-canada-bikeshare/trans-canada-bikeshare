@@ -87,5 +87,11 @@ export default defineConfig({
     environment: "jsdom",
     globals: true,
     setupFiles: "./src/test/setup.ts",
+    // Agent worktrees live under .claude/worktrees/ INSIDE the repo, each with
+    // its own src/ tree. Without this exclude, vitest on the main checkout
+    // also collects and runs every worktree's tests, including half-built
+    // in-flight ones — 337 tests collected where main has ~190, with failures
+    // that belong to nobody's committed code.
+    exclude: ["**/node_modules/**", "**/.claude/**", "**/dist/**"],
   },
 });

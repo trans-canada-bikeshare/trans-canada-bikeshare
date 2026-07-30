@@ -19,3 +19,6 @@ __pycache__/
 # test + build tooling
 coverage/
 .vite/
+
+# agent worktrees and local claude state
+.claude/worktrees/

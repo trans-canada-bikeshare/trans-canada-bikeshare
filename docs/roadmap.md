@@ -177,6 +177,35 @@ monthly-refresh runbook.
 
 ## Known gaps, carried
 
+- **Montreal ships 35 physical docks as 70 identities**, and they render as
+  overlapping dots on the maps. Found by spec 022's second review. These are
+  pk-era ids (`mtl-bixi:NNN`) that `35_bridge.sql` could not match, sitting
+  beside their bridged twins (`mtl-bixi:sNNN`) — median separation **9 m**,
+  several at 0 m, e.g. `de Gaspé / Villeray` as `s357` (213,491 events) and
+  `767` (15,611). Each dock's traffic and net flow is split across two pins.
+  Toronto and Vancouver have none, so this is the "different amount each"
+  asymmetry again, and Montreal-only.
+  **Route:** `pk_map` joins only to *current* GBFS, so a station GBFS no longer
+  lists stays unbridged — but `conformed_stations` (the 2021 BIXI snapshot) has
+  both its name and its coordinates. A proximity pass against that, with the
+  unambiguous-nearest-dock guard already in `35_bridge.sql`, should resolve
+  most of them. Belongs to spec 012's bridge, not to 022.
+- **A literal `"NULL"` station name is treated as a station.**
+  `tor-bikeshare:NULL` carries 7,947 events and counts toward Toronto's
+  identity total; `norm_key`/`norm_name` in `30_conform.sql` do not null out
+  the four-character string. Pre-existing.
+- **The name bridge can pick a mislabelled larger station.**
+  `tor-bikeshare:name:hanlan's point ferry dock` (22 events) resolves to
+  station 8030, which is Centre Island — because 8030's own last-writer-wins
+  trip label is "hanlan's point ferry dock". `arg_max` by events protects
+  against a small noisy station but not a large one. 22 events in 77M; noted
+  because the mechanism could bite harder elsewhere.
+- **`check-artifacts` cannot prove the warehouse rebuilds from raw.** It
+  compares committed JSON against a publish run over the *existing* warehouse.
+  Spec 022's review closed the load-bearing part by hand — `station_identity`
+  and `fact_trips` were recomputed from the committed SQL and matched — but
+  stages 10–30 remain unverified against raw by any command in this repo.
+
 Recorded here rather than in a comment nobody reads, because each is a place
 the project's own principles are not yet fully met.
 

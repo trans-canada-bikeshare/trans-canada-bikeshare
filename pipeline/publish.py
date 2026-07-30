@@ -277,11 +277,21 @@ def build(con, registry: dict) -> dict[str, object]:
     # reader cares about is net/events, and `t` is already published — deriving
     # it in the browser avoids rounding the same quantity twice.
     #
-    # Basis note: `t` comes from dim_station, which is built without the
-    # TRUSTED filter, while this uses it like every other published series.
-    # The two differ by the flagged rows only — 2 events in 271 million, one
-    # Toronto row — which cannot move a rate at any precision the site shows.
-    # Stated rather than silently reconciled.
+    # Basis note. `f` and `t` do NOT count the same events, in two ways:
+    #
+    #   1. `t` comes from dim_station, built without the TRUSTED filter, while
+    #      this query applies it. That is 2 events in 271 million, one Toronto
+    #      row, and cannot move a rate at any precision the site shows.
+    #   2. `f` counts only trips with BOTH ends recorded; `t` counts every
+    #      event, so it includes the departure of each of the 293,688 trips
+    #      whose return was never recorded. Worst case for any published
+    #      station is 1.44% of its `t` (Oakdale Community Centre, 5 of 348).
+    #
+    # The second is a consequence of making net flow linked-only, and an
+    # earlier version of this comment still claimed the two differed "by the
+    # flagged rows only". The page states the same thing in its own words:
+    # unreturned trips are out of net flow but their departure is in the dot
+    # size. Stated rather than silently reconciled.
     # Both ends must be known. An earlier version counted the departure leg of
     # every trip but the return leg only where a return station was recorded,
     # so each unreturned trip left a phantom -1 at its origin: 272,088 of them

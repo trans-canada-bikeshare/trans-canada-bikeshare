@@ -177,7 +177,8 @@
       "url": "https://climate.weather.gc.ca/climate_data/bulk_data_e.html?format=csv&stationID=51459&Year=2026&Month=1&Day=1&timeframe=2&submit=Download+Data",
       "sha256": "b6c9f4157e9be3760c7338e1f09362a6f5185c021eff9d73026650e645862de0",
       "bytes": 59759,
-      "downloaded_at": "2026-07-30T02:21:12+00:00"
+      "downloaded_at": "2026-07-30T02:21:12+00:00",
+      "volatile": true
     }
   },
   "weather_station": {
@@ -187,10 +188,12 @@
     "lat": 43.68,
     "lon": -79.63,
     "licence": {
-      "name": "Environment and Climate Change Canada Data Servers End-use Licence",
+      "name": "Licence Agreement for Use of Environment and Climate Change Canada Data",
+      "heading": "LIMITED USE SOFTWARE AND DATA PRODUCT LICENCE AGREEMENT",
       "url": "https://climate.weather.gc.ca/prods_servs/attachment1_e.html",
-      "checked": "2026-07-29",
-      "attribution": "Contains information licensed under the Environment and Climate Change Canada Data Servers End-use Licence."
+      "checked": "2026-07-30",
+      "attribution": "based on Environment and Climate Change Canada data",
+      "redistribution": "Redistribution is permitted only if no fee is charged explicitly for the ECCC product, and any party it is redistributed to must agree to the same redistribution restrictions before use. Charges for value-added services are permitted."
     }
   }
 }

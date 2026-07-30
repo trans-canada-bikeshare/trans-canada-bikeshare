@@ -20,13 +20,25 @@ published open data and remain governed by the source licences:
 
       Contains information licensed under the Open Government Licence – Toronto.
 
-- Daily climate data: Environment and Climate Change Canada Data Servers
-  End-use Licence (https://climate.weather.gc.ca/prods_servs/attachment1_e.html,
-  checked 2026-07-29). Required attribution, reproduced on the site and in each
-  manifest:
+- Daily climate data: **Licence Agreement for Use of Environment and Climate
+  Change Canada Data** ("LIMITED USE SOFTWARE AND DATA PRODUCT LICENCE
+  AGREEMENT"), https://climate.weather.gc.ca/prods_servs/attachment1_e.html,
+  checked 2026-07-30. Required attribution, in the wording the licence itself
+  gives, reproduced on the site and in each manifest:
 
-      Contains information licensed under the Environment and Climate Change
-      Canada Data Servers End-use Licence.
+      based on Environment and Climate Change Canada data
+
+  This licence carries REDISTRIBUTION RESTRICTIONS that the other source
+  licences here do not: no fee may be charged explicitly for the ECCC product,
+  and any party it is redistributed to must agree to the same restrictions
+  before use. Charges for value-added services are permitted. This binds any
+  surface that publishes weather-derived values.
+
+  A previous version of this file named the "Environment and Climate Change
+  Canada Data Servers End-use Licence" — a real instrument, but one that
+  governs MSC Datamart/GeoMet rather than climate.weather.gc.ca, and which
+  carries no such restrictions. The name and the attribution string were both
+  wrong and have been replaced with what the licence page actually says.
 
   One airport station per city — VANCOUVER INTL A (climate 1108395), MONTREAL
   INTL A (7025251), TORONTO INTL A (6158731) — pinned per year by checksum in

@@ -176,8 +176,9 @@ def main() -> int:
                 "outside it conditions nothing.", ""]
         doc += table(
             ["system", "station", "window days", "days with a row",
-             "no row", "row but no mean temp"],
-            [(s, st, fmt(w), fmt(r), fmt(a), fmt(t)) for s, st, w, r, a, t in q("""
+             "no row", "row but no mean temp", "no mean temp (total)"],
+            [(s, st, fmt(w), fmt(r), fmt(a), fmt(t), fmt(n))
+             for s, st, w, r, a, t, n in q("""
                 WITH win AS (
                   SELECT system_id, min(departure_ts)::DATE AS f,
                          max(departure_ts)::DATE AS l
@@ -193,6 +194,12 @@ def main() -> int:
                        count(*),
                        count(wd.date_key),
                        count(*) - count(wd.date_key),
+                       -- The date_key guard matters: over a LEFT JOIN a bare
+                       -- `temp_mean_c IS NULL` also matches days with no row
+                       -- at all, so the two columns could not be added
+                       -- without counting the same days twice.
+                       count(*) FILTER (wd.date_key IS NOT NULL
+                                        AND wd.temp_mean_c IS NULL),
                        count(*) FILTER (wd.temp_mean_c IS NULL)
                 FROM cal
                 LEFT JOIN weather_daily wd

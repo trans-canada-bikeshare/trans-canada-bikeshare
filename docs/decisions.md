@@ -266,6 +266,52 @@ The fix that actually holds is not more care. Every one of these is now
 from the data it describes. Where a figure genuinely must be prose — a spec, a
 commit message — it gets re-run at the moment of writing, not recalled.
 
+## 2026-07-30: ECCC weather, and a licence named from memory
+
+Spec 013 adds Environment and Climate Change Canada daily climate data — the
+first new external source since spec 003. **Airport stations**, one per city:
+longest continuous records, conventional, and verified to span each city's full
+trip window before the spec was written. A downtown station sits closer to the
+riding, but coverage matters more here than a few kilometres, and the record
+already has gaps.
+
+**The licence was recorded wrong, confidently.** The first version named the
+"Environment and Climate Change Canada Data Servers End-use Licence", gave a
+URL, and stamped it `checked 2026-07-29`. That is a real instrument — it
+governs MSC Datamart and GeoMet — but it does not govern
+`climate.weather.gc.ca` bulk historical data, and its name appears nowhere on
+the page that was linked. The attribution string invented alongside it
+("Contains information licensed under…") matched neither instrument.
+
+What the governing licence actually says, read off the page:
+
+- It is the **Licence Agreement for Use of Environment and Climate Change
+  Canada Data**, headed "LIMITED USE SOFTWARE AND DATA PRODUCT LICENCE
+  AGREEMENT".
+- The required acknowledgement is **"based on Environment and Climate Change
+  Canada data"**.
+- It carries **redistribution restrictions no other source here has**: no fee
+  may be charged explicitly for the ECCC product, and any party it is
+  redistributed to must agree to the same restrictions before use.
+
+The error ran in the dangerous direction — it understated the obligations, one
+spec before [023](features/023-forecast.md) publishes derived weather under
+them.
+
+This is the mirror of the BIXI decision. BIXI's licence is *unknown and
+labelled*, and that is honest; nobody downstream will mistake it for settled.
+This was *stated and wrong*, with a URL and a checked-on date, which is the
+combination that stops anyone looking again. **A licence gets read, not
+recalled** — and the check date means the page was opened, so the date itself
+becomes a false assurance when it was not.
+
+**The current year is pinned but marked `volatile`.** ECCC is still writing
+2026, so its export gains a row daily and its checksum cannot be stable.
+Refusing it would have made `--accept-changes` a daily routine, and a flag used
+routinely stops protecting the entries that genuinely must not move. Every
+closed year remains immutable and drift-refusing; only the open one is allowed
+to advance, and the pin still records exactly what was used.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

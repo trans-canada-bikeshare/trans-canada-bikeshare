@@ -45,10 +45,61 @@ def test_every_station_carries_the_identifiers_needed_to_refind_it():
         assert -141 <= st["lon"] <= -52, system_id
 
 
-def test_licence_is_stated_with_attribution():
-    assert weather.LICENCE["name"]
-    assert weather.LICENCE["url"].startswith("https://")
-    assert "Environment and Climate Change Canada" in weather.LICENCE["attribution"]
+def test_licence_matches_what_the_governing_page_actually_says():
+    """This test exists because its predecessor could not fail.
+
+    The old version asserted only that the attribution mentioned "Environment
+    and Climate Change Canada" — which passed with the wrong licence name, the
+    wrong URL, and a required-wording string that matched no instrument at all.
+    A licence test that any plausible-looking dict satisfies is worse than
+    none, because it reads as verification.
+
+    These are the exact strings on
+    https://climate.weather.gc.ca/prods_servs/attachment1_e.html.
+    """
+    lic = weather.LICENCE
+    assert lic["name"] == (
+        "Licence Agreement for Use of Environment and Climate Change Canada Data"
+    )
+    assert lic["url"] == "https://climate.weather.gc.ca/prods_servs/attachment1_e.html"
+    # The licence dictates this wording; it is not ours to paraphrase.
+    assert lic["attribution"] == "based on Environment and Climate Change Canada data"
+    # The restriction that binds spec 023 and anything after it.
+    assert "no fee" in lic["redistribution"].lower()
+    assert "same redistribution restrictions" in lic["redistribution"].lower()
+    # The MSC Datamart licence governs a different endpoint and must not
+    # reappear here.
+    assert "Data Servers End-use" not in lic["name"]
+
+
+def test_the_site_carries_the_required_acknowledgement():
+    """`LICENSE` claims the attribution is reproduced on the site.
+
+    It was not, for the whole of spec 013's first draft. The wording is
+    dictated by the licence, so this pins the literal string rather than a
+    loose mention.
+    """
+    app = (common.REPO_ROOT / "src" / "App.tsx").read_text(encoding="utf-8")
+    assert "based on Environment and Climate Change Canada data" in app
+
+
+def test_only_the_open_year_is_volatile():
+    """Closed years must keep refusing drift.
+
+    ECCC rewrites the current year daily, so it is marked volatile and repins
+    without complaint. If that ever spread to a completed year, the archive's
+    reproducibility claim would quietly stop holding.
+    """
+    from datetime import date
+
+    for system_id in weather.STATIONS:
+        reference = (common.load_manifest(system_id).get("reference") or {})
+        for name, entry in reference.items():
+            if not name.startswith("weather_"):
+                continue
+            year = int(name.split("_")[1])
+            if entry.get("volatile"):
+                assert year >= date.today().year, f"{system_id} {name} is closed but volatile"
 
 
 def test_every_manifest_weather_entry_is_pinned():
@@ -104,6 +155,65 @@ def test_kept_rows_carry_at_least_one_observation(con):
                        precip_mm, snow_cm, snow_ground_cm) IS NULL
     """).fetchone()[0]
     assert empty == 0
+
+
+def test_the_warehouse_matches_the_source_csv_at_pinned_points(con):
+    """One literal per city, read straight off the raw file.
+
+    Every other assertion here is self-consistency: a correct-SHAPED load from
+    the wrong station, or with precipitation and snow transposed, satisfies all
+    of them. This is the only test that compares the warehouse to the thing it
+    was built from.
+    """
+    import csv
+
+    for system_id in weather.STATIONS:
+        path = common.DATA_RAW / system_id / "reference" / "weather_2019.csv"
+        if not path.exists():
+            pytest.skip(f"{system_id}: 2019 not downloaded")
+        with path.open(encoding="utf-8-sig") as fh:
+            row = next(r for r in csv.DictReader(fh) if r["Date/Time"] == "2019-07-15")
+        got = con.execute(
+            """SELECT temp_mean_c, temp_max_c, temp_min_c, precip_mm
+               FROM weather_daily WHERE system_id = ? AND date_key = '2019-07-15'""",
+            [system_id],
+        ).fetchone()
+        expected = (
+            float(row["Mean Temp (\u00b0C)"]), float(row["Max Temp (\u00b0C)"]),
+            float(row["Min Temp (\u00b0C)"]), float(row["Total Precip (mm)"]),
+        )
+        assert got == pytest.approx(expected), f"{system_id}: {got} != {expected}"
+        # And the row really is this city's station, not another's.
+        assert row["Climate ID"] == str(weather.STATIONS[system_id]["climate_id"])
+
+
+def test_mean_sits_between_min_and_max(con):
+    """The sharpest available detector of a shifted column.
+
+    ECCC defines the daily mean as (min+max)/2, so this holds exactly. A column
+    slid by one position breaks it immediately, where a range check would not.
+    """
+    bad = con.execute("""
+        SELECT count(*) FROM weather_daily
+        WHERE temp_mean_c IS NOT NULL AND temp_min_c IS NOT NULL
+          AND temp_max_c IS NOT NULL
+          AND (temp_mean_c < temp_min_c - 0.06 OR temp_mean_c > temp_max_c + 0.06)
+    """).fetchone()[0]
+    assert bad == 0
+
+
+def test_nulls_survive_in_every_measure_not_just_temperature(con):
+    """A fill applied to precipitation or snow would pass a temperature check.
+
+    snow_ground_cm is NULL on most days in every city — "not reported", never
+    "no snow". Treating it as 0 is exactly the substitution this spec exists to
+    prevent, and spec 023 must not do it either.
+    """
+    for column in ("precip_mm", "snow_cm", "snow_ground_cm"):
+        nulls = con.execute(
+            f"SELECT count(*) FROM weather_daily WHERE {column} IS NULL"
+        ).fetchone()[0]
+        assert nulls > 0, f"{column} has no NULLs — something filled it"
 
 
 def test_temperatures_are_physically_plausible(con):

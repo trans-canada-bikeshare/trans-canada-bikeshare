@@ -541,17 +541,44 @@ def load_weather(con) -> None:
             FROM read_csv(?, header = true, all_varchar = true)
             -- ECCC exports a fixed-length calendar year, so the current year
             -- arrives padded with rows for dates that have not happened. Those
-            -- carry no observation in any field and are not gaps in the
-            -- record; keeping them would have reported 624 missing days where
-            -- the true figure is 155. A row is kept when ECCC measured
-            -- ANYTHING, so a genuine all-null day is indistinguishable from
-            -- padding — which is correct, since neither carries information.
+            -- carry no observation and are not gaps in the record; keeping
+            -- them would report 624 days with no mean temperature where the
+            -- table-wide figure is 146.
+            --
+            -- A row is kept when any of the six STORED measures is present —
+            -- not when ECCC measured anything at all. Two van-mobi days
+            -- (2025-07-14, 2025-09-17) carry only wind and are dropped here.
+            -- Wind is not stored, so nothing is lost, but the distinction is
+            -- real and an earlier version of this comment overstated it.
             WHERE coalesce("Mean Temp (°C)", "Max Temp (°C)", "Min Temp (°C)",
                            "Total Precip (mm)", "Total Snow (cm)",
                            "Snow on Grnd (cm)") IS NOT NULL
             """,
             [system_id, [str(p) for p in files]],
         )
+        # The CSV names the station it came from. Checking it against the
+        # manifest is what makes a mis-set stationID in the bulk URL fail
+        # loudly instead of silently storing another city's weather under this
+        # system_id — the one error this ingest could otherwise not detect.
+        want = con.execute(
+            "SELECT climate_id, station_name FROM weather_station WHERE system_id = ?",
+            [system_id],
+        ).fetchone()
+        if want:
+            found = con.execute(
+                'SELECT DISTINCT "Climate ID", "Station Name" '
+                "FROM read_csv(?, header = true, all_varchar = true)",
+                [[str(p) for p in files]],
+            ).fetchall()
+            unexpected = [f for f in found if f[0] != want[0]]
+            if unexpected:
+                raise SystemExit(
+                    f"{system_id}: ECCC files carry climate ID(s) {unexpected} "
+                    f"but the manifest declares {want[0]} ({want[1]}). The "
+                    "station in the download URL does not match the one this "
+                    "system is supposed to use."
+                )
+
         obs, gaps, first, last = con.execute(
             """SELECT count(*), count(*) FILTER (temp_mean_c IS NULL),
                       min(date_key), max(date_key)

@@ -51,13 +51,29 @@ STATIONS: dict[str, dict[str, object]] = {
     },
 }
 
+# Read off the licence page itself, not recalled. An earlier version of this
+# block named the "Environment and Climate Change Canada Data Servers End-use
+# Licence" — a real instrument, but a different one: it governs MSC
+# Datamart/GeoMet at eccc-msc.github.io, not climate.weather.gc.ca bulk
+# historical data. That name appears nowhere on the page linked below, and the
+# attribution string invented alongside it matched neither instrument.
+#
+# The error mattered in one direction: the licence actually in force carries
+# redistribution restrictions the misnamed one does not.
 LICENCE = {
-    "name": "Environment and Climate Change Canada Data Servers End-use Licence",
+    "name": "Licence Agreement for Use of Environment and Climate Change Canada Data",
+    "heading": "LIMITED USE SOFTWARE AND DATA PRODUCT LICENCE AGREEMENT",
     "url": "https://climate.weather.gc.ca/prods_servs/attachment1_e.html",
-    "checked": "2026-07-29",
-    "attribution": (
-        "Contains information licensed under the Environment and Climate "
-        "Change Canada Data Servers End-use Licence."
+    "checked": "2026-07-30",
+    # Verbatim from the page: "you have the obligation to acknowledge the
+    # source of the Environment and Climate Change Canada Data with the
+    # following layout or something similar".
+    "attribution": "based on Environment and Climate Change Canada data",
+    "redistribution": (
+        "Redistribution is permitted only if no fee is charged explicitly for "
+        "the ECCC product, and any party it is redistributed to must agree to "
+        "the same redistribution restrictions before use. Charges for "
+        "value-added services are permitted."
     ),
 }
 
@@ -98,15 +114,25 @@ def discover(system_id: str) -> int:
     manifest["weather_station"] = {**station, "licence": LICENCE}
     reference = manifest.setdefault("reference", {})
 
+    # ECCC is still writing the current year, so its export gains a row every
+    # day and its checksum cannot be stable. Marking it `volatile` lets
+    # download.py repin it without refusing, so --accept-changes stays rare
+    # and keeps its meaning for the closed years, which genuinely must not
+    # move. Reproducibility holds exactly where it can: every completed year
+    # is immutable and verified.
+    from datetime import date
+    current_year = date.today().year
+
     added = 0
     for year in years:
         name = f"weather_{year}"
         url = BULK.format(station_id=station["station_id"], year=year)
         entry = reference.get(name)
+        volatile = year >= current_year
         if entry is None:
             # No checksum yet — download.py fills it on first fetch and
-            # refuses any later change.
-            reference[name] = {"url": url}
+            # refuses any later change unless the year is still open.
+            reference[name] = {"url": url, **({"volatile": True} if volatile else {})}
             added += 1
         elif entry.get("url") != url:
             # A changed URL for an existing year is reported, never applied
@@ -117,6 +143,14 @@ def discover(system_id: str) -> int:
                 f"    was {entry['url']}\n    now {url}",
                 file=sys.stderr,
             )
+
+        else:
+            # A year that has closed since the last run stops being volatile
+            # and becomes immutable from here on.
+            if volatile:
+                entry["volatile"] = True
+            else:
+                entry.pop("volatile", None)
 
     common.save_manifest(system_id, manifest)
     span = f"{years[0]}-{years[-1]}" if years else "none"

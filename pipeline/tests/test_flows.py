@@ -71,15 +71,26 @@ def test_unreturned_trips_do_not_reach_net_flow(con):
       )
       SELECT system_id, sum(d) FROM ev WHERE sid IS NOT NULL GROUP BY 1 ORDER BY 1
     """
-    unreturned = dict(con.execute(f"""
-      SELECT system_id, count(*) FROM fact_trips
-      WHERE {TRUSTED} AND return_station_id IS NULL GROUP BY 1
-    """).fetchall())
+    ends = {
+        r[0]: (r[1], r[2]) for r in con.execute(f"""
+          SELECT system_id,
+                 count(*) FILTER (departure_station_id IS NULL) AS no_dep,
+                 count(*) FILTER (return_station_id IS NULL)    AS no_ret
+          FROM fact_trips WHERE {TRUSTED} GROUP BY 1
+        """).fetchall()
+    }
 
     for system_id, net in con.execute(buggy).fetchall():
-        # If this ever equals 0, the two computations have converged and this
-        # test no longer guards anything — which would mean no unreturned trips.
-        assert net == -unreturned[system_id], (
-            f"{system_id}: the old computation should equal minus the "
-            f"unreturned count ({unreturned[system_id]:,}), got {net:,}"
+        no_dep, no_ret = ends[system_id]
+        # The old computation counts known departures as -1 and known returns
+        # as +1, so it nets exactly (missing departures - missing returns).
+        # Originally no trip lacked a departure station and this reduced to
+        # -no_returns; the literal-'NULL' station-key fix (2026-07-30) made a
+        # handful of departures honestly unknown, so the general identity is
+        # the one to pin. If this ever nets 0 with both counts 0, the guard
+        # has nothing to guard.
+        assert net == no_dep - no_ret, (
+            f"{system_id}: buggy recomputation should net "
+            f"{no_dep:,} - {no_ret:,} = {no_dep - no_ret:,}, got {net:,}"
         )
+        assert no_ret > 0, f"{system_id}: no unreturned trips at all?"

@@ -19,11 +19,18 @@
 -- Toronto's return-side station ids arrive float-formatted in some eras:
 -- '8160.0' beside '8160' for the same dock. Left alone they become two
 -- stations, which inflated the site's active-station count by roughly 2.3x.
+-- The literal four-character string 'NULL' is a serialization accident, not a
+-- station: Toronto's files carry it as a key on 7,947 trips, which previously
+-- minted a station identity named "NULL" and counted it in Toronto's totals.
+-- Only the exact token is nulled — scoped to the observed defect, nothing
+-- pattern-matched.
 CREATE OR REPLACE MACRO norm_key(s) AS
-  nullif(regexp_replace(trim(cast(s AS VARCHAR)), '\.0+$', ''), '');
+  CASE WHEN upper(trim(cast(s AS VARCHAR))) = 'NULL' THEN NULL
+       ELSE nullif(regexp_replace(trim(cast(s AS VARCHAR)), '\.0+$', ''), '') END;
 
 CREATE OR REPLACE MACRO norm_name(s) AS
-  nullif(trim(regexp_replace(lower(cast(s AS VARCHAR)), '\s+', ' ', 'g')), '');
+  nullif(nullif(trim(regexp_replace(lower(cast(s AS VARCHAR)), '\s+', ' ', 'g')), 'null'),
+         '');
 
 -- Vancouver's "0069 7th & Granville" -> ('0069', '7th & Granville')
 CREATE OR REPLACE MACRO van_id(s) AS

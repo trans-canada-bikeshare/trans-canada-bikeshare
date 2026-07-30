@@ -321,6 +321,114 @@ routinely stops protecting the entries that genuinely must not move. Every
 closed year remains immutable and drift-refusing; only the open one is allowed
 to advance, and the pin still records exactly what was used.
 
+## 2026-07-30: Toronto's member label dies inside an era, so the era is withheld
+
+> **Corrected the same day, by the adversarial audit below: the boundary was
+> wrong.** The vocabulary change at 2018-01 was a tidy boundary, not the true
+> one. The corruption is file-scoped and begins at 2021-10 — daily member
+> share steps at file edges (68.2% -> 37.8% overnight at the 2021-10 file
+> boundary, recovering to 78.9% at 2021-12) and 2018-2019 are indistinguishable
+> from the clean eras by both share-tracking and the commute-hour behavioural
+> discriminant. The first exclusion withheld 45 extra months — 10,092,788
+> trips showing no sign of the defect. The withheld window is now
+> **2021-10..2023-12** (11,089,535 trips), the contiguous span from the first
+> corrupted file to the last. "Nothing in the data says when it stopped being
+> trustworthy" was wrong: the data says it, at file boundaries — it just took
+> a reviewer told to attack the boundary to look.
+
+Spec 020 found that Bike Share Toronto's published files lose the member label
+across 2018-2023. The vocabulary partitions the archive, and the boundaries are
+a fact of the files rather than a judgement:
+
+```
+2016-01..2017-12   {Member, Casual}                74.6%, 78.0% member
+2018-01..2023-12   {Annual Member, Casual Member}  81.8% -> 6.4%
+2024-01..2026-03   {Member, Casual}                77.2%, 72.6%, 88.9%
+```
+
+(Trip-weighted year shares — members divided by labelled trips across the whole
+year. Every figure in this entry uses that basis.)
+
+Inside the middle era "Annual Member" decays to nothing — 50,961 trips in
+March 2023, 12,226 in July, 138 in August, absent from September — while
+ridership is at its yearly peak. Annual members do not vanish.
+
+**It is Toronto's defect and it is unrecoverable.** The raw CSVs carry the same
+header and the same `User Type` column with the values decaying inside it. CKAN
+reports the 2023 resource last modified 2024-01-09 and never corrected; no
+summary dataset carries the counts; the package readme documents only the
+2014-2016 schemas. Imputing membership from trip behaviour would be inventing
+data, which is the one thing this project cannot do.
+
+**Decision: withhold the entire 2018-2023 era.** Not a chosen month — the
+vocabulary is the boundary. The era begins at 81.8%, consistent with the eras
+either side and with Vancouver, and ends at 6.4%; nothing in the data says when
+it stopped being trustworthy, so no month inside it can be vouched for.
+Dropping data that cannot be validated beats keeping data that cannot be
+checked.
+
+Passed on: excluding only 2023-07..12, which was the first plan. It would have
+left a five-year decline in membership on the chart that never happened — a
+worse lie than the one it fixed, because it is gradual enough to look real.
+Also passed on: dropping Toronto's membership entirely, which the two stable
+eras do not deserve.
+
+What survives is coherent. On the same trip-weighted basis as the table above,
+Toronto reads **74.6% and 78.0%** before the break and **77.2%, 72.6%, 88.9%**
+after, while Vancouver's yearly figures sit in the same range. An earlier
+version of this paragraph quoted 83/83 and 81/78/90 — the *unweighted mean of
+monthly shares*, a different basis from the table three paragraphs above it,
+with nothing saying so. It also called Vancouver "steady 70-86% throughout";
+Vancouver's monthly share actually runs **59.2% to 93.4%** and falls outside
+that band in 42 of 114 months, because it swings about 25 points every summer.
+The point stands — the broken era was the only thing suggesting Toronto
+differed from Vancouver — but it stands on the yearly basis, and a comparison
+has to say which basis it is on.
+
+**Lift this** if Toronto republishes those years with the label intact. It is
+recorded in `pipeline/publish.py` as `UNRELIABLE_LABEL_ERAS`, the withheld
+months ship in `membership.json` as `label_lost`, and the site explains the gap
+from that artifact rather than asserting it.
+
+## 2026-07-30: The audit, the transposed quarter, and the containment gate
+
+A full adversarial audit of the overnight-and-after work found the worst data
+defect this project has had: **Toronto's 2016.xlsx Q4 worksheet was corrupted
+by Toronto's own Excel before publication**, and the pipeline reproduced it
+faithfully. The sheet was built from D/M/Y text; Excel coerced every date with
+day <= 12 into an M/D/Y datetime — day and month transposed — and left days
+13-31 as strings. Uncorrected, 80,109 of 217,569 trips landed in January
+through September, **fabricating six months of 2016 ridership that never
+happened** (each existing only on days 9-12, one day past the incomplete-month
+gate's threshold) and stripping Oct-Dec of their first twelve days. It was
+live on the site in four artifacts.
+
+Row accounting could never catch this: every row landed, on the wrong date.
+The repair is a pure month/day swap, exactly scoped — within that sheet,
+serial rows decode to day <= 12 and string rows parse to day >= 13, so the
+predicate cannot touch a healthy row. Verified against the workbook with an
+independent parser, and the post-repair boundary residue (467 rows moving to
+Sep 30) is exactly the UTC->local shift.
+
+Two permanent gates came out of it, because the class matters more than the
+instance:
+
+- **Containment**: every file's trips must live inside the period its name
+  declares (2% tolerance for the timezone boundary; the defect was 37%).
+  Swept the whole archive: 185 monthly and 34 annual files, zero violations
+  post-repair. This is the check that catches date corruption that row
+  accounting is structurally blind to.
+- **Coercion signature**: any file whose Excel-serial dates never exceed
+  day 12 fails the suite. A real month reaches day 28.
+
+Also from the audit: the literal string 'NULL' is no longer accepted as a
+station key (it minted a station with 7,947 trips); a partial system can no
+longer open a *comparable* metric, and `check-metrics` now fails if a partial
+system's rows appear under an artifact's `series` key — both holes the 020
+review demonstrated live; months where most trips carry no label are withheld
+(Vancouver 2025-05 was measured on eleven days and nothing said so); and the
+quality report is order-deterministic.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

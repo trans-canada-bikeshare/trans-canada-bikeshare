@@ -11,12 +11,13 @@ const StationMap = lazy(() =>
   import("@/components/StationMap").then((m) => ({ default: m.StationMap })),
 );
 import { FLOW_STOPS, FLOW_DOMAIN } from "@/lib/flowScale";
-import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf } from "@/lib/systems";
+import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf, isSystemId } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
 import {
   meta, tripsMonthly, seasonality, stationsYearly, ebikeShare, durations,
   exclusions, incompleteMonths, monthIndex, monthKeyFromIndex, commonWindow,
   stationsMeta, omittedFor, flows, flowsFor, concentration,
+  membership, membershipFor, memberShare, labelLostShape,
 } from "@/lib/data";
 
 const NAV = [
@@ -25,6 +26,7 @@ const NAV = [
   ["seasons", "Seasons"],
   ["stations", "Stations"],
   ["ebikes", "E-bikes"],
+  ["members", "Members"],
   ["maps", "Maps"],
   ["flows", "Flows"],
   ["method", "Method"],
@@ -89,6 +91,34 @@ export default function App() {
       points: ebikeShare.series
         .filter((r) => r.system_id === id && r.classified_trips > 0)
         .map((r) => ({ x: monthIndex(r.month), y: (100 * r.ebike_trips) / r.classified_trips })),
+    }));
+  }, []);
+
+  const memberSeries: Series[] = useMemo(
+    () =>
+      SYSTEM_ORDER.filter((id) => membershipFor(id).length > 0).map((id) => ({
+        id,
+        label: SYSTEMS[id].city,
+        color: seriesColor(id),
+        points: membershipFor(id)
+          .map((r) => ({ x: monthIndex(r.month), y: (memberShare(r) ?? 0) * 100 }))
+          .filter((pt) => pt.y > 0),
+      })),
+    [],
+  );
+
+  // Montreal, on its own axis. Not merged into the comparison above: its line
+  // stops in 2021 and a shared chart would invite reading the gap as a decline.
+  const partialSeries: Series[] = useMemo(() => {
+    const ids = [...new Set(membership.partial.map((r) => r.system_id))];
+    return ids.map((id) => ({
+      id,
+      label: SYSTEMS[id].city,
+      color: seriesColor(id),
+      points: membership.partial
+        .filter((r) => r.system_id === id)
+        .map((r) => ({ x: monthIndex(r.month), y: (memberShare(r) ?? 0) * 100 }))
+        .filter((pt) => pt.y > 0),
     }));
   }, []);
 
@@ -305,6 +335,140 @@ export default function App() {
                 {info.reason}
               </Note>
             ))}
+          </Section>
+
+          <Section
+            id="members"
+            eyebrow="Members"
+            title="Who is riding, where it is published"
+            lede={
+              <>
+                Share of labelled trips taken by a member rather than a casual
+                rider. Each system publishes its own pass names — Vancouver
+                alone has {membership.label_counts["van-mobi"]} — and they are
+                grouped to member and casual through a committed mapping, never
+                by resemblance. The denominator is labelled trips only: an
+                unlabelled trip is unknown, not casual. This is not a
+                three-city comparison and is not presented as one.
+              </>
+            }
+          >
+            <LineChart
+              series={memberSeries}
+              xLabel={(x) => monthLabel(monthKeyFromIndex(Math.round(x)))}
+              yLabel={(y) => `${Math.round(y)}%`}
+              caption="Member share of labelled trips"
+            />
+
+            {partialSeries.length > 0 && (
+              <div className="mt-12">
+                {Object.entries(membership.partial_note).map(([id, info]) => (
+                  <p key={id} className="eyebrow mb-3 flex items-center gap-1.5">
+                    <span
+                      aria-hidden="true"
+                      className="inline-block h-2 w-2 shrink-0"
+                      style={{
+                        backgroundColor: isSystemId(id) ? seriesColor(id) : undefined,
+                      }}
+                    />
+                    {cityOf(id)} · {info.display ?? "partial"}
+                  </p>
+                ))}
+                <LineChart
+                  series={partialSeries}
+                  xLabel={(x) => monthLabel(monthKeyFromIndex(Math.round(x)))}
+                  yLabel={(y) => `${Math.round(y)}%`}
+                  caption="Member share of labelled trips, to the 2022 format break"
+                />
+              </div>
+            )}
+
+            {Object.entries(membership.unsupported).map(([id, info]) => (
+              <Note key={id}>
+                <strong className="font-medium text-foreground">
+                  {cityOf(id)} — {info.display ?? "not published"}.
+                </strong>{" "}
+                {info.reason}
+              </Note>
+            ))}
+
+            <Note>
+              {Object.entries(membership.partial_note).map(([id, info]) => (
+                <span key={id}>
+                  <strong className="font-medium text-foreground">
+                    {cityOf(id)} is drawn separately, not as a third line.
+                  </strong>{" "}
+                  {info.reason} Its {full(
+                    membership.partial.filter((r) => r.system_id === id).length,
+                  )}{" "}
+                  months of real data are shown above rather than hidden behind
+                  a &ldquo;not published&rdquo; that would be false for them.{" "}
+                </span>
+              ))}
+              {SYSTEM_ORDER.map((id) => {
+                const gap = labelLostShape(id);
+                if (!gap) return null;
+                const isDecay = gap.bases.includes("labelling era unreliable");
+                return (
+                  <span key={id}>
+                    <strong className="font-medium text-foreground">
+                      {cityOf(id)} has a gap{" "}
+                      {gap.from === gap.to ? (
+                        <>at {monthLabel(gap.from)}</>
+                      ) : (
+                        <>
+                          from {monthLabel(gap.from)} to {monthLabel(gap.to)}
+                        </>
+                      )}
+                      .
+                    </strong>{" "}
+                    {isDecay ? (
+                      <>
+                        The source&rsquo;s member label is corrupted across
+                        those {gap.months} months — its daily member share
+                        steps at file boundaries and decays file by file
+                        {gap.peakLabelled && gap.lastLabelled && gap.firstBlank ? (
+                          <>
+                            , from {full(gap.peakLabelled.member)} member trips
+                            in {monthLabel(gap.peakLabelled.month)} to{" "}
+                            {full(gap.lastLabelled.member)} by{" "}
+                            {monthLabel(gap.lastLabelled.month)} and none at
+                            all from {monthLabel(gap.firstBlank.month)}
+                          </>
+                        ) : null}{" "}
+                        — while ridership is at its yearly peak. Members do not
+                        vanish; the labelling did. The window is withheld
+                        rather than drawn as a decline that never happened.
+                      </>
+                    ) : (
+                      <>
+                        The source published most of{" "}
+                        {gap.months === 1 ? "that month's" : "those months'"}{" "}
+                        trips without a membership field, so a share would be
+                        measured on a fraction of the month and read as if it
+                        covered all of it.
+                      </>
+                    )}{" "}
+                    {full(gap.trips)} trips are still counted everywhere else
+                    on this site; only their membership is unknown.{" "}
+                  </span>
+                );
+              })}
+              {SYSTEM_ORDER.map((id) => {
+                const rs = [...membershipFor(id), ...membership.partial.filter((r) => r.system_id === id)];
+                if (!rs.length) return null;
+                const un = rs.reduce((n, r) => n + r.unlabelled, 0);
+                const tot = rs.reduce((n, r) => n + r.trips, 0);
+                if (un === 0) return null;
+                return (
+                  <span key={id}>
+                    {cityOf(id)} publishes no membership field on{" "}
+                    {percent(un / tot, 2)} of its trips; those are excluded from
+                    the share rather than counted as casual.{" "}
+                  </span>
+                );
+              })}
+            </Note>
           </Section>
 
           <Section

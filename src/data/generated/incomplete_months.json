@@ -1,1 +1,1 @@
-[{"system_id":"mtl-bixi","month":"2022-12","days_observed":1,"days_in_month":31,"trips":3},{"system_id":"van-mobi","month":"2026-07","days_observed":1,"days_in_month":31,"trips":26}]
+[{"system_id":"mtl-bixi","month":"2022-12","days_observed":1,"days_in_month":31,"trips":3},{"system_id":"tor-bikeshare","month":"2016-06","days_observed":1,"days_in_month":30,"trips":372},{"system_id":"van-mobi","month":"2026-07","days_observed":1,"days_in_month":31,"trips":26}]

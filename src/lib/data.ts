@@ -19,6 +19,8 @@ import stationsMetaJson from "@/data/generated/stations_meta.json";
 // a second lazy path would buy little and cost a failure mode — and spec 021
 // demonstrated how quietly a lazy path can fail.
 import flowsJson from "@/data/generated/flows.json";
+// 5 KB gzip — eager, for the same reason flows.json is.
+import membershipJson from "@/data/generated/membership.json";
 import type { SystemId } from "@/lib/systems";
 
 export interface SystemMetaRow {
@@ -183,6 +185,90 @@ export function concentration(id: SystemId, n: 10 | 100 | 1000): number | null {
   if (!f || f.linked_trips === 0) return null;
   const carried = n === 10 ? f.top_10 : n === 100 ? f.top_100 : f.top_1000;
   return carried / f.linked_trips;
+}
+
+export interface MembershipPoint {
+  system_id: SystemId;
+  month: string;
+  member: number;
+  casual: number;
+  /** neither member nor casual — Mobi's "Maintenance" pass */
+  other: number;
+  /** trips the source published with no membership field at all */
+  unlabelled: number;
+  trips: number;
+}
+
+/**
+ * Membership mix.
+ *
+ * `series` is the comparable pair. `partial` is Montreal, which publishes
+ * `is_member` for 2014-2021 and loses it at the 2022 format break — neither
+ * comparable (a column ending five years early is not one) nor absent ("not
+ * published" would be false for 35 million labelled trips). The registry
+ * carries that third state as `partial_until`, and `make check-metrics`
+ * enforces it.
+ */
+export const membership = membershipJson as {
+  series: MembershipPoint[];
+  partial: MembershipPoint[];
+  partial_note: Record<string, { display?: string; partial_until?: string; reason?: string }>;
+  unsupported: Record<string, { reason?: string; display?: string }>;
+  /** Months the source published trips for but stopped labelling reliably.
+   *  Withheld from the series, never silently dropped. */
+  label_lost: {
+    system_id: SystemId; month: string; member: number; casual: number;
+    trips: number; basis: string;
+  }[];
+  /** distinct pass labels each system publishes */
+  label_counts: Record<string, number>;
+};
+
+/**
+ * The shape of a system's withheld window, derived rather than described.
+ *
+ * The gap sentence used to hardcode Toronto's figures inside a loop over every
+ * system, so any other city gaining a withheld window would have rendered
+ * Toronto's numbers under its own name.
+ */
+export function labelLostShape(id: SystemId) {
+  const lost = membership.label_lost
+    .filter((r) => r.system_id === id)
+    .sort((a, b) => a.month.localeCompare(b.month));
+  if (!lost.length) return null;
+  const withLabel = lost.filter((r) => r.member > 0);
+  const lastLabelled = withLabel[withLabel.length - 1];
+  const firstBlank = lost.find((r) => r.member === 0);
+  return {
+    from: lost[0].month,
+    to: lost[lost.length - 1].month,
+    months: lost.length,
+    trips: lost.reduce((n, r) => n + r.trips, 0),
+    /** why each month was withheld — the copy must not narrate one system's
+     *  failure mode under another system's name */
+    bases: [...new Set(lost.map((r) => r.basis))],
+    /** the busiest month the label still appeared in, and how thin it was */
+    peakLabelled: withLabel.length
+      ? withLabel.reduce((a, b) => (a.member > b.member ? a : b))
+      : null,
+    lastLabelled: lastLabelled ?? null,
+    firstBlank: firstBlank ?? null,
+  };
+}
+
+/** Member share of the trips that carry a label at all.
+ *
+ *  The denominator is member + casual, not total trips: an unlabelled trip is
+ *  unknown, not casual, and folding it into the denominator would drag every
+ *  share down by the labelling rate rather than by anything about riders. The
+ *  unlabelled count is published alongside and stated on the page. */
+export function memberShare(p: MembershipPoint): number | null {
+  const labelled = p.member + p.casual;
+  return labelled === 0 ? null : p.member / labelled;
+}
+
+export function membershipFor(id: SystemId): MembershipPoint[] {
+  return membership.series.filter((r) => r.system_id === id);
 }
 
 export const incompleteMonths = incompleteJson as {

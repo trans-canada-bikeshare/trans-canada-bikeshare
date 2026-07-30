@@ -43,6 +43,9 @@ ARTIFACT_METRIC: dict[str, str] = {
     "stations_meta": "active_stations",
     "ebike_share": "ebike_share",
     "duration": "duration",
+    # Declared 2026-07-29, after this gate refused spec 022's new artifact on
+    # its first publish run — which is the behaviour it was written for.
+    "flows": "station_flows",
 }
 
 # Artifacts that carry system ids without being a comparative metric. Each

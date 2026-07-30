@@ -2,24 +2,62 @@ import { useEffect, useRef, useState } from "react";
 import type { SystemId } from "@/lib/systems";
 import { SYSTEMS, seriesColor, resolvedSeriesColor } from "@/lib/systems";
 import { compact, full } from "@/lib/format";
-import { loadStations, type StationPin } from "@/lib/data";
+import { loadStations, flowRate, type StationPin } from "@/lib/data";
 import "maplibre-gl/dist/maplibre-gl.css";
+
+export type MapMode = "volume" | "flow";
 
 interface Props {
   system: SystemId;
   theme: "light" | "dark";
+  /**
+   * `volume` colours every dot with the system's series colour, so the map
+   * reads as "where this network is". `flow` colours by net flow rate — a
+   * quantity with a meaningful zero, so it gets a diverging scale rather than
+   * the series colour, and the section says which end is which.
+   */
+  mode?: MapMode;
 }
 
 interface Selected {
   name: string;
   trips: number;
   active: boolean;
+  /** net flow: returns minus departures */
+  net: number;
 }
 
 const STYLE = {
   light: "https://tiles.openfreemap.org/styles/positron",
   dark: "https://tiles.openfreemap.org/styles/dark",
 } as const;
+
+/**
+ * Diverging scale for net flow rate, clipped at ±15%.
+ *
+ * Not the series colour: net flow has a meaningful zero, and colouring it with
+ * a single-hue ramp would hide the sign — the one thing the encoding exists to
+ * show. Amber drains (gives out more bikes than it takes), indigo accumulates.
+ *
+ * The domain is ±0.15 rather than the observed range. A few stations reach
+ * ±0.9, and scaling to them would collapse every ordinary dock onto neutral
+ * grey. So a fully saturated dot means "at least this imbalanced", which the
+ * section states — an encoding that clips has to say it clips.
+ *
+ * Literal colours, because MapLibre parses in JS and cannot read a CSS custom
+ * property. These are chosen to hold up on both the light and dark basemap
+ * rather than swapped per theme, so the two views stay directly comparable.
+ */
+const FLOW_SCALE: unknown[] = [
+  "interpolate",
+  ["linear"],
+  ["get", "rate"],
+  -0.15, "#b45309",
+  -0.04, "#d9a441",
+  0, "#9aa0a6",
+  0.04, "#5b8dd6",
+  0.15, "#3730a3",
+];
 
 /**
  * One system's stations on a map.
@@ -35,7 +73,7 @@ const STYLE = {
  * months of this system's own data, which is not the same as decommissioned —
  * 28 of the hollow dots are stations the live GBFS feed still lists.
  */
-export function StationMap({ system, theme }: Props) {
+export function StationMap({ system, theme, mode = "volume" }: Props) {
   const holder = useRef<HTMLDivElement>(null);
   const mapRef = useRef<{ remove: () => void } | null>(null);
   const [visible, setVisible] = useState(false);
@@ -180,7 +218,13 @@ export function StationMap({ system, theme }: Props) {
               features: stations.map((s) => ({
                 type: "Feature",
                 geometry: { type: "Point", coordinates: [s.x, s.y] },
-                properties: { name: s.n, trips: s.t, active: s.a ? 1 : 0 },
+                properties: {
+                  name: s.n,
+                  trips: s.t,
+                  active: s.a ? 1 : 0,
+                  net: s.f,
+                  rate: flowRate(s),
+                },
               })),
             },
           });
@@ -193,13 +237,22 @@ export function StationMap({ system, theme }: Props) {
                 "interpolate", ["linear"], ["sqrt", ["get", "trips"]],
                 0, 2.5, ceiling, 9,
               ],
-              "circle-color": dot,
+              // Net flow has a meaningful zero, so it gets a diverging scale
+              // rather than the series colour. The domain is +/-15%, not the
+              // observed extremes: a handful of stations reach +/-90% and
+              // scaling to them would flatten every ordinary dock to neutral.
+              // The clipping is stated where the map is, because a saturated
+              // dot means "at least this imbalanced", not "exactly".
+              "circle-color": (mode === "flow" ? FLOW_SCALE : dot) as never,
               // Dormant stations read as outlines, not absences. The ring is
               // drawn at full strength for both states so it clears the 3:1
               // of WCAG 1.4.11 — the fill alone carries the distinction.
-              "circle-opacity": ["case", ["==", ["get", "active"], 1], 0.55, 0.1],
+              "circle-opacity":
+                mode === "flow"
+                  ? 0.75
+                  : ["case", ["==", ["get", "active"], 1], 0.55, 0.1],
               "circle-stroke-width": 1,
-              "circle-stroke-color": dot,
+              "circle-stroke-color": (mode === "flow" ? FLOW_SCALE : dot) as never,
               "circle-stroke-opacity": 0.9,
             },
           });
@@ -210,6 +263,7 @@ export function StationMap({ system, theme }: Props) {
               name: String(f.properties?.name ?? ""),
               trips: Number(f.properties?.trips ?? 0),
               active: Number(f.properties?.active) === 1,
+              net: Number(f.properties?.net ?? 0),
             });
           });
           map.on("mouseenter", "station-dots", () => {
@@ -243,7 +297,7 @@ export function StationMap({ system, theme }: Props) {
     // Theme is a dependency: the basemap is baked into the style, so a theme
     // change rebuilds the map rather than mutating it — and re-resolves the
     // series colour against the newly applied tokens.
-  }, [visible, theme, system, stations, scaleMax, meta.city]);
+  }, [visible, theme, system, stations, scaleMax, meta.city, mode]);
 
   const active = stations.filter((s) => s.a).length;
 
@@ -305,10 +359,27 @@ export function StationMap({ system, theme }: Props) {
             <>
               <strong className="font-medium text-foreground">{selected.name}</strong> ·{" "}
               {compact(selected.trips)} lifetime events ·{" "}
-              {selected.active ? "used in the last six months" : "dormant"}
+              {mode === "flow" ? (
+                <>
+                  {selected.net === 0
+                    ? "balanced"
+                    : `${selected.net > 0 ? "+" : "\u2212"}${compact(Math.abs(selected.net))} net ` +
+                      `${selected.net > 0 ? "in" : "out"} (${(
+                        (100 * selected.net) / (selected.trips || 1)
+                      ).toFixed(1)}%)`}
+                </>
+              ) : selected.active ? (
+                "used in the last six months"
+              ) : (
+                "dormant"
+              )}
             </>
           ) : ready ? (
-            "Select a station for its lifetime events. Hollow dots are dormant — no trips in the last six months of this system's data."
+            mode === "flow"
+              ? // The section lede carries the encoding; repeating it under each
+                // of three maps is noise, not clarity.
+                "Select a station for its net flow."
+              : "Select a station for its lifetime events. Hollow dots are dormant — no trips in the last six months of this system's data."
           ) : (
             "Map loads when you reach it."
           )}

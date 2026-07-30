@@ -13,6 +13,30 @@ is active if it saw a trip in the last six months **of that system's own data**,
 not of the archive as a whole. The three systems have different end dates, and a
 shared cutoff would silently retire the ones that publish less often.
 
+## Corrected 2026-07-29, by spec 022's review
+
+This chart was **wrong for Vancouver and Toronto**, and had been since it
+shipped. `fact_trips` counted a station reached by name separately from the
+same station reached by its published id, while `dim_station` merged them — so
+the yearly active count double-counted every station in the eras keyed by name.
+
+```
+van-mobi   2024  275
+           2025  550  -> 286      Vancouver's network appeared to DOUBLE
+           2026  370  -> 268      and then collapse
+tor-bikeshare  2016  257 -> 226
+               2017  471 -> 324
+```
+
+Nobody questioned it because a rising line reads as growth. It was found only
+when spec 022 divided the fact by the dimension and the arithmetic stopped
+making sense. The fix is a materialised `station_identity` table both tables
+join — see `docs/decisions.md`, "One station identity, materialised".
+
+Montreal was unaffected: its era bridge was applied to both tables all along,
+which is why the bug survived the bridging work that was specifically about
+station identity.
+
 ## Known weakness, carried
 
 "Active" by that definition is not "in service". Spec 021's review found 28

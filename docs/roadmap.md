@@ -177,19 +177,17 @@ monthly-refresh runbook.
 
 ## Known gaps, carried
 
-- **Montreal ships 35 physical docks as 70 identities**, and they render as
-  overlapping dots on the maps. Found by spec 022's second review. These are
-  pk-era ids (`mtl-bixi:NNN`) that `35_bridge.sql` could not match, sitting
-  beside their bridged twins (`mtl-bixi:sNNN`) — median separation **9 m**,
-  several at 0 m, e.g. `de Gaspé / Villeray` as `s357` (213,491 events) and
-  `767` (15,611). Each dock's traffic and net flow is split across two pins.
-  Toronto and Vancouver have none, so this is the "different amount each"
-  asymmetry again, and Montreal-only.
-  **Route:** `pk_map` joins only to *current* GBFS, so a station GBFS no longer
-  lists stays unbridged — but `conformed_stations` (the 2021 BIXI snapshot) has
-  both its name and its coordinates. A proximity pass against that, with the
-  unambiguous-nearest-dock guard already in `35_bridge.sql`, should resolve
-  most of them. Belongs to spec 012's bridge, not to 022.
+- ~~Montreal ships 35 physical docks as 70 identities~~ — **fixed 2026-07-29.**
+  `35_bridge.sql` gained a fourth matcher for pk-era stations the live GBFS
+  feed has since dropped, reached through the 2021 snapshot in
+  `conformed_stations`. 53 more identities bridge (41 by name, 12 by position);
+  duplicate-name pins fall from 71 in 35 groups to 2 in 1. The name match is
+  distance-guarded, because `bridge_name` drops the parenthetical cross-streets
+  and would otherwise have merged `Parc MacDonald (Earnscliffe / Dupuis)` with
+  `Parc MacDonald (Clanranald / Isabella)` 321 m away — two docks at one park.
+  Where the snapshot has no usable position (`Smith / Peel` at -1,-1) the full
+  published names must match exactly instead.
+  **Remaining:** one pair, `Drummond / Ste-Catherine`, 0 m apart.
 - **A literal `"NULL"` station name is treated as a station.**
   `tor-bikeshare:NULL` carries 7,947 events and counts toward Toronto's
   identity total; `norm_key`/`norm_name` in `30_conform.sql` do not null out

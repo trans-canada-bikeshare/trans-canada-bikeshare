@@ -1,1 +1,1 @@
-{"min_lifetime_events":100,"omitted":[{"system_id":"mtl-bixi","no_coordinates":620,"below_threshold":14,"total":1786},{"system_id":"tor-bikeshare","no_coordinates":278,"below_threshold":47,"total":1297},{"system_id":"van-mobi","no_coordinates":69,"below_threshold":0,"total":329}]}
+{"min_lifetime_events":100,"omitted":[{"system_id":"mtl-bixi","no_coordinates":619,"below_threshold":13,"total":1733},{"system_id":"tor-bikeshare","no_coordinates":278,"below_threshold":47,"total":1297},{"system_id":"van-mobi","no_coordinates":69,"below_threshold":0,"total":329}]}

@@ -74,6 +74,66 @@ name_geo AS (
   SELECT era_id, station_id, 'geo' AS via
   FROM ranked
   WHERE rn = 1 AND dist <= 50 AND (next_dist IS NULL OR next_dist > 100)
+),
+-- 4. pk-era stations the live feed has since dropped.
+--
+-- `pk_map` above joins to CURRENT GBFS, so a 2021 station BIXI has since
+-- removed never bridges and keeps its era-local id — landing on the map as a
+-- second dot beside its own bridged twin. 35 docks shipped that way, median
+-- separation 9 m and several at exactly 0 m: `de Gaspé / Villeray` was both
+-- `mtl-bixi:s357` (213,491 events) and `mtl-bixi:767` (15,611), one dock split
+-- across two pins with its traffic and net flow divided between them.
+--
+-- The 2021 BIXI snapshot in `conformed_stations` still knows their name and
+-- position, so they can be reached the same way era D is. Same guard as above:
+-- the nearest dock must be within 50 m and the runner-up beyond 100 m, so two
+-- genuinely distinct stations cannot merge.
+pk_orphan AS (
+  SELECT cs.station_id AS era_id,
+         bridge_name(cs.station_name) AS nm,
+         cs.station_name AS label,
+         cs.lat AS la, cs.lon AS lo,
+         cs.lat BETWEEN 41 AND 84 AND cs.lon BETWEEN -141 AND -52 AS placed
+  FROM conformed_stations cs
+  WHERE cs.system_id = 'mtl-bixi'
+    AND cs.station_id NOT LIKE '%:name:%'
+    AND cs.station_id NOT IN (SELECT era_id FROM code_map)
+    AND cs.station_id NOT IN (SELECT era_id FROM pk_map)
+),
+-- The name key deliberately drops the parenthetical cross-streets, so
+-- "Parc MacDonald (Earnscliffe / Dupuis)" and "Parc MacDonald (Clanranald /
+-- Isabella)" collapse to the same key while being 321 m apart — two docks at
+-- one park, not one dock. A name match therefore has to agree with a position
+-- too, the same principle the geo matcher below applies.
+--
+-- Where the snapshot has no usable position — BIXI's 2021 file carries
+-- "Smith / Peel" at (-1, -1) — the full published names must match exactly,
+-- parenthetical included, since there is nothing else to check against.
+pk_orphan_name AS (
+  SELECT o.era_id, g.station_id, 'pk-name' AS via
+  FROM pk_orphan o JOIN gbfs g USING (nm)
+  WHERE o.nm IS NOT NULL
+    AND (
+      (o.placed AND hav_m(o.la, o.lo, g.lat, g.lon) <= 100)
+      OR (NOT o.placed AND lower(trim(o.label)) = lower(trim(g.label)))
+    )
+),
+pk_ranked AS (
+  SELECT
+    o.era_id, g.station_id,
+    hav_m(o.la, o.lo, g.lat, g.lon) AS dist,
+    row_number() OVER (PARTITION BY o.era_id ORDER BY hav_m(o.la, o.lo, g.lat, g.lon)) AS rn,
+    lead(hav_m(o.la, o.lo, g.lat, g.lon)) OVER (
+      PARTITION BY o.era_id ORDER BY hav_m(o.la, o.lo, g.lat, g.lon)) AS next_dist
+  FROM pk_orphan o
+  CROSS JOIN gbfs g
+  WHERE o.la IS NOT NULL
+    AND o.era_id NOT IN (SELECT era_id FROM pk_orphan_name)
+),
+pk_geo AS (
+  SELECT era_id, station_id, 'pk-geo' AS via
+  FROM pk_ranked
+  WHERE rn = 1 AND dist <= 50 AND (next_dist IS NULL OR next_dist > 100)
 )
 SELECT DISTINCT ON (era_id)
   era_id,
@@ -84,6 +144,9 @@ FROM (
   UNION ALL SELECT * FROM pk_map
   UNION ALL SELECT * FROM name_exact
   UNION ALL SELECT * FROM name_geo
+  UNION ALL SELECT * FROM pk_orphan_name
+  UNION ALL SELECT * FROM pk_geo
 )
 ORDER BY era_id, CASE via WHEN 'code' THEN 1 WHEN 'pk' THEN 2
-                          WHEN 'name' THEN 3 ELSE 4 END;
+                          WHEN 'name' THEN 3 WHEN 'pk-name' THEN 4
+                          WHEN 'pk-geo' THEN 5 ELSE 6 END;

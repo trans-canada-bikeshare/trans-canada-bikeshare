@@ -10,6 +10,7 @@ import { SmallMultiples } from "@/components/charts/SmallMultiples";
 const StationMap = lazy(() =>
   import("@/components/StationMap").then((m) => ({ default: m.StationMap })),
 );
+import { ForecastPanel } from "@/components/ForecastPanel";
 import { FLOW_STOPS, FLOW_DOMAIN } from "@/lib/flowScale";
 import { SYSTEM_ORDER, SYSTEMS, seriesColor, cityOf, isSystemId } from "@/lib/systems";
 import { compact, full, percent, duration, longDate, MONTH_SHORT, monthLabel } from "@/lib/format";
@@ -19,6 +20,7 @@ import {
   stationsMeta, omittedFor, flows, flowsFor, concentration,
   membership, membershipFor, memberShare, labelLostShape,
 } from "@/lib/data";
+import { forecast } from "@/lib/forecast";
 
 const NAV = [
   ["overview", "Overview"],
@@ -29,6 +31,7 @@ const NAV = [
   ["members", "Members"],
   ["maps", "Maps"],
   ["flows", "Flows"],
+  ["forecast", "Forecast"],
   ["method", "Method"],
 ] as const;
 
@@ -722,6 +725,32 @@ export default function App() {
                 );
               })}
             </Note>
+          </Section>
+
+          <Section
+            id="forecast"
+            eyebrow="Forecast"
+            title="Move the weather, watch the ridership"
+            lede={
+              <>
+                One model per system — never a pooled one, because how a city
+                answers a cold wet Saturday is the difference this site exists
+                to show. Each is fitted to that system&rsquo;s own daily trip
+                counts from {forecast.first_year} onward against the weather
+                that day and the calendar month it fell in, and what ships is
+                the model itself — every coefficient and its training envelope
+                — so the arithmetic below happens in your browser and you can
+                check it.{" "}
+                <strong className="font-medium text-foreground">
+                  Ask for a day a system has never had and it refuses
+                </strong>{" "}
+                rather than extrapolating — the models are anchored at{" "}
+                {forecast.reference_year}, the most recent year all three
+                published every month.
+              </>
+            }
+          >
+            <ForecastPanel />
           </Section>
 
           <Section

@@ -429,6 +429,55 @@ review demonstrated live; months where most trips carry no label are withheld
 (Vancouver 2025-05 was measured on eleven days and nothing said so); and the
 quality report is order-deterministic.
 
+## 2026-07-30: A model is validated against days that happened, not against its own R²
+
+Spec 023's first ridership model was additive in month-of-year and calendar
+year: August is busy, 2025 was a big year, add the two. Every gate passed. Log
+R² sat at 0.87-0.93, the coefficients were signed the way anyone would expect,
+the artifact reproduced byte for byte, and the tests were green.
+
+Then it was asked a question the tests had not: what does it say about a warm
+dry August 2025 weekday in Vancouver, and what actually happened on those days?
+It said **7,636 trips**. The six comparable days averaged **5,331** — a 43%
+overstatement, on the number the section renders in its largest type.
+
+The cause is structural, not a bug. An additive model cannot represent a season
+that was unusual *for its own year*, and Vancouver's 2025 was exactly that: up
+on 2024 in January, down 18% in August. Its 2025 level averaged both. Marginal
+residuals by month and by year were zero to three decimals, which is what OLS
+with dummies guarantees and is why no diagnostic built from the fit itself
+could have found this.
+
+**Decision: give every calendar month its own level.** The weather coefficients
+are then estimated only from how days differed *within* a month, which is the
+cleanest identification of a weather effect the data supports, and the same
+check now reads 1.03-1.10 across the three cities. The cost is real and is
+stated on the page rather than buried: most of the parameters are calendar
+levels, so these coefficients say nothing about seasonality, and the site's
+seasonality section answers that question from its own artifact instead.
+
+The general rule, and the reason this is here rather than only in the spec:
+**a model's fit statistics cannot tell you the model is wrong in the way that
+matters.** R², residual plots, byte-reproducibility and a full test suite were
+all consistent with a headline number that was half again too big. What found
+it was leaving the model and asking the warehouse what a day like that actually
+looked like. Every model this project ships gets that check, and the check goes
+in the spec file with its numbers.
+
+Two smaller rules came out of the same work:
+
+- **Refuse a rank-deficient design.** `numpy.linalg.lstsq` answers a singular
+  system with the minimum-norm solution rather than failing — coefficients that
+  fit exactly as well as infinitely many others, picked by LAPACK. It is a
+  wrong number and a reproducibility hazard at once, since another BLAS may
+  pick a different member of the same set. `fit_system` now checks the returned
+  rank. It caught two singular designs in the tests within minutes of existing.
+- **A rendered control is not verified until it has been driven.** The headed
+  browser check, not any test, found that dragging the daily-high dial below
+  the daily-low dial produced three "that is not a day" refusals and hid the
+  one thing the control exists to show. The dials are now coupled. This is the
+  2026-07-29 rule about rendering, extended: interaction is output too.
+
 ## Next
 
 Spec 001: download one real month from BIXI and Bike Share Toronto, read the

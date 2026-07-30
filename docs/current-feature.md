@@ -2,14 +2,32 @@
 
 ## Status
 
-_No feature in progress._
+**Spec 023 — Forecast.** Built and tested; awaiting independent review.
 
 ## Lifecycle
 
-- [ ] load
-- [ ] start
-- [ ] test
+- [x] load
+- [x] start
+- [x] test
 - [ ] review
+
+## Goals
+
+One weather-and-calendar ridership model per system, published as coefficients
+and fit statistics rather than predictions, with a refusal outside the training
+envelope and an interactive section that computes the prediction in the browser.
+
+## Notes
+
+- The specification changed mid-build after validating against actual days: the
+  additive month-of-year plus year model overstated a warm dry August 2025
+  weekday in Vancouver by 43%. A level per calendar month fixes it. Recorded in
+  `docs/decisions.md`.
+- `pipeline/mappings/metric_support.json` named the wrong ECCC stations for
+  `forecast` (Vancouver Harbour, downtown Montreal, Toronto City). Spec 013 uses
+  the airports. Corrected.
+- Fit is in-sample and labelled so. Toronto is the weakest of the three on the
+  trips scale and the section names it.
 
 ## Goals
 

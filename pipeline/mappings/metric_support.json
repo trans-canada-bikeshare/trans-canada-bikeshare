@@ -148,21 +148,23 @@
   },
   "forecast": {
    "label": "Weather-driven forecast",
-   "definition": "Daily ridership modelled on weather and calendar features, trained per system.",
+   "definition": "ln(daily trips) regressed on daily maximum and minimum temperature, log1p precipitation, log1p snowfall, a weekend indicator, and one level per calendar month in the window. One model per system — never pooled — over operating days from the common window's first year onward, with the same TRUSTED filter and incomplete-month exclusion every other series applies. A day with any weather field NULL is dropped and counted, never imputed. Because each month carries its own level, the weather coefficients are within-month effects and say nothing about seasonality. Fit statistics are in-sample.",
    "unit": "trips per day",
    "comparable": true,
    "systems": {
     "van-mobi": {
      "supported": true,
-     "weather_station": "ECCC 888 Vancouver Harbour CS"
+     "weather_station": "ECCC 51442 VANCOUVER INTL A (climate ID 1108395)"
     },
     "mtl-bixi": {
      "supported": true,
-     "weather_station": "ECCC, downtown Montreal — see spec 013"
+     "weather_station": "ECCC 51157 MONTREAL INTL A (climate ID 7025251)",
+     "note": "BIXI ran no winter service before December 2023, so December-March rest on the winters from 2023-24 onward. Closed days are absent from training, never entered as zeros."
     },
     "tor-bikeshare": {
      "supported": true,
-     "weather_station": "ECCC 31688 Toronto City"
+     "weather_station": "ECCC 51459 TORONTO INTL A (climate ID 6158731)",
+     "note": "Pearson is the weakest of the three proxies at 19.4 km from the trip-weighted centroid — colder and snowier than the lake-moderated core the system runs in."
     }
    }
   },

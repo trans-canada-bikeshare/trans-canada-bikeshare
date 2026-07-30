@@ -102,6 +102,11 @@ def partial_systems(registry: dict, metric: str) -> set[str]:
     from a supported one, because the distinction is the whole point.
     """
     entry = registry["metrics"][metric]
+    if entry.get("comparable"):
+        # A partial system may never enter a comparable metric — see the same
+        # rule in publish.py. Without it, `partial_until` on any system under
+        # `trips` would have opened a comparable series to a fragment.
+        return set()
     return {k for k, v in entry["systems"].items()
             if not v.get("supported") and v.get("partial_until")}
 
@@ -184,6 +189,20 @@ def check(generated: Path | None = None, verbose: bool = True) -> list[str]:
         allowed = supported_systems(registry, metric)
         partial = partial_systems(registry, metric)
         offenders = sorted((systems & known) - allowed - partial)
+
+        # A partial system may appear in the artifact but never inside its
+        # `series` key, which is the comparable pair. The audit moved
+        # Montreal's rows from `partial` into `series` and the gate passed,
+        # because systems_in() walks the whole document without seeing keys.
+        # This is the check that closes that.
+        if partial and isinstance(payload, dict) and "series" in payload:
+            in_series = systems_in(payload["series"]) & partial
+            if in_series:
+                failures.append(
+                    f"{name}.json carries partial system(s) "
+                    f"{sorted(in_series)} inside its `series` key — the "
+                    "comparable pair. Partial systems belong under `partial`."
+                )
         if offenders:
             reasons = "; ".join(
                 f"{s}: "

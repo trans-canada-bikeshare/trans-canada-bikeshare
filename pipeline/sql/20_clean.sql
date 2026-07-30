@@ -187,6 +187,41 @@ WHERE departure_ts IS NOT NULL
   -- residual recorded above and reported in docs/data-quality-report.md.
   AND (system_id <> 'van-mobi' OR rid IN (SELECT keep_rid FROM dedupe_keep));
 
+-- Toronto's 2016.xlsx Q4 worksheet has a mixed-type date column that TORONTO'S
+-- OWN Excel corrupted before publishing. The sheet was built from D/M/Y text;
+-- Excel silently coerced every value whose day was <= 12 into an M/D/Y
+-- datetime — day and month transposed — and left the rest (days 13-31) as
+-- strings. The strings prove the true order, and the typed cells' day field
+-- carries only {10, 11, 12}: the true MONTHS of Q4.
+--
+-- Uncorrected, 80,109 of the sheet's 217,569 trips landed on months January
+-- through September, fabricating six months of 2016 ridership that never
+-- happened (each existing only on days 9-12 — one more day than the
+-- incomplete-month gate excludes) and stripping October, November and
+-- December of their first twelve days.
+--
+-- The repair is a pure swap, and it is exactly scoped: within this one sheet,
+-- serial-typed rows decode to day <= 12 and string rows parse to day >= 13,
+-- so the predicate cannot touch a string row. Verified against the workbook
+-- with openpyxl before writing this. The rest of the archive was swept for
+-- the same signature (serial rows whose decoded days never exceed 12) and no
+-- other file has it — Vancouver's xlsx serials all span full months.
+--
+-- This runs BEFORE 25_localise, so the UTC shift applies to corrected dates.
+UPDATE clean_trips
+SET departure_ts = make_timestamp(year(departure_ts), day(departure_ts),
+                                  month(departure_ts), 0, 0, 0)
+                   + (departure_ts - date_trunc('day', departure_ts))
+WHERE source_file LIKE '%2016.xlsx#tor_trips_2016_Q4'
+  AND day(departure_ts) <= 12;
+
+UPDATE clean_trips
+SET return_ts = make_timestamp(year(return_ts), day(return_ts),
+                               month(return_ts), 0, 0, 0)
+                + (return_ts - date_trunc('day', return_ts))
+WHERE source_file LIKE '%2016.xlsx#tor_trips_2016_Q4'
+  AND return_ts IS NOT NULL AND day(return_ts) <= 12;
+
 -- Station snapshots: Montreal's annual files. Collapsed to one row per station
 -- at conform, where a station's positions over the years become one position.
 CREATE OR REPLACE TABLE clean_stations AS

@@ -323,6 +323,19 @@ to advance, and the pin still records exactly what was used.
 
 ## 2026-07-30: Toronto's member label dies inside an era, so the era is withheld
 
+> **Corrected the same day, by the adversarial audit below: the boundary was
+> wrong.** The vocabulary change at 2018-01 was a tidy boundary, not the true
+> one. The corruption is file-scoped and begins at 2021-10 — daily member
+> share steps at file edges (68.2% -> 37.8% overnight at the 2021-10 file
+> boundary, recovering to 78.9% at 2021-12) and 2018-2019 are indistinguishable
+> from the clean eras by both share-tracking and the commute-hour behavioural
+> discriminant. The first exclusion withheld 45 extra months — 10,092,788
+> trips showing no sign of the defect. The withheld window is now
+> **2021-10..2023-12** (11,089,535 trips), the contiguous span from the first
+> corrupted file to the last. "Nothing in the data says when it stopped being
+> trustworthy" was wrong: the data says it, at file boundaries — it just took
+> a reviewer told to attack the boundary to look.
+
 Spec 020 found that Bike Share Toronto's published files lose the member label
 across 2018-2023. The vocabulary partitions the archive, and the boundaries are
 a fact of the files rather than a judgement:
@@ -376,6 +389,45 @@ has to say which basis it is on.
 recorded in `pipeline/publish.py` as `UNRELIABLE_LABEL_ERAS`, the withheld
 months ship in `membership.json` as `label_lost`, and the site explains the gap
 from that artifact rather than asserting it.
+
+## 2026-07-30: The audit, the transposed quarter, and the containment gate
+
+A full adversarial audit of the overnight-and-after work found the worst data
+defect this project has had: **Toronto's 2016.xlsx Q4 worksheet was corrupted
+by Toronto's own Excel before publication**, and the pipeline reproduced it
+faithfully. The sheet was built from D/M/Y text; Excel coerced every date with
+day <= 12 into an M/D/Y datetime — day and month transposed — and left days
+13-31 as strings. Uncorrected, 80,109 of 217,569 trips landed in January
+through September, **fabricating six months of 2016 ridership that never
+happened** (each existing only on days 9-12, one day past the incomplete-month
+gate's threshold) and stripping Oct-Dec of their first twelve days. It was
+live on the site in four artifacts.
+
+Row accounting could never catch this: every row landed, on the wrong date.
+The repair is a pure month/day swap, exactly scoped — within that sheet,
+serial rows decode to day <= 12 and string rows parse to day >= 13, so the
+predicate cannot touch a healthy row. Verified against the workbook with an
+independent parser, and the post-repair boundary residue (467 rows moving to
+Sep 30) is exactly the UTC->local shift.
+
+Two permanent gates came out of it, because the class matters more than the
+instance:
+
+- **Containment**: every file's trips must live inside the period its name
+  declares (2% tolerance for the timezone boundary; the defect was 37%).
+  Swept the whole archive: 185 monthly and 34 annual files, zero violations
+  post-repair. This is the check that catches date corruption that row
+  accounting is structurally blind to.
+- **Coercion signature**: any file whose Excel-serial dates never exceed
+  day 12 fails the suite. A real month reaches day 28.
+
+Also from the audit: the literal string 'NULL' is no longer accepted as a
+station key (it minted a station with 7,947 trips); a partial system can no
+longer open a *comparable* metric, and `check-metrics` now fails if a partial
+system's rows appear under an artifact's `series` key — both holes the 020
+review demonstrated live; months where most trips carry no label are withheld
+(Vancouver 2025-05 was measured on eleven days and nothing said so); and the
+quality report is order-deterministic.
 
 ## Next
 

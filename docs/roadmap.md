@@ -188,10 +188,12 @@ monthly-refresh runbook.
   Where the snapshot has no usable position (`Smith / Peel` at -1,-1) the full
   published names must match exactly instead.
   **Remaining:** one pair, `Drummond / Ste-Catherine`, 0 m apart.
-- **A literal `"NULL"` station name is treated as a station.**
-  `tor-bikeshare:NULL` carries 7,947 events and counts toward Toronto's
-  identity total; `norm_key`/`norm_name` in `30_conform.sql` do not null out
-  the four-character string. Pre-existing.
+- ~~A literal `"NULL"` station name is treated as a station~~ — **fixed
+  2026-07-30** by the audit. `norm_key`/`norm_name` null the exact token; the
+  identity is gone and its 7,947 trips carry a NULL station rather than a
+  phantom one. Seven *positioned-id* stations whose latest trip label is the
+  literal 'NULL' remain in `dim_station` under that name; none has
+  coordinates, so none ships.
 - **The name bridge can pick a mislabelled larger station.**
   `tor-bikeshare:name:hanlan's point ferry dock` (22 events) resolves to
   station 8030, which is Centre Island — because 8030's own last-writer-wins

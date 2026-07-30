@@ -408,31 +408,49 @@ export default function App() {
               {SYSTEM_ORDER.map((id) => {
                 const gap = labelLostShape(id);
                 if (!gap) return null;
+                const isDecay = gap.bases.includes("labelling era unreliable");
                 return (
                   <span key={id}>
                     <strong className="font-medium text-foreground">
-                      {cityOf(id)} has a gap from {monthLabel(gap.from)} to{" "}
-                      {monthLabel(gap.to)}.
+                      {cityOf(id)} has a gap{" "}
+                      {gap.from === gap.to ? (
+                        <>at {monthLabel(gap.from)}</>
+                      ) : (
+                        <>
+                          from {monthLabel(gap.from)} to {monthLabel(gap.to)}
+                        </>
+                      )}
+                      .
                     </strong>{" "}
-                    Across those {gap.months} months the source&rsquo;s member
-                    label decays to nothing
-                    {gap.peakLabelled && gap.lastLabelled && gap.firstBlank ? (
+                    {isDecay ? (
                       <>
-                        {" "}
-                        — {full(gap.peakLabelled.member)} member trips in{" "}
-                        {monthLabel(gap.peakLabelled.month)},{" "}
-                        {full(gap.lastLabelled.member)} by{" "}
-                        {monthLabel(gap.lastLabelled.month)}, and none at all
-                        from {monthLabel(gap.firstBlank.month)}
+                        The source&rsquo;s member label is corrupted across
+                        those {gap.months} months — its daily member share
+                        steps at file boundaries and decays file by file
+                        {gap.peakLabelled && gap.lastLabelled && gap.firstBlank ? (
+                          <>
+                            , from {full(gap.peakLabelled.member)} member trips
+                            in {monthLabel(gap.peakLabelled.month)} to{" "}
+                            {full(gap.lastLabelled.member)} by{" "}
+                            {monthLabel(gap.lastLabelled.month)} and none at
+                            all from {monthLabel(gap.firstBlank.month)}
+                          </>
+                        ) : null}{" "}
+                        — while ridership is at its yearly peak. Members do not
+                        vanish; the labelling did. The window is withheld
+                        rather than drawn as a decline that never happened.
                       </>
-                    ) : null}{" "}
-                    — while ridership is at its yearly peak. Members do not
-                    vanish; the labelling did. The periods either side use a
-                    different, stable vocabulary and agree with each other, so
-                    the whole affected era is withheld rather than drawn as a
-                    multi-year decline that never happened. {full(gap.trips)}{" "}
-                    trips are still counted everywhere else on this site; only
-                    their membership is unknown.{" "}
+                    ) : (
+                      <>
+                        The source published most of{" "}
+                        {gap.months === 1 ? "that month's" : "those months'"}{" "}
+                        trips without a membership field, so a share would be
+                        measured on a fraction of the month and read as if it
+                        covered all of it.
+                      </>
+                    )}{" "}
+                    {full(gap.trips)} trips are still counted everywhere else
+                    on this site; only their membership is unknown.{" "}
                   </span>
                 );
               })}

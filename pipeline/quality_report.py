@@ -162,7 +162,7 @@ def main() -> int:
                     LEFT JOIN dim_membership m
                       ON m.system_id = f.system_id AND m.membership_raw = f.membership_raw
                     WHERE f.membership_raw IS NOT NULL
-                    GROUP BY 1, 2, 3 ORDER BY 1, 4 DESC""")])
+                    GROUP BY 1, 2, 3 ORDER BY 1, 4 DESC, 2""")])
 
     if q("SELECT count(*) FROM information_schema.tables "
          "WHERE table_name = 'weather_daily'")[0][0]:

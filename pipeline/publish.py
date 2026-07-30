@@ -52,8 +52,16 @@ def partial_systems(registry: dict, metric: str) -> list[str]:
     break, so it is neither supported (a column beside the others would imply a
     comparison that stops five years early) nor unsupported ("not published"
     would be false for 35 million labelled trips).
+
+    A partial system is admitted ONLY into a metric the registry marks not
+    comparable. The audit demonstrated that without this condition, adding
+    `partial_until` to any system under `trips` would have opened a fully
+    comparable cross-city series to a fragment of one — the exact reading the
+    registry exists to prevent.
     """
     entry = registry["metrics"][metric]
+    if entry.get("comparable"):
+        return []
     return sorted(k for k, v in entry["systems"].items()
                   if not v.get("supported") and v.get("partial_until"))
 
@@ -394,43 +402,52 @@ def build(con, registry: dict) -> dict[str, object]:
             f"vanish from every share: {[(r['system_id'], r['membership_raw']) for r in unmapped[:5]]}"
         )
 
-    # Bike Share Toronto's member label dies inside one labelling era.
+    # Bike Share Toronto's member label is corrupted in its published files —
+    # but the corruption is FILE-SCOPED, and it begins at 2021-10, not at the
+    # 2018 vocabulary change this code first assumed. Daily member share steps
+    # at file boundaries and nowhere else:
     #
-    # The files partition cleanly by vocabulary, and the boundaries are a fact
-    # of the data rather than a judgement:
+    #   2021-09-30  68.2%  ->  2021-10-01  37.8%     hard step down
+    #   2021-11-30  35.4%  ->  2021-12-01  78.9%     hard recovery
+    #   2022-06-30  19.2%  ->  2022-07-01  35.5%     hard step
+    #   ... decaying file by file until the label is absent entirely from
+    #   2023-09, while ridership is at its yearly peak.
     #
-    #   2016-01..2017-12   {Member, Casual}                74.6%, 78.0% member
-    #   2018-01..2023-12   {Annual Member, Casual Member}  81.8% -> 6.4%
-    #   2024-01..2026-03   {Member, Casual}                77.2%, 72.6%, 88.9%
+    # 2018-2019 are indistinguishable from the clean eras by two independent
+    # tests: monthly share tracks 2017 within a couple of points across the
+    # whole seasonal cycle, and the behavioural discriminant (member minus
+    # casual commute-hour rate) runs 12-20pp in 2016-2019 exactly as it does
+    # before and after, collapsing only from 2022. An earlier version of this
+    # exclusion used the vocabulary change at 2018-01 as its boundary and
+    # withheld 45 extra months — 10,092,788 trips showing no sign of the
+    # defect. The vocabulary was a tidy boundary, not the true one; the file
+    # steps are the true one. Recorded in docs/decisions.md.
     #
-    # Inside the middle era "Annual Member" decays to nothing — 50,961 trips in
-    # 2023-03, 12,226 in July, 138 in August, absent from September — while
-    # ridership is at its yearly peak. Annual members do not vanish. Verified
-    # against the source CSVs (same header, same column, values decaying), and
-    # against CKAN: the 2023 resource was last modified 2024-01-09 and has
-    # never been corrected, there is no summary dataset carrying the counts,
-    # and the package readme documents only the 2014-2016 schemas.
+    # From 2021-10 the era is a patchwork (2021-12 alone looks clean inside
+    # it), so the withheld window is the contiguous span from the first
+    # corrupted file to the last: 2021-10..2023-12.
     #
-    # The era either side of it uses a stable vocabulary and both agree at
-    # ~75-80%, which is also where the broken era STARTS. So the era begins
-    # sound and ends impossible, and nothing in the data says when it stopped
-    # being trustworthy. The whole era is therefore excluded: dropping data we
-    # cannot vouch for beats keeping data we cannot validate, and the boundary
-    # is the vocabulary rather than a month somebody picked.
-    #
-    # LIFT THIS if Toronto ever republishes 2018-2023 with the label intact.
-    # See docs/decisions.md and docs/features/020-membership-mix.md.
+    # LIFT THIS if Toronto ever republishes those months with labels intact.
     UNRELIABLE_LABEL_ERAS = {
-        "tor-bikeshare": [("2018-01", "2023-12")],
+        "tor-bikeshare": [("2021-10", "2023-12")],
     }
 
     def usable(row: dict) -> bool:
         for lo, hi in UNRELIABLE_LABEL_ERAS.get(row["system_id"], []):
             if lo <= row["month"] <= hi:
                 return False
-        # Also structural, and kept for any system: a month publishing only one
-        # group has stopped publishing the distinction at all.
-        return row["member"] > 0 and row["casual"] > 0
+        # Structural, any system: a month publishing only one group has
+        # stopped publishing the distinction at all.
+        if not (row["member"] > 0 and row["casual"] > 0):
+            return False
+        # Also structural: a month where MOST trips carry no label is not the
+        # same measurement as its neighbours. Vancouver 2025-05 is unlabelled
+        # for its first twenty days and labelled for its last eleven; the
+        # published share would be computed on a third of the month and
+        # nothing on the chart would say so.
+        if row["unlabelled"] > row["member"] + row["casual"]:
+            return False
+        return True
 
     supported = supported_systems(registry, "membership_mix")
     partial = partial_systems(registry, "membership_mix")
@@ -449,6 +466,8 @@ def build(con, registry: dict) -> dict[str, object]:
          "basis": ("labelling era unreliable"
                    if any(lo <= r["month"] <= hi
                           for lo, hi in UNRELIABLE_LABEL_ERAS.get(r["system_id"], []))
+                   else "mostly unlabelled"
+                   if r["unlabelled"] > r["member"] + r["casual"]
                    else "no distinction published")}
         for r in all_supported + all_partial if not usable(r)
     ]

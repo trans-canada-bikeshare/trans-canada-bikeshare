@@ -244,6 +244,9 @@ export function labelLostShape(id: SystemId) {
     to: lost[lost.length - 1].month,
     months: lost.length,
     trips: lost.reduce((n, r) => n + r.trips, 0),
+    /** why each month was withheld — the copy must not narrate one system's
+     *  failure mode under another system's name */
+    bases: [...new Set(lost.map((r) => r.basis))],
     /** the busiest month the label still appeared in, and how thin it was */
     peakLabelled: withLabel.length
       ? withLabel.reduce((a, b) => (a.member > b.member ? a : b))

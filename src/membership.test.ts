@@ -93,12 +93,16 @@ describe("membership artifact", () => {
   it("derives a withheld window's shape from the artifact", () => {
     const gap = labelLostShape("tor-bikeshare");
     expect(gap, "Toronto should have a withheld window").not.toBeNull();
-    expect(gap!.from).toBe("2018-01");
+    // 2021-10, not 2018-01: the audit found the corruption is file-scoped and
+    // steps at file boundaries, and the first vocabulary-based boundary
+    // withheld 45 extra months of clean data.
+    expect(gap!.from).toBe("2021-10");
     expect(gap!.to).toBe("2023-12");
-    expect(gap!.months).toBe(72);
+    expect(gap!.months).toBe(27);
+    expect(gap!.bases).toEqual(["labelling era unreliable"]);
     // The withheld trips are still counted in every other series. A wrong
     // figure here is the row-accounting claim being wrong.
-    expect(gap!.trips).toBe(21_182_323);
+    expect(gap!.trips).toBe(11_089_535);
     // The decay the copy describes: a healthy month, a dying one, then none.
     expect(gap!.peakLabelled!.member).toBeGreaterThan(100_000);
     expect(gap!.lastLabelled!.member).toBeLessThan(1_000);
@@ -107,7 +111,13 @@ describe("membership artifact", () => {
   });
 
   it("returns null for a system with nothing withheld", () => {
-    expect(labelLostShape("van-mobi")).toBeNull();
+    // Montreal's post-2021 months never reach label_lost — partial_until
+    // covers them. Vancouver DOES have one withheld month now (2025-05,
+    // mostly unlabelled), so it is no longer the null case.
+    expect(labelLostShape("mtl-bixi")).toBeNull();
+    const van = labelLostShape("van-mobi");
+    expect(van!.months).toBe(1);
+    expect(van!.bases).toEqual(["mostly unlabelled"]);
   });
 
   it("publishes a label count for every system, and it is not a round number someone typed", () => {

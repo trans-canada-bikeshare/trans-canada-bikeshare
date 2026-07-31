@@ -53,6 +53,39 @@ the new contract tests).
   (either path) and `seasonality.json` if the unified completeness policy
   moves any month; every change enumerated at review.
 
+  > **Corrected at build, 2026-07-31: NO committed artifact changes.**
+  > Both premises above resolved to nothing: under Path A the artifact's
+  > `fit_basis` was already truthful (spec 028 fixed it), so the rename is
+  > site-side strings only; and the completeness unification moved **zero
+  > months** (enumeration below). The branch's artifact diff is empty and
+  > `make check-artifacts` passes without regeneration. New files are the
+  > 15 schema contracts and the policy declaration — code, not artifacts.
+
+## The unification enumeration (acceptance criterion 3)
+
+Zero months moved, in zero artifacts — verified, not assumed:
+
+- The month rule (a system-month with ≤3 observed days, or a trailing
+  month the source has not finished publishing) excludes exactly three
+  system-months archive-wide: `mtl-bixi 2022-12` (1 day, 3 trips),
+  `tor-bikeshare 2016-06` (1 day, 372 trips), `van-mobi 2026-07` (1 day,
+  26 trips).
+- **seasonality** previously used its own `HAVING count(DISTINCT
+  date_key) > 3`; over every system-month ≥2017 the two rules select
+  identical sets — 0 disagreements (warehouse-verified).
+- **stations_yearly** previously had no rule; applying the month rule
+  changes nothing because every station appearing in a stub month recurs
+  elsewhere in the same year.
+- **duration, flows, stations, stations_meta, meta, exclusions** are
+  declared `whole_archive` with stated reasons (a median's published
+  basis must equal the population it was taken over; flows' numerator
+  and denominator must share a population; dot size comes from
+  `dim_station.lifetime_events`) — deliberate, reasoned non-application
+  rather than blind harmonization. Measured had they been filtered:
+  duration's basis shrinks by 3/372/25 with no quartile moving; no
+  top-8 flow pair changes; 105 stations would move by 1–6 lifetime
+  events.
+
 ## Changes
 
 1. Execute the owner's path A or B for the forecast section.

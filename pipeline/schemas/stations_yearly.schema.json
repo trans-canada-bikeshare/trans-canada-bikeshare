@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stations_yearly.schema.json",
+  "title": "stations_yearly",
+  "description": "Contract for src/data/generated/stations_yearly.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "system_id": {
+        "type": "string",
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "year": {
+        "type": "integer",
+        "minimum": 2010,
+        "maximum": 2100
+      },
+      "stations": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "required": [
+      "stations",
+      "system_id",
+      "year"
+    ]
+  }
+}

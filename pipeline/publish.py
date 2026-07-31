@@ -3,7 +3,7 @@
 No per-trip data ever reaches the browser. Everything here is an aggregate, and
 the whole payload is held under a size budget that the build enforces.
 
-Two rules this module exists to keep:
+Four rules this module exists to keep:
 
   1. Every series states the window it actually covers. The site's copy is
      derived from these files, so a partially-acquired archive produces honest
@@ -11,6 +11,13 @@ Two rules this module exists to keep:
   2. A cross-city series may only contain systems the metric registry marks as
      supported. Publishing one that does not is an error here, not a judgement
      call made later by whoever is reading the chart.
+  3. Every threshold that decides which rows a reader sees comes from
+     `pipeline/completeness.py`, where it is declared with the reason it is
+     that number. This file writes no threshold of its own — spec 030, after
+     the same month rule was found written five times in four different ways.
+  4. Every artifact is validated against its JSON Schema in
+     `pipeline/schemas/` before it is written, so a shape the site does not
+     expect fails here rather than in a browser.
 
 Usage: python pipeline/publish.py [--db PATH] [--out DIR]
 """
@@ -26,7 +33,9 @@ from pathlib import Path
 
 import duckdb
 
+import artifact_schemas
 import common
+import completeness
 import forecast
 
 REGISTRY = common.MAPPINGS_DIR / "metric_support.json"
@@ -148,60 +157,23 @@ def build(con, registry: dict) -> dict[str, object]:
     }
 
     # --- month completeness -------------------------------------------------
-    # A month observed on 3 days of 31 is not a low month; it is a month we do
-    # not have. Publishing it as a data point produced two lies at once: the
-    # trailing partial month made Vancouver's "latest" read 26 trips against a
-    # 144,105 prior month, and Vancouver's 2022-10 (37 trips, the download that
-    # 500s) rendered as a ridership collapse under a lede promising that gaps
-    # are drawn as gaps. Incomplete months are now excluded from every series
-    # and listed in the artifact so the site can say which and why.
-    incomplete = rows(con, f"""
-      SELECT system_id, strftime(trip_month, '%Y-%m') AS month,
-             count(DISTINCT date_key) AS days_observed,
-             day(last_day(trip_month)) AS days_in_month,
-             count(*) AS trips
-      FROM fact_trips WHERE {TRUSTED}
-      GROUP BY 1, 2, trip_month
-      -- Two distinct things look alike here and must not be conflated:
-      --   a month we do not HAVE          -> exclude
-      --   a month the system only OPERATED part of -> keep, it is real
-      -- BIXI opens mid-April and closed mid-November for most of its history,
-      -- so ~16 observed days in those months is genuine ridership. A blanket
-      -- coverage threshold deleted it and punched fake gaps in the chart.
-      -- Exclude only a stub of a few days, or a trailing month the source has
-      -- not finished publishing.
-      HAVING count(DISTINCT date_key) <= 3
-          OR (trip_month = (SELECT max(f2.trip_month) FROM fact_trips f2
-                            WHERE f2.system_id = fact_trips.system_id)
-              AND count(DISTINCT date_key) < day(last_day(trip_month)))
-      ORDER BY 1, 2
-    """)
+    # The rule, its thresholds and its reason live in pipeline/completeness.py,
+    # which also records what every OTHER artifact does about incomplete months
+    # and why. This file consumes that declaration; it does not restate it.
+    # Before spec 030 the rule was written here twice, in the seasonality CTE a
+    # third time with a different boundary, and a fourth time in forecast.py —
+    # and three artifacts applied no rule at all with nothing saying so.
+    incomplete = rows(con, completeness.incomplete_months_sql(TRUSTED))
     art["incomplete_months"] = incomplete
     skip = {(r["system_id"], r["month"]) for r in incomplete}
+    # Sorted so the parameter list is stable and the artifacts byte-reproduce.
+    skip_keys = completeness.month_keys(incomplete)
 
     def complete(series: list[dict]) -> list[dict]:
-        return [r for r in series if (r["system_id"], r["month"]) not in skip]
-
-    # The same exclusion, pushed into SQL. Series aggregated by something other
-    # than a month cannot filter afterwards: a day inside a three-day stub is
-    # still a day, and it lands in a yearly mean as if it were a normal one.
-    # Sorted so the parameter list is stable and the artifacts byte-reproduce.
-    skip_keys = sorted(f"{s}|{m}" for s, m in skip)
+        return [r for r in series if completeness.is_complete(r, skip)]
 
     def complete_months(alias: str = "") -> str:
-        """A SQL predicate dropping the months `incomplete_months` lists.
-
-        Takes a table alias because one caller joins fact_trips against another
-        relation carrying `system_id`, where an unqualified reference is
-        ambiguous rather than merely untidy.
-        """
-        if not skip_keys:
-            return ""
-        p = f"{alias}." if alias else ""
-        return (
-            f" AND ({p}system_id || '|' || strftime({p}trip_month, '%Y-%m')) NOT IN ("
-            + ",".join("?" * len(skip_keys)) + ")"
-        )
+        return completeness.excluded_months_predicate(skip_keys, alias)
 
     # --- trips per month, all three ----------------------------------------
     monthly = complete(rows(con, f"""
@@ -216,28 +188,41 @@ def build(con, registry: dict) -> dict[str, object]:
     # Seasonality averages MONTHS, so a one-day stub dragged Montreal's July
     # mean down 10% and handed the "peak riding month" title to August. Only
     # complete months count, and only whole ones inside the common window.
+    #
+    # This query used to carry its own `HAVING count(DISTINCT date_key) > 3`.
+    # It agreed with the shared rule on the stub clause and was silent on the
+    # trailing-month one, so a system whose last month arrived half-published
+    # would have appeared in the seasonal mean and in no other series. On the
+    # archive of 2026-07-31 the two rules select the same months, so switching
+    # to the declaration moves nothing — which is the point at which it is
+    # cheap to switch.
     seasonal = rows(con, f"""
       WITH months AS (
         SELECT system_id, trip_month, month(trip_month) AS moy,
                count(*) AS trips, count(DISTINCT date_key) AS days
-        FROM fact_trips WHERE trip_year >= ? AND {TRUSTED}
+        FROM fact_trips
+        WHERE trip_year >= ? AND {TRUSTED} {complete_months()}
         GROUP BY 1, 2, 3
-        HAVING count(DISTINCT date_key) > 3
       )
       SELECT system_id, moy AS month_of_year,
              CAST(round(avg(trips)) AS BIGINT) AS mean_trips,
              count(*) AS months_averaged
       FROM months GROUP BY 1, 2 ORDER BY 1, 2
-    """, [first])
+    """, [first, *skip_keys])
     guard(registry, "seasonality", sorted({r["system_id"] for r in seasonal}))
     art["seasonality"] = {"first_year": first, "series": seasonal}
 
     # --- active stations over time -----------------------------------------
+    # Also gained the month rule in spec 030, having had none. It moves no row
+    # — every station seen in one of the three stub months is seen again in the
+    # same year — but a year's network size may not rest on trips the site says
+    # it excluded.
     stations = rows(con, f"""
       SELECT system_id, trip_year AS year,
              count(DISTINCT departure_station_id) AS stations
-      FROM fact_trips WHERE {TRUSTED} GROUP BY 1, 2 ORDER BY 1, 2
-    """)
+      FROM fact_trips WHERE {TRUSTED} {complete_months()}
+      GROUP BY 1, 2 ORDER BY 1, 2
+    """, [*skip_keys])
     guard(registry, "active_stations", sorted({r["system_id"] for r in stations}))
     art["stations_yearly"] = stations
 
@@ -254,7 +239,8 @@ def build(con, registry: dict) -> dict[str, object]:
       GROUP BY 1, 2
       -- A month where 15 of 39,000 trips carry a bike-type field cannot state
       -- an e-bike share. Require the classified rows to be most of the month.
-      HAVING count(*) FILTER (is_ebike IS NOT NULL) >= 0.5 * count(*)
+      HAVING count(*) FILTER (is_ebike IS NOT NULL)
+             >= {completeness.EBIKE_MIN_CLASSIFIED_SHARE} * count(*)
       ORDER BY 1, 2
     """, ebike_systems)
     ebike = complete(ebike)
@@ -277,7 +263,9 @@ def build(con, registry: dict) -> dict[str, object]:
              CAST(quantile_cont(duration_s, 0.75) AS INTEGER)         AS p75_s,
              count(*)                                                 AS basis_trips
       FROM fact_trips
-      WHERE return_ts IS NOT NULL AND duration_s BETWEEN 1 AND 86400
+      WHERE return_ts IS NOT NULL
+        AND duration_s BETWEEN {completeness.DURATION_MIN_SECONDS}
+                           AND {completeness.DURATION_MAX_SECONDS}
         AND {TRUSTED}
       GROUP BY 1 ORDER BY 1
     """)
@@ -291,8 +279,9 @@ def build(con, registry: dict) -> dict[str, object]:
     # One threshold, referenced everywhere. It was previously typed three
     # times — the filter, the published constant the page renders, and the
     # omission count — so changing one would have left the page stating a
-    # number that no longer matched the stations it was describing.
-    MIN_EVENTS = 100
+    # number that no longer matched the stations it was describing. It now
+    # comes from the declaration, one level further out, for the same reason.
+    MIN_EVENTS = completeness.STATION_MIN_LIFETIME_EVENTS
     station_rows = rows(con, f"""
       SELECT system_id, station_id, station_name, lat, lon,
              lifetime_events, is_active
@@ -438,35 +427,13 @@ def build(con, registry: dict) -> dict[str, object]:
             f"vanish from every share: {[(r['system_id'], r['membership_raw']) for r in unmapped[:5]]}"
         )
 
-    # Bike Share Toronto's member label is corrupted in its published files —
-    # but the corruption is FILE-SCOPED, and it begins at 2021-10, not at the
-    # 2018 vocabulary change this code first assumed. Daily member share steps
-    # at file boundaries and nowhere else:
-    #
-    #   2021-09-30  68.2%  ->  2021-10-01  37.8%     hard step down
-    #   2021-11-30  35.4%  ->  2021-12-01  78.9%     hard recovery
-    #   2022-06-30  19.2%  ->  2022-07-01  35.5%     hard step
-    #   ... decaying file by file until the label is absent entirely from
-    #   2023-09, while ridership is at its yearly peak.
-    #
-    # 2018-2019 are indistinguishable from the clean eras by two independent
-    # tests: monthly share tracks 2017 within a couple of points across the
-    # whole seasonal cycle, and the behavioural discriminant (member minus
-    # casual commute-hour rate) runs 12-20pp in 2016-2019 exactly as it does
-    # before and after, collapsing only from 2022. An earlier version of this
-    # exclusion used the vocabulary change at 2018-01 as its boundary and
-    # withheld 45 extra months — 10,092,788 trips showing no sign of the
-    # defect. The vocabulary was a tidy boundary, not the true one; the file
-    # steps are the true one. Recorded in docs/decisions.md.
-    #
-    # From 2021-10 the era is a patchwork (2021-12 alone looks clean inside
-    # it), so the withheld window is the contiguous span from the first
-    # corrupted file to the last: 2021-10..2023-12.
-    #
-    # LIFT THIS if Toronto ever republishes those months with labels intact.
-    UNRELIABLE_LABEL_ERAS = {
-        "tor-bikeshare": [("2021-10", "2023-12")],
-    }
+    # Bike Share Toronto's member label is corrupted in its published files,
+    # and the withheld window is a declaration rather than a judgement made
+    # here: completeness.MEMBERSHIP_UNRELIABLE_LABEL_ERAS carries the eras, the
+    # file-boundary evidence that fixed their edges, and the condition for
+    # lifting them.
+    UNRELIABLE_LABEL_ERAS = completeness.MEMBERSHIP_UNRELIABLE_LABEL_ERAS
+    MIN_GROUP = completeness.MEMBERSHIP_MIN_GROUP_TRIPS
 
     def usable(row: dict) -> bool:
         for lo, hi in UNRELIABLE_LABEL_ERAS.get(row["system_id"], []):
@@ -474,7 +441,7 @@ def build(con, registry: dict) -> dict[str, object]:
                 return False
         # Structural, any system: a month publishing only one group has
         # stopped publishing the distinction at all.
-        if not (row["member"] > 0 and row["casual"] > 0):
+        if not (row["member"] > MIN_GROUP and row["casual"] > MIN_GROUP):
             return False
         # Also structural: a month where MOST trips carry no label is not the
         # same measurement as its neighbours. Vancouver 2025-05 is unlabelled
@@ -551,7 +518,14 @@ def build(con, registry: dict) -> dict[str, object]:
     # the maps and may never arrive. An earlier version shipped 250 bare-key
     # pairs — 38 KB no surface could render — and then 20 while rendering 5,
     # so "ship what is drawn" was still not true. Eight ship and eight render.
-    TOP_PAIRS = 8
+    TOP_PAIRS = completeness.FLOWS_TOP_PAIRS_SHOWN
+    # The tiers whose shares ship, and their column names, from one declared
+    # tuple: a tier renamed in the SELECT list but not in the artifact would
+    # publish a share under the wrong label.
+    tiers = "".join(
+        f"             sum(n) FILTER (rk <= {t}) AS top_{t},\n"
+        for t in completeness.FLOWS_CONCENTRATION_TIERS
+    )
     pair_stats = rows(con, f"""
       WITH p AS (
         SELECT system_id, departure_station_id AS a, return_station_id AS b,
@@ -567,10 +541,7 @@ def build(con, registry: dict) -> dict[str, object]:
       SELECT system_id,
              count(*)                                   AS pairs_total,
              sum(n)                                     AS linked_trips,
-             sum(n) FILTER (rk <= 10)                   AS top_10,
-             sum(n) FILTER (rk <= 100)                  AS top_100,
-             sum(n) FILTER (rk <= 1000)                 AS top_1000,
-             sum(n) FILTER (rk <= {TOP_PAIRS})          AS top_shown
+{tiers}             sum(n) FILTER (rk <= {TOP_PAIRS})          AS top_shown
       FROM ranked GROUP BY 1 ORDER BY 1
     """)
     guard(registry, "station_flows", sorted({r["system_id"] for r in pair_stats}))
@@ -628,9 +599,10 @@ def build(con, registry: dict) -> dict[str, object]:
                 "pairs_total": s["pairs_total"],
                 "linked_trips": s["linked_trips"],
                 "shown_trips": s["top_shown"],
-                "top_10": s["top_10"],
-                "top_100": s["top_100"],
-                "top_1000": s["top_1000"],
+                # Same declared tuple as the query, so a tier can only be added
+                # or removed in both places at once.
+                **{f"top_{t}": s[f"top_{t}"]
+                   for t in completeness.FLOWS_CONCENTRATION_TIERS},
                 "round_trips": round_trips[s["system_id"]]["round_trips"],
                 "no_return_station": round_trips[s["system_id"]]["no_return_station"],
                 "trips": round_trips[s["system_id"]]["trips"],
@@ -824,7 +796,7 @@ def build(con, registry: dict) -> dict[str, object]:
     # a partly-identified year silently skips the trips it cannot see, so a
     # bike's "next departure" is whichever later trip happens to carry an id,
     # and the interval between them is not dwell.
-    BIKE_ID_MIN_COVERAGE = 0.99
+    BIKE_ID_MIN_COVERAGE = completeness.DWELL_MIN_BIKE_ID_COVERAGE
     coverage = rows(con, f"""
       SELECT system_id, trip_year AS year,
              count(*)::BIGINT           AS trips,
@@ -959,10 +931,21 @@ def build(con, registry: dict) -> dict[str, object]:
              count(*)                                   AS total
       FROM fact_trips GROUP BY 1 ORDER BY 1
     """)
+
+    # Every artifact this run built has a declared completeness policy, and
+    # every declared policy governs an artifact that still ships. A new
+    # artifact stops the run here rather than shipping with no stated rule
+    # about incomplete months — which is how three of them shipped before.
+    completeness.validate(list(art))
     return art
 
 
 def write(art: dict[str, object], out: Path) -> int:
+    # Contract first, bytes second. Every artifact is checked against its
+    # schema BEFORE any file is written, so a shape drift cannot leave the
+    # directory half-updated — eight fresh files beside seven stale ones is a
+    # state no gate here can describe, and the site would serve it happily.
+    artifact_schemas.validate_all(art)
     out.mkdir(parents=True, exist_ok=True)
     total = 0
     for name, payload in art.items():

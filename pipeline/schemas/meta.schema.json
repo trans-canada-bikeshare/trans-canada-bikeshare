@@ -1,0 +1,93 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "meta.schema.json",
+  "title": "meta",
+  "description": "The window every other artifact is read against, and the archive's own headline totals.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "generated_at": {
+      "type": "string",
+      "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}"
+    },
+    "common_window_first_year": {
+      "type": "string",
+      "pattern": "^[0-9]{4}$"
+    },
+    "systems": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "city": {
+            "type": "string",
+            "minLength": 1
+          },
+          "system": {
+            "type": "string",
+            "minLength": 1
+          },
+          "trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "first_trip": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "last_trip": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          },
+          "station_identities_seen": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "flagged": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "active_stations": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "stations_note": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "active_stations",
+          "city",
+          "first_trip",
+          "flagged",
+          "last_trip",
+          "station_identities_seen",
+          "stations_note",
+          "system",
+          "system_id",
+          "trips"
+        ]
+      }
+    },
+    "window_note": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "required": [
+    "common_window_first_year",
+    "generated_at",
+    "systems",
+    "window_note"
+  ]
+}

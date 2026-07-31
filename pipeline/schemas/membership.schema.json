@@ -1,0 +1,280 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "membership.schema.json",
+  "title": "membership",
+  "description": "Contract for src/data/generated/membership.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "member": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "casual": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "other": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unlabelled": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trips": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "casual",
+          "member",
+          "month",
+          "other",
+          "system_id",
+          "trips",
+          "unlabelled"
+        ]
+      }
+    },
+    "partial": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "member": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "casual": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "other": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "unlabelled": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trips": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "casual",
+          "member",
+          "month",
+          "other",
+          "system_id",
+          "trips",
+          "unlabelled"
+        ]
+      },
+      "description": "A system publishing the label for part of its range. Its own panel, never a third column."
+    },
+    "partial_note": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "patternProperties": {
+        "^(mtl-bixi|tor-bikeshare|van-mobi)$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "supported": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "display": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "qualified": {
+              "type": "boolean"
+            },
+            "partial_until": {
+              "type": "string"
+            },
+            "identity": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "supported"
+          ],
+          "description": "A metric_support.json system entry, copied verbatim so the page renders the registry's own words rather than a paraphrase."
+        }
+      }
+    },
+    "unsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "patternProperties": {
+        "^(mtl-bixi|tor-bikeshare|van-mobi)$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "supported": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "display": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "qualified": {
+              "type": "boolean"
+            },
+            "partial_until": {
+              "type": "string"
+            },
+            "identity": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "supported"
+          ],
+          "description": "A metric_support.json system entry, copied verbatim so the page renders the registry's own words rather than a paraphrase."
+        }
+      }
+    },
+    "label_lost": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "member": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "casual": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "labelling era unreliable",
+              "mostly unlabelled",
+              "no distinction published"
+            ]
+          }
+        },
+        "required": [
+          "basis",
+          "casual",
+          "member",
+          "month",
+          "system_id",
+          "trips"
+        ]
+      },
+      "description": "Months the source published trips for and stopped labelling, with the rule that withheld each one."
+    },
+    "label_counts": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "patternProperties": {
+        "^(mtl-bixi|tor-bikeshare|van-mobi)$": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    }
+  },
+  "required": [
+    "label_counts",
+    "label_lost",
+    "partial",
+    "partial_note",
+    "series",
+    "unsupported"
+  ]
+}

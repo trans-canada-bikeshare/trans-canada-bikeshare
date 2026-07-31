@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "seasonality.schema.json",
+  "title": "seasonality",
+  "description": "Contract for src/data/generated/seasonality.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "first_year": {
+      "type": "integer",
+      "minimum": 2010,
+      "maximum": 2100
+    },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "month_of_year": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "mean_trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "months_averaged": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "mean_trips",
+          "month_of_year",
+          "months_averaged",
+          "system_id"
+        ]
+      }
+    }
+  },
+  "required": [
+    "first_year",
+    "series"
+  ]
+}

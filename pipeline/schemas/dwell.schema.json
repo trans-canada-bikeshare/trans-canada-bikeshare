@@ -1,0 +1,209 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "dwell.schema.json",
+  "title": "dwell",
+  "description": "Contract for src/data/generated/dwell.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "min_bike_id_coverage": {
+      "type": "number",
+      "exclusiveMinimum": 0,
+      "maximum": 1
+    },
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "era_first_year": {
+            "type": "integer",
+            "minimum": 2010,
+            "maximum": 2100
+          },
+          "era_last_year": {
+            "type": "integer",
+            "minimum": 2010,
+            "maximum": 2100
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 2010,
+            "maximum": 2100
+          },
+          "months": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "intervals": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "relocated": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "out_of_order": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "on_hour_grid": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "p25_s": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "median_s": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "p75_s": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "era_first_year",
+          "era_last_year",
+          "intervals",
+          "median_s",
+          "months",
+          "on_hour_grid",
+          "out_of_order",
+          "p25_s",
+          "p75_s",
+          "relocated",
+          "system_id",
+          "year"
+        ]
+      }
+    },
+    "withheld": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 2010,
+            "maximum": 2100
+          },
+          "trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "with_bike_id": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "basis": {
+            "type": "string",
+            "enum": [
+              "no bike identifier published",
+              "bike identifier incomplete"
+            ]
+          }
+        },
+        "required": [
+          "basis",
+          "system_id",
+          "trips",
+          "with_bike_id",
+          "year"
+        ]
+      }
+    },
+    "unsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "patternProperties": {
+        "^(mtl-bixi|tor-bikeshare|van-mobi)$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "supported": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "display": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "qualified": {
+              "type": "boolean"
+            },
+            "partial_until": {
+              "type": "string"
+            },
+            "identity": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "supported"
+          ],
+          "description": "A metric_support.json system entry, copied verbatim so the page renders the registry's own words rather than a paraphrase."
+        }
+      }
+    },
+    "notes": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "patternProperties": {
+        "^(mtl-bixi|tor-bikeshare|van-mobi)$": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    }
+  },
+  "required": [
+    "min_bike_id_coverage",
+    "notes",
+    "series",
+    "unsupported",
+    "withheld"
+  ]
+}

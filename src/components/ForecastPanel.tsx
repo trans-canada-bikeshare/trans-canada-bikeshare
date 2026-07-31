@@ -177,8 +177,10 @@ function SystemCard({
 }
 
 /**
- * The forecast surface: one set of dials, three models, three answers — or a
- * refusal where a model has never seen the day being asked for.
+ * The weather-scenario surface: one set of dials, three models, three answers —
+ * or a refusal where a model has never seen the day being asked for. The
+ * component, the artifact and the registry key keep the older `forecast` name;
+ * only the label the reader sees was renamed (spec 030).
  *
  * Everything rendered here comes out of `forecast.json`. The dial bounds, the
  * starting values, the month the section opens on, the fit statistics, the

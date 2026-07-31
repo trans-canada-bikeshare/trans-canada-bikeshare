@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stations.schema.json",
+  "title": "stations",
+  "description": "Contract for src/data/generated/stations.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "stations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "s": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "i": {
+            "type": "string",
+            "minLength": 1
+          },
+          "n": {
+            "type": "string",
+            "minLength": 1
+          },
+          "y": {
+            "type": "number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "x": {
+            "type": "number",
+            "minimum": -180,
+            "maximum": 180
+          },
+          "t": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "a": {
+            "type": "boolean"
+          },
+          "f": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "a",
+          "f",
+          "i",
+          "n",
+          "s",
+          "t",
+          "x",
+          "y"
+        ],
+        "description": "Terse keys: this is by far the largest artifact the site ships. s system, i id, n name, y lat, x lon, t lifetime events, a active, f net flow (returns minus departures, signed)."
+      }
+    }
+  },
+  "required": [
+    "stations"
+  ]
+}

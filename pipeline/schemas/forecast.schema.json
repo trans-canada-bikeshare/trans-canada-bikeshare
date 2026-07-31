@@ -1,0 +1,588 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "forecast.schema.json",
+  "title": "forecast",
+  "description": "Contract for src/data/generated/forecast.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "first_year": {
+      "type": "integer",
+      "minimum": 2010,
+      "maximum": 2100
+    },
+    "reference_year": {
+      "type": "integer",
+      "minimum": 2010,
+      "maximum": 2100
+    },
+    "years": {
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 2010,
+        "maximum": 2100
+      }
+    },
+    "weather_features": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "feature": {
+            "type": "string"
+          },
+          "transform": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature",
+          "key",
+          "label",
+          "transform",
+          "unit"
+        ]
+      }
+    },
+    "calendar_inputs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "transform": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "transform"
+        ]
+      }
+    },
+    "reference_levels": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "note": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "note"
+      ]
+    },
+    "response": {
+      "type": "string"
+    },
+    "fit_basis": {
+      "type": "string",
+      "minLength": 1
+    },
+    "envelope_note": {
+      "type": "string"
+    },
+    "prediction_note": {
+      "type": "string"
+    },
+    "models": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "features": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+            }
+          },
+          "reference_level_block": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "intercept": {
+            "type": "number"
+          },
+          "coefficients": {
+            "type": "object",
+            "description": "One entry per feature: the five weather and calendar coefficients, then one level per month block after the reference. Keys are dynamic, so they are constrained by pattern rather than listed.",
+            "additionalProperties": false,
+            "propertyNames": {
+              "pattern": "^(temp_max_c|temp_min_c|precip_log1p_mm|snow_log1p_cm|is_weekend|level_[0-9]{4}-[0-9]{2})$"
+            },
+            "patternProperties": {
+              "^(temp_max_c|temp_min_c|precip_log1p_mm|snow_log1p_cm|is_weekend|level_[0-9]{4}-[0-9]{2})$": {
+                "type": "number"
+              }
+            },
+            "minProperties": 6
+          },
+          "fit": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "days": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "parameters": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "month_levels": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "weather_parameters": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "first_day": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "last_day": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "r2_log": {
+                "type": "number"
+              },
+              "adj_r2_log": {
+                "type": "number"
+              },
+              "residual_sd_log": {
+                "type": "number",
+                "minimum": 0
+              },
+              "r2_trips": {
+                "type": "number"
+              },
+              "mae_trips": {
+                "type": "number",
+                "minimum": 0
+              },
+              "median_abs_pct_error": {
+                "type": "number",
+                "minimum": 0
+              },
+              "mean_daily_trips": {
+                "type": "number",
+                "minimum": 0
+              },
+              "max_daily_trips": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "max_daily_date": {
+                "type": "string",
+                "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+              },
+              "smearing_factor": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
+              "cv_folds": {
+                "type": "integer",
+                "minimum": 2
+              },
+              "cv_held_out_days": {
+                "type": "integer",
+                "minimum": 1
+              },
+              "cv_r2_log": {
+                "type": "number"
+              },
+              "cv_median_abs_pct_error": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cv_always_in_train": {
+                "type": "integer",
+                "minimum": 1
+              }
+            },
+            "required": [
+              "adj_r2_log",
+              "cv_folds",
+              "cv_held_out_days",
+              "cv_median_abs_pct_error",
+              "cv_r2_log",
+              "days",
+              "first_day",
+              "last_day",
+              "mae_trips",
+              "max_daily_date",
+              "max_daily_trips",
+              "mean_daily_trips",
+              "median_abs_pct_error",
+              "month_levels",
+              "parameters",
+              "r2_log",
+              "r2_trips",
+              "residual_sd_log",
+              "smearing_factor",
+              "weather_parameters"
+            ],
+            "description": "`cv_always_in_train` is present only when the identifiability guard held a day back from a fold; every other statistic is always published."
+          },
+          "excluded_days": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "before_common_window": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "incomplete_month": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "no_weather_observation": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "before_common_window",
+              "incomplete_month",
+              "no_weather_observation"
+            ]
+          },
+          "envelope": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "temp_max_c": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  },
+                  "median": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "max",
+                  "median",
+                  "min"
+                ]
+              },
+              "temp_min_c": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  },
+                  "median": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "max",
+                  "median",
+                  "min"
+                ]
+              },
+              "precip_mm": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  },
+                  "median": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "max",
+                  "median",
+                  "min"
+                ]
+              },
+              "snow_cm": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  },
+                  "median": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "max",
+                  "median",
+                  "min"
+                ]
+              }
+            },
+            "required": [
+              "precip_mm",
+              "snow_cm",
+              "temp_max_c",
+              "temp_min_c"
+            ]
+          },
+          "months": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "properties": {
+                "month": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 12
+                },
+                "days": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "first_year": {
+                  "type": "integer",
+                  "minimum": 2010,
+                  "maximum": 2100
+                },
+                "last_year": {
+                  "type": "integer",
+                  "minimum": 2010,
+                  "maximum": 2100
+                },
+                "years": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "mean_trips": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "reference_days": {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                "reference_mean_trips": {
+                  "type": [
+                    "integer",
+                    "null"
+                  ],
+                  "minimum": 0
+                },
+                "ranges": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "properties": {
+                    "temp_max_c": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "median": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "max",
+                        "median",
+                        "min"
+                      ]
+                    },
+                    "temp_min_c": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "median": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "max",
+                        "median",
+                        "min"
+                      ]
+                    },
+                    "precip_mm": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "median": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "max",
+                        "median",
+                        "min"
+                      ]
+                    },
+                    "snow_cm": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "min": {
+                          "type": "number"
+                        },
+                        "max": {
+                          "type": "number"
+                        },
+                        "median": {
+                          "type": "number"
+                        }
+                      },
+                      "required": [
+                        "max",
+                        "median",
+                        "min"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "precip_mm",
+                    "snow_cm",
+                    "temp_max_c",
+                    "temp_min_c"
+                  ]
+                }
+              },
+              "required": [
+                "days",
+                "first_year",
+                "last_year",
+                "mean_trips",
+                "month",
+                "ranges",
+                "reference_days",
+                "reference_mean_trips",
+                "years"
+              ]
+            }
+          },
+          "weather_station": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "climate_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "km_from_centroid": {
+                "type": "number",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "climate_id",
+              "km_from_centroid",
+              "name"
+            ]
+          }
+        },
+        "required": [
+          "blocks",
+          "coefficients",
+          "envelope",
+          "excluded_days",
+          "features",
+          "fit",
+          "intercept",
+          "months",
+          "reference_level_block",
+          "system_id",
+          "weather_station"
+        ]
+      }
+    }
+  },
+  "required": [
+    "calendar_inputs",
+    "envelope_note",
+    "first_year",
+    "fit_basis",
+    "inputs",
+    "models",
+    "prediction_note",
+    "reference_levels",
+    "reference_year",
+    "response",
+    "weather_features",
+    "years"
+  ]
+}

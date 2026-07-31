@@ -133,6 +133,73 @@ refuses to stamp and tells you to re-extract, because overwriting the recorded
 count with a fresh one would erase the only evidence that the warehouse is
 stale.
 
+## What publish.py refuses
+
+Two checks run inside `publish.py` on every run, before anything is written.
+Neither has a `make` target because neither is a separate pass: they are the
+conditions the publisher will not write without.
+
+### The completeness declaration — `pipeline/completeness.py`
+
+One file declaring, for each of the fifteen artifacts, **which rule governs
+what reaches it and why**, plus every numeric threshold the publisher admits
+or excludes rows by. Nothing else in `publish.py` or `forecast.py` states a
+threshold; they read this.
+
+The month rule is one text, `incomplete_month_having()`: a system-month
+observed on **three days or fewer**, or a trailing month the source has not
+finished publishing, is excluded and listed in `incomplete_months.json`. Both
+consumers call it. Before spec 030 it was written five times — the
+incomplete-months query, the Python filter, the SQL predicate, the seasonality
+CTE with a different boundary, and a fourth copy in `forecast.daily_rows` — and
+three artifacts applied no rule at all with nothing recording that.
+
+Each policy is one of two answers, and **`whole_archive` is an answer**:
+
+| Answer | Artifacts | What it means |
+| --- | --- | --- |
+| `exclude_incomplete_months` | `incomplete_months`, `trips_monthly`, `seasonality`, `stations_yearly`, `ebike_share`, `membership`, `forecast`, `rebalancing`, `dwell` | The artifact has a per-month point or a per-month denominator, so a fraction of a month could be read as a low one. |
+| `whole_archive` | `meta`, `duration`, `stations`, `stations_meta`, `flows`, `exclusions` | Nothing in the output is per month. Applying the rule would drop real trips from totals that are meant to be totals, or split a numerator from its denominator. |
+
+Every `whole_archive` entry was **measured** before it was written, and the
+measurement is in the file: what applying the rule would have moved. Read the
+reasons there, not here — that is the point of putting them there.
+
+Three further rules with no numeric threshold are declared alongside:
+`operating_days_only` (a per-day denominator counts days the system ran,
+evidenced by a departure), `whole_calendar_years_only`, and
+`withhold_unreliable_label_eras` (Toronto's file-scoped member-label
+corruption, `2021-10..2023-12`).
+
+`publish.build()` calls `completeness.validate()` with the artifacts it built,
+so **a new artifact with no declared policy stops the run**. A test scans the
+publisher's own source and fails on any number in a `HAVING`, a `WHERE`, a
+`BETWEEN`, a modulus, a named constant or a Python comparison that did not come
+from the declaration — planted violations included, in the style of
+`test_check_metrics.py`.
+
+### The artifact schemas — `pipeline/schemas/*.schema.json`
+
+One JSON Schema (draft 2020-12) per artifact, enforced from both ends:
+
+- `publish.write()` validates every artifact against its schema **before
+  writing any of them**, so a shape drift is a refusal on the machine that
+  produced it rather than a half-updated directory. Needs `jsonschema`, which
+  is in the lock.
+- `src/schemas.test.ts` validates the **committed** files with ajv, so the same
+  contract is checked on a runner with no warehouse — which is where a drift
+  between what `publish.py` writes and what `src/lib/data.ts` imports would
+  otherwise reach production.
+
+The schemas are strict on purpose: `additionalProperties: false` everywhere and
+every key required unless the publisher genuinely omits it. Both ends also
+check the **set**: an artifact with no schema fails, and so does a schema whose
+artifact no longer ships.
+
+To change an artifact's shape, change the schema in the same commit. That is
+the whole ceremony, and it is deliberate — the schema is the place the site's
+expectations and the publisher's output are written down together.
+
 ## The fixture pipeline
 
 ```bash
@@ -226,7 +293,11 @@ When a system publishes a new period:
    label stops publish — map the new value explicitly in
    `pipeline/mappings/` and rerun. A new Vancouver pass name will also trip
    the pinned label-count test, which exists so the mapping cannot grow
-   silently.
+   silently. Two more aborts belong to publish and are also features: an
+   artifact with no completeness policy, and an artifact that no longer
+   matches its schema. Both are described under "What publish.py refuses" —
+   a new artifact needs an entry in `pipeline/completeness.py` and a schema in
+   `pipeline/schemas/` before it can ship.
 6. Commit the regenerated artifacts, the manifests, and the quality report
    together. **The site updates by exactly this** — every count, window, gap
    sentence and chart derives from the committed artifacts, so a republish is

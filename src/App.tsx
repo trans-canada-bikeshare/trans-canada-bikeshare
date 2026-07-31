@@ -38,7 +38,14 @@ const NAV = [
   ["maps", "Maps"],
   ["flows", "Flows"],
   ["ops", "Operations"],
-  ["forecast", "Forecast"],
+  // Label and anchor deliberately differ. Spec 030 renamed this section to
+  // "Weather scenario" because that is what it computes — a day's weather moved
+  // inside a calendar month the system has already ridden through, with the
+  // holdout validated the same way — not a forecast of an unseen month. The
+  // anchor stays `#forecast`: those deep links are already published, and so
+  // are the internal names (forecast.json, the `forecast` registry key,
+  // ForecastPanel), which the rename deliberately does not touch.
+  ["forecast", "Weather scenario"],
   ["method", "Method"],
 ] as const;
 
@@ -1081,9 +1088,11 @@ export default function App() {
             </div>
           </Section>
 
+          {/* id="forecast" is frozen for the already-published deep links; the
+              label is "Weather scenario". See the note on NAV above. */}
           <Section
             id="forecast"
-            eyebrow="Forecast"
+            eyebrow="Weather scenario"
             title="Move the weather, watch the ridership"
             lede={
               <>
@@ -1094,7 +1103,10 @@ export default function App() {
                 that day and the calendar month it fell in, and what ships is
                 the model itself — every coefficient and its training envelope
                 — so the arithmetic below happens in your browser and you can
-                check it.{" "}
+                check it. What it answers is a scenario, not a calendar: how a
+                day of this weather read in a month these systems have already
+                ridden through, rather than a claim about a month still to
+                come.{" "}
                 <strong className="font-medium text-foreground">
                   Ask for a day a system has never had and it refuses
                 </strong>{" "}

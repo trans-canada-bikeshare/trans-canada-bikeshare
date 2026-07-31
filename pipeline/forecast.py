@@ -71,6 +71,8 @@ import math
 
 import numpy as np
 
+import completeness
+
 # The weather the model is given, and the exact fields it is given them in.
 #
 # temp_mean_c is deliberately ABSENT. Spec 013 established that ECCC's mean is
@@ -106,8 +108,9 @@ DEFAULT_FIRST_YEAR = 2017
 # fitted on a fraction of a month. Such a block may still exist in training —
 # it is real data — but it may not be the year the page anchors its comparison
 # at, because a thin block makes one city's panel answer a different question
-# from the other two.
-MIN_REFERENCE_BLOCK_DAYS = 20
+# from the other two. Declared with every other admission threshold in
+# pipeline/completeness.py; named here because this is where it is applied.
+MIN_REFERENCE_BLOCK_DAYS = completeness.FORECAST_MIN_REFERENCE_BLOCK_DAYS
 
 # Coefficients are rounded before anything is computed from them, so the fit
 # statistics the artifact publishes are the fit of the coefficients the artifact
@@ -447,17 +450,16 @@ def daily_rows(con, trusted: str, first_year: int) -> tuple[list[dict], dict]:
 
     The exclusions are inherited, not reinvented: the same TRUSTED filter and
     the same incomplete-month rule every other artifact applies, so a day that
-    is not in `trips_monthly` is not in the model either.
+    is not in `trips_monthly` is not in the model either. "Inherited" was a
+    claim until spec 030 — this query carried its own copy of the rule, and two
+    copies of one rule is one rule and one liability.
     """
     rows = con.execute(f"""
       WITH incomplete AS (
         SELECT system_id, strftime(trip_month, '%Y-%m') AS month
         FROM fact_trips WHERE {trusted}
         GROUP BY 1, 2, trip_month
-        HAVING count(DISTINCT date_key) <= 3
-            OR (trip_month = (SELECT max(f2.trip_month) FROM fact_trips f2
-                              WHERE f2.system_id = fact_trips.system_id)
-                AND count(DISTINCT date_key) < day(last_day(trip_month)))
+        {completeness.incomplete_month_having()}
       ), daily AS (
         SELECT system_id, date_key, trip_year,
                strftime(trip_month, '%Y-%m') AS month_key, count(*) AS trips

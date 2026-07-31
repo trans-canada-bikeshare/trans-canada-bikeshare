@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "stations_meta.schema.json",
+  "title": "stations_meta",
+  "description": "Contract for src/data/generated/stations_meta.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "min_lifetime_events": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "omitted": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "no_coordinates": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "below_threshold": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "total": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "below_threshold",
+          "no_coordinates",
+          "system_id",
+          "total"
+        ]
+      }
+    }
+  },
+  "required": [
+    "min_lifetime_events",
+    "omitted"
+  ]
+}

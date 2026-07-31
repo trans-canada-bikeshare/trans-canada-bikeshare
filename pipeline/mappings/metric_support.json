@@ -147,8 +147,8 @@
    }
   },
   "forecast": {
-   "label": "Weather-driven forecast",
-   "definition": "ln(daily trips) regressed on daily maximum and minimum temperature, log1p precipitation, log1p snowfall, a weekend indicator, and one level per calendar month in the window. One model per system — never pooled — over operating days from the common window's first year onward, with the same TRUSTED filter and incomplete-month exclusion every other series applies. A day with any weather field NULL is dropped and counted, never imputed. Because each month carries its own level, the weather coefficients are within-month effects and say nothing about seasonality. Fit statistics are in-sample.",
+   "label": "Weather scenario (registry key: forecast)",
+   "definition": "ln(daily trips) regressed on daily maximum and minimum temperature, log1p precipitation, log1p snowfall, a weekend indicator, and one level per calendar month in the window. One model per system — never pooled — over operating days from the common window's first year onward, with the same TRUSTED filter and incomplete-month exclusion every other series applies. A day with any weather field NULL is dropped and counted, never imputed. Because each month carries its own level, the weather coefficients are within-month effects and say nothing about seasonality. Headline fit statistics are in-sample; 5-fold day-within-month holdout figures ship beside them, validating within-month scenarios rather than unseen months.",
    "unit": "trips per day",
    "comparable": true,
    "systems": {

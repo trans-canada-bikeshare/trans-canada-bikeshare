@@ -88,38 +88,38 @@ practice. Verified gaps:
 
 ## Acceptance Criteria
 
-- [ ] A clean clone with the pinned toolchain runs the fixture pipeline
+- [x] A clean clone with the pinned toolchain runs the fixture pipeline
       end-to-end green with no network access beyond package install.
-- [ ] A planted mid-extract failure leaves the prior warehouse queryable
+- [x] A planted mid-extract failure leaves the prior warehouse queryable
       and unchanged (test).
-- [ ] A manifest entry missing its checksum aborts extraction (test).
-- [ ] A cache keyed to a checksum serves nothing for changed content under
+- [x] A manifest entry missing its checksum aborts extraction (test).
+- [x] A cache keyed to a checksum serves nothing for changed content under
       the same filename (test).
-- [ ] van-mobi 2025-05 parses via `year_evidence` — a four-digit year is
+- [x] van-mobi 2025-05 parses via `year_evidence` — a four-digit year is
       its own date-order proof, no exception entry needed (the premise
       correction above); the exception mechanism exists, ships empty, a
       stale declaration is refused, and a planted genuinely ambiguous
       fixture aborts (tests).
-- [ ] Per-file source record counts reconcile to `rows_landed` across the
+- [x] Per-file source record counts reconcile to `rows_landed` across the
       full archive; a planted mismatch fails `make check` (test); the
       quality report states the reconciliation result.
-- [ ] CI runs on a clean GitHub-hosted runner: fixture pipeline, both
+- [x] CI runs on a clean GitHub-hosted runner: fixture pipeline, both
       suites, typecheck, build — green on the PR that introduces it.
-- [ ] Runbook updated: lock install, resource flags, fixture path, and the
+- [x] Runbook updated: lock install, resource flags, fixture path, and the
       van-mobi 2022-10 archived-copy caveat retained honestly.
 
 ## Data Integrity Checklist
 
 - ~~Manifest entry for every new source file~~ — no new sources (fixtures
   are synthetic and carry a note saying so).
-- [ ] Schema drift mapped explicitly — the ambiguity abort strengthens it.
-- [ ] Row accounting closes — now against source counts, not only landed.
+- [x] Schema drift mapped explicitly — the ambiguity abort strengthens it.
+- [x] Row accounting closes — now against source counts, not only landed.
 - ~~Metrics defined identically~~ — no metric changes.
-- [ ] Committed artifacts reproduce byte-for-byte (must be unchanged).
-- [ ] Site copy derives from the data window — untouched.
+- [x] Committed artifacts reproduce byte-for-byte (must be unchanged).
+- [x] Site copy derives from the data window — untouched.
 - ~~New encodings explained~~ — none.
 - ~~Attribution~~ — no source changes.
-- [ ] No raw trip data committed — fixtures are synthetic and small.
+- [x] No raw trip data committed — fixtures are synthetic and small.
 
 ## Testing
 

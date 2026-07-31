@@ -86,7 +86,29 @@ describe("App", () => {
     for (const id of unsupported) expect(plotted.has(id as never)).toBe(false);
   });
 
-  // The forecast section renders three predictions from published
+  // Spec 030: the section moves a day's weather inside a calendar month each
+  // system has already ridden through, and its holdout keeps those month levels
+  // in training — so "Forecast" claimed more than was computed. The label
+  // changed; the anchor deliberately did not, because #forecast deep links are
+  // already published, and neither did the artifact, the registry key or the
+  // component. This test pins both halves of that split.
+  it("labels the section weather scenario and keeps the published anchor", () => {
+    render(<App />);
+    const nav = document.querySelector<HTMLElement>('nav[aria-label="Sections"]')!;
+    expect(
+      within(nav).getByRole("link", { name: "Weather scenario" }),
+    ).toHaveAttribute("href", "#forecast");
+    expect(nav.textContent).not.toMatch(/forecast/i);
+
+    const section = document.getElementById("forecast")!;
+    expect(section.textContent).toMatch(/weather scenario/i);
+    // The one surviving "forecast" in the copy is the artifact's own statement
+    // that this is not one. Any second occurrence is a missed rename.
+    expect(section.textContent!.match(/forecast/gi) ?? []).toHaveLength(1);
+    expect(section.textContent).toContain("not a forecast of an unseen month");
+  });
+
+  // The weather-scenario section renders three predictions from published
   // coefficients. These check what a headed browser cannot assert cheaply: that
   // the number on screen is the one the model produces, and that the section
   // carries the caveat the ECCC licence and spec 013 both require.

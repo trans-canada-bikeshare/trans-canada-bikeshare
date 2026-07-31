@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "incomplete_months.schema.json",
+  "title": "incomplete_months",
+  "description": "Every system-month the completeness rule excludes, with the counts that excluded it. See pipeline/completeness.py.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "system_id": {
+        "type": "string",
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "month": {
+        "type": "string",
+        "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+      },
+      "days_observed": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "days_in_month": {
+        "type": "integer",
+        "minimum": 28,
+        "maximum": 31
+      },
+      "trips": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "required": [
+      "days_in_month",
+      "days_observed",
+      "month",
+      "system_id",
+      "trips"
+    ]
+  }
+}

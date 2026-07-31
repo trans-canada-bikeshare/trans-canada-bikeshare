@@ -1,0 +1,204 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "rebalancing.schema.json",
+  "title": "rebalancing",
+  "description": "Contract for src/data/generated/rebalancing.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "hourly_first_year": {
+      "type": "integer",
+      "minimum": 2010,
+      "maximum": 2100
+    },
+    "hourly": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "hour": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 23
+          },
+          "departures": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "returns": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "departures",
+          "hour",
+          "returns",
+          "system_id"
+        ]
+      }
+    },
+    "hourly_basis": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "linked_trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "on_hour_grid": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "days",
+          "linked_trips",
+          "on_hour_grid",
+          "system_id"
+        ]
+      }
+    },
+    "yearly": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "year": {
+            "type": "integer",
+            "minimum": 2010,
+            "maximum": 2100
+          },
+          "days": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "months": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 12
+          },
+          "abs_net": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "linked_trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "full_year": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "abs_net",
+          "days",
+          "full_year",
+          "linked_trips",
+          "months",
+          "system_id",
+          "year"
+        ]
+      }
+    },
+    "headline_year": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 2010
+    },
+    "caveat": {
+      "type": "string",
+      "minLength": 1
+    },
+    "qualified": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "patternProperties": {
+        "^(mtl-bixi|tor-bikeshare|van-mobi)$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "supported": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "display": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "qualified": {
+              "type": "boolean"
+            },
+            "partial_until": {
+              "type": "string"
+            },
+            "identity": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "supported"
+          ],
+          "description": "A metric_support.json system entry, copied verbatim so the page renders the registry's own words rather than a paraphrase."
+        }
+      }
+    }
+  },
+  "required": [
+    "caveat",
+    "headline_year",
+    "hourly",
+    "hourly_basis",
+    "hourly_first_year",
+    "qualified",
+    "yearly"
+  ]
+}

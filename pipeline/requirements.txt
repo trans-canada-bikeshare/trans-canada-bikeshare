@@ -14,3 +14,7 @@ openpyxl>=3.1
 duckdb>=1.2
 pytest>=8
 numpy>=1.26
+# Spec 030: publish.py validates every artifact against its JSON Schema in
+# pipeline/schemas/ before writing it. Draft 2020-12, which jsonschema has
+# supported since 4.0.
+jsonschema>=4.23

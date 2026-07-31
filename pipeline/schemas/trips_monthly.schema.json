@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "trips_monthly.schema.json",
+  "title": "trips_monthly",
+  "description": "Contract for src/data/generated/trips_monthly.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "system_id": {
+        "type": "string",
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "month": {
+        "type": "string",
+        "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+      },
+      "trips": {
+        "type": "integer",
+        "minimum": 0
+      }
+    },
+    "required": [
+      "month",
+      "system_id",
+      "trips"
+    ]
+  }
+}

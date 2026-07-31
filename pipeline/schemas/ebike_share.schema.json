@@ -1,0 +1,102 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "ebike_share.schema.json",
+  "title": "ebike_share",
+  "description": "Contract for src/data/generated/ebike_share.json. Validated at publish time by pipeline/artifact_schemas.py and in vitest by src/schemas.test.ts, so a publisher change the site does not expect fails at the gate rather than in a browser.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "series": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "system_id": {
+            "type": "string",
+            "enum": [
+              "mtl-bixi",
+              "tor-bikeshare",
+              "van-mobi"
+            ]
+          },
+          "month": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-(0[1-9]|1[0-2])$"
+          },
+          "ebike_trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "classified_trips": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "month_trips": {
+            "type": "integer",
+            "minimum": 0
+          }
+        },
+        "required": [
+          "classified_trips",
+          "ebike_trips",
+          "month",
+          "month_trips",
+          "system_id"
+        ]
+      }
+    },
+    "unsupported": {
+      "type": "object",
+      "additionalProperties": false,
+      "propertyNames": {
+        "enum": [
+          "mtl-bixi",
+          "tor-bikeshare",
+          "van-mobi"
+        ]
+      },
+      "patternProperties": {
+        "^(mtl-bixi|tor-bikeshare|van-mobi)$": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "supported": {
+              "type": "boolean"
+            },
+            "reason": {
+              "type": "string"
+            },
+            "display": {
+              "type": "string"
+            },
+            "note": {
+              "type": "string"
+            },
+            "qualified": {
+              "type": "boolean"
+            },
+            "partial_until": {
+              "type": "string"
+            },
+            "identity": {
+              "type": "string"
+            },
+            "source": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "supported"
+          ],
+          "description": "A metric_support.json system entry, copied verbatim so the page renders the registry's own words rather than a paraphrase."
+        }
+      },
+      "description": "Systems publishing no bike-type field. Rendered as a labelled gap, never absent."
+    }
+  },
+  "required": [
+    "series",
+    "unsupported"
+  ]
+}

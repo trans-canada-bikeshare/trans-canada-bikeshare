@@ -1,0 +1,126 @@
+{
+  "system_id": "van-mobi",
+  "source_page": "synthetic://fixture/van-mobi",
+  "data_terms": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence. Nothing in this tree was published by any transit agency or by Environment and Climate Change Canada; the real archive's terms are in DATA-LICENSES.md and do not reach here.",
+  "licence": {
+    "name": "none — synthetic fixture",
+    "url": null,
+    "checked": "2026-07-31",
+    "attribution": "None required. Every value was invented by pipeline/tests/fixtures/generate_fixtures.py.",
+    "note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence"
+  },
+  "weather_station": {
+    "station_id": 990001,
+    "climate_id": "FIXTURE01",
+    "name": "FIXTURE VANCOUVER A",
+    "lat": 49.19,
+    "lon": -123.18,
+    "licence": {
+      "name": "none — synthetic fixture",
+      "url": null,
+      "checked": "2026-07-31",
+      "attribution": "None required. Every value was invented by pipeline/tests/fixtures/generate_fixtures.py.",
+      "note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence"
+    }
+  },
+  "sources": {
+    "2024-01": {
+      "url": "synthetic://fixture/van-mobi/2024-01.csv",
+      "sha256": "fc9b429ea77d6180bd4e0af45bce053e7c8e2967a5a4427590ed0901673f1163",
+      "bytes": 8077,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-02": {
+      "url": "synthetic://fixture/van-mobi/2024-02.csv",
+      "sha256": "ead7ba4e11edf75e65a8a70b108be434b72f94f84051837adcef494ff62b256b",
+      "bytes": 7630,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-03": {
+      "url": "synthetic://fixture/van-mobi/2024-03.csv",
+      "sha256": "1404802685aad3180efe255ddc369f30d6f94a7e70fdd91537e6bc10396a9226",
+      "bytes": 9979,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-04": {
+      "url": "synthetic://fixture/van-mobi/2024-04.csv",
+      "sha256": "6e0ae2539b44c69dfd71e0014c569626f1e2746e07662e1827b9d2391b2e7291",
+      "bytes": 9844,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-05": {
+      "url": "synthetic://fixture/van-mobi/2024-05.csv",
+      "sha256": "2dfe33b3763e772d7bb71b63af910a4e7a0e13f23330aa31a06f3c6c82b37c9b",
+      "bytes": 12630,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-06": {
+      "url": "synthetic://fixture/van-mobi/2024-06.csv",
+      "sha256": "be6bf02e00a926fc671882cae389d966600a423894119364153244b66c817474",
+      "bytes": 13194,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-07": {
+      "url": "synthetic://fixture/van-mobi/2024-07.csv",
+      "sha256": "3eacf59e2d1ee792bece975390f3e1cd539a038e53535d7d307eb0768fc652dd",
+      "bytes": 13528,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-08": {
+      "url": "synthetic://fixture/van-mobi/2024-08.csv",
+      "sha256": "7786e439272e46e551726749369950689b200ff7b1321c97919437f52b2049b6",
+      "bytes": 13282,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-09": {
+      "url": "synthetic://fixture/van-mobi/2024-09.csv",
+      "sha256": "691cee2576a20c4aa16166be27d22b13ef73dfa909c5062c20ff2e8568db47c9",
+      "bytes": 12188,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-10": {
+      "url": "synthetic://fixture/van-mobi/2024-10.csv",
+      "sha256": "ab2b65278734e2d6adf97e971df15214f726d45cf1557eb7d9c1b94644f868f5",
+      "bytes": 11229,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-11": {
+      "url": "synthetic://fixture/van-mobi/2024-11.csv",
+      "sha256": "27ec213437858ee7f23a32395bf0f6792b1d9c2ad78f377b122ed84af98f1563",
+      "bytes": 8894,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-12": {
+      "url": "synthetic://fixture/van-mobi/2024-12.csv",
+      "sha256": "2101c567d19535e31b4683f02a3351324302b0f6443b43bc6efe9142a80af838",
+      "bytes": 8919,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    }
+  },
+  "reference": {
+    "gbfs_station_information": {
+      "url": "synthetic://fixture/van-mobi/reference/gbfs_station_information.json",
+      "sha256": "8b4841354b80836271f49a3cfd42fc240e59dfce1d73abaf5c494eb66e1ab0e5",
+      "bytes": 1024,
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "weather_2024": {
+      "url": "synthetic://fixture/van-mobi/reference/weather_2024.csv",
+      "sha256": "4c9ac8d1153d240b2b3767be5b185d4901cde006bb41ca6cb665fbb88e8287f7",
+      "bytes": 51939,
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    }
+  }
+}

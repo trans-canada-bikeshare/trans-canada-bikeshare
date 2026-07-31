@@ -1,0 +1,61 @@
+Departure,Return,Departure station,Return station,Bike,Electric Bike,Memebership type,Covered distance (m),Duration (sec.),Departure temperature (deg C),Return temperature (deg C),Lock duration (sec.),Number of bike locks
+2024-11-01 15:00,2024-11-01 15:00,0901 FIXTURE Cambie & 2nd,0905 FIXTURE Stanley Park Gate,F001,true,365 Day Pass Standard,6882,2220,16.6,8.5,0,0
+2024-11-01 17:00,2024-11-01 17:00,0906 FIXTURE Commercial & Broadway,0906 FIXTURE Commercial & Broadway,F002,false,24 Hour,5766,1860,16.6,8.5,0,0
+2024-11-02 07:00,2024-11-02 07:00,0904 FIXTURE Main & Terminal,0904 FIXTURE Main & Terminal,F003,false,365 Day Pass Standard,5766,1860,14.1,5.0,0,0
+2024-11-02 16:00,2024-11-02 17:00,0905 FIXTURE Stanley Park Gate,0903 FIXTURE Kits Beach Loop,F004,false,365 Day Pass Standard,7998,2580,14.1,5.0,0,0
+2024-11-03 10:00,2024-11-03 10:00,0906 FIXTURE Commercial & Broadway,0902 FIXTURE Yaletown Roundhouse,F005,false,24 Hour,1302,420,15.1,3.4,0,0
+2024-11-03 16:00,2024-11-03 17:00,0904 FIXTURE Main & Terminal,0905 FIXTURE Stanley Park Gate,F006,false,365 Day Pass Standard,5022,1620,15.1,3.4,0,0
+2024-11-03 20:00,2024-11-03 21:00,0904 FIXTURE Main & Terminal,0906 FIXTURE Commercial & Broadway,F007,true,365 Day Pass Standard,9486,3060,15.1,3.4,0,0
+2024-11-04 13:00,2024-11-04 13:00,0903 FIXTURE Kits Beach Loop,0901 FIXTURE Cambie & 2nd,F008,false,24 Hour,1674,540,7.2,1.5,0,0
+2024-11-04 18:00,2024-11-04 19:00,0906 FIXTURE Commercial & Broadway,0902 FIXTURE Yaletown Roundhouse,F009,false,24 Hour,9486,3060,7.2,1.5,0,0
+2024-11-05 06:00,2024-11-05 06:00,0905 FIXTURE Stanley Park Gate,0903 FIXTURE Kits Beach Loop,F010,true,365 Day Pass Standard,5766,1860,16.0,5.3,0,0
+2024-11-05 09:00,2024-11-05 09:00,0905 FIXTURE Stanley Park Gate,0903 FIXTURE Kits Beach Loop,F011,true,365 Day Pass Standard,5766,1860,16.0,5.3,0,0
+2024-11-05 16:00,2024-11-05 17:00,0902 FIXTURE Yaletown Roundhouse,0903 FIXTURE Kits Beach Loop,F012,true,24 Hour,3534,1140,16.0,5.3,0,0
+2024-11-06 12:00,2024-11-06 13:00,0905 FIXTURE Stanley Park Gate,0905 FIXTURE Stanley Park Gate,F001,false,24 Hour,4278,1380,13.5,8.3,0,0
+2024-11-06 18:00,2024-11-06 18:00,0906 FIXTURE Commercial & Broadway,0903 FIXTURE Kits Beach Loop,F002,true,365 Day Pass Standard,5766,1860,13.5,8.3,0,0
+2024-11-07 08:00,2024-11-07 08:00,0904 FIXTURE Main & Terminal,0905 FIXTURE Stanley Park Gate,F003,false,24 Hour,2790,900,9.0,1.5,0,0
+2024-11-07 18:00,2024-11-07 18:00,0903 FIXTURE Kits Beach Loop,0902 FIXTURE Yaletown Roundhouse,F004,false,24 Hour,2790,900,9.0,1.5,0,0
+2024-11-08 08:00,2024-11-08 09:00,0902 FIXTURE Yaletown Roundhouse,0904 FIXTURE Main & Terminal,F005,true,24 Hour,4278,1380,9.5,1.4,0,0
+2024-11-09 09:00,2024-11-09 10:00,0905 FIXTURE Stanley Park Gate,0903 FIXTURE Kits Beach Loop,F006,true,365 Day Pass Standard,2046,660,11.0,2.8,0,0
+2024-11-09 11:00,2024-11-09 12:00,0906 FIXTURE Commercial & Broadway,0903 FIXTURE Kits Beach Loop,F007,false,365 Day Pass Standard,6882,2220,11.0,2.8,0,0
+2024-11-09 19:00,2024-11-09 19:00,0901 FIXTURE Cambie & 2nd,0902 FIXTURE Yaletown Roundhouse,F008,false,365 Day Pass Standard,2046,660,11.0,2.8,0,0
+2024-11-10 13:00,2024-11-10 14:00,0902 FIXTURE Yaletown Roundhouse,0905 FIXTURE Stanley Park Gate,F009,true,365 Day Pass Standard,6882,2220,10.2,2.7,0,0
+2024-11-10 19:00,2024-11-10 20:00,0903 FIXTURE Kits Beach Loop,0902 FIXTURE Yaletown Roundhouse,F010,false,24 Hour,6882,2220,10.2,2.7,0,0
+2024-11-11 07:00,2024-11-11 08:00,0903 FIXTURE Kits Beach Loop,0906 FIXTURE Commercial & Broadway,F011,false,24 Hour,7998,2580,11.9,6.7,0,0
+2024-11-11 11:00,2024-11-11 11:00,0903 FIXTURE Kits Beach Loop,0906 FIXTURE Commercial & Broadway,F012,false,24 Hour,1674,540,11.9,6.7,0,0
+2024-11-12 13:00,2024-11-12 14:00,0905 FIXTURE Stanley Park Gate,0901 FIXTURE Cambie & 2nd,F001,false,24 Hour,6882,2220,10.9,4.5,0,0
+2024-11-12 15:00,2024-11-12 15:00,0903 FIXTURE Kits Beach Loop,0905 FIXTURE Stanley Park Gate,F002,false,24 Hour,3534,1140,10.9,4.5,0,0
+2024-11-13 10:00,2024-11-13 11:00,0905 FIXTURE Stanley Park Gate,0901 FIXTURE Cambie & 2nd,F003,false,365 Day Pass Standard,5766,1860,9.0,0.6,0,0
+2024-11-13 17:00,2024-11-13 17:00,0902 FIXTURE Yaletown Roundhouse,0905 FIXTURE Stanley Park Gate,F004,false,365 Day Pass Standard,6882,2220,9.0,0.6,0,0
+2024-11-14 06:00,2024-11-14 06:00,0904 FIXTURE Main & Terminal,0901 FIXTURE Cambie & 2nd,F005,false,24 Hour,5022,1620,8.6,1.7,0,0
+2024-11-14 13:00,2024-11-14 14:00,0903 FIXTURE Kits Beach Loop,0901 FIXTURE Cambie & 2nd,F006,false,365 Day Pass Standard,4278,1380,8.6,1.7,0,0
+2024-11-15 16:00,2024-11-15 16:00,0903 FIXTURE Kits Beach Loop,0904 FIXTURE Main & Terminal,F007,false,365 Day Pass Standard,2046,660,11.7,5.8,0,0
+2024-11-15 18:00,2024-11-15 19:00,0902 FIXTURE Yaletown Roundhouse,0901 FIXTURE Cambie & 2nd,F008,false,365 Day Pass Standard,4278,1380,11.7,5.8,0,0
+2024-11-16 08:00,2024-11-16 09:00,0905 FIXTURE Stanley Park Gate,0901 FIXTURE Cambie & 2nd,F009,false,365 Day Pass Standard,4278,1380,10.8,3.3,0,0
+2024-11-16 11:00,2024-11-16 12:00,0902 FIXTURE Yaletown Roundhouse,0903 FIXTURE Kits Beach Loop,F010,false,365 Day Pass Standard,7998,2580,10.8,3.3,0,0
+2024-11-17 16:00,2024-11-17 16:00,0906 FIXTURE Commercial & Broadway,0903 FIXTURE Kits Beach Loop,F011,false,365 Day Pass Standard,2418,780,11.8,3.5,0,0
+2024-11-17 17:00,2024-11-17 18:00,0906 FIXTURE Commercial & Broadway,0906 FIXTURE Commercial & Broadway,F012,true,365 Day Pass Standard,3534,1140,11.8,3.5,0,0
+2024-11-18 11:00,2024-11-18 12:00,0901 FIXTURE Cambie & 2nd,0902 FIXTURE Yaletown Roundhouse,F001,true,365 Day Pass Standard,9486,3060,12.0,4.5,0,0
+2024-11-19 06:00,2024-11-19 06:00,0905 FIXTURE Stanley Park Gate,0902 FIXTURE Yaletown Roundhouse,F002,true,24 Hour,1302,420,11.0,5.8,0,0
+2024-11-19 16:00,2024-11-19 17:00,0901 FIXTURE Cambie & 2nd,0904 FIXTURE Main & Terminal,F003,true,365 Day Pass Standard,4278,1380,11.0,5.8,0,0
+2024-11-20 12:00,2024-11-20 12:00,0905 FIXTURE Stanley Park Gate,0902 FIXTURE Yaletown Roundhouse,F004,true,24 Hour,1302,420,7.8,0.7,0,0
+2024-11-21 07:00,2024-11-21 07:00,0901 FIXTURE Cambie & 2nd,0903 FIXTURE Kits Beach Loop,F005,false,365 Day Pass Standard,9486,3060,11.2,0.8,0,0
+2024-11-21 14:00,2024-11-21 15:00,0901 FIXTURE Cambie & 2nd,0905 FIXTURE Stanley Park Gate,F006,true,24 Hour,5766,1860,11.2,0.8,0,0
+2024-11-22 11:00,2024-11-22 11:00,0904 FIXTURE Main & Terminal,0906 FIXTURE Commercial & Broadway,F007,false,365 Day Pass Standard,2418,780,11.6,0.6,0,0
+2024-11-22 14:00,2024-11-22 14:00,0901 FIXTURE Cambie & 2nd,0903 FIXTURE Kits Beach Loop,F008,false,365 Day Pass Standard,2418,780,11.6,0.6,0,0
+2024-11-23 07:00,2024-11-23 07:00,0901 FIXTURE Cambie & 2nd,0905 FIXTURE Stanley Park Gate,F009,false,365 Day Pass Standard,5022,1620,11.5,4.4,0,0
+2024-11-23 16:00,2024-11-23 17:00,0903 FIXTURE Kits Beach Loop,0906 FIXTURE Commercial & Broadway,F010,true,24 Hour,9486,3060,11.5,4.4,0,0
+2024-11-24 16:00,2024-11-24 16:00,0903 FIXTURE Kits Beach Loop,0903 FIXTURE Kits Beach Loop,F011,true,24 Hour,5022,1620,8.5,-0.2,0,0
+2024-11-24 18:00,2024-11-24 19:00,0906 FIXTURE Commercial & Broadway,0903 FIXTURE Kits Beach Loop,F012,true,365 Day Pass Standard,4278,1380,8.5,-0.2,0,0
+2024-11-25 10:00,2024-11-25 10:00,0902 FIXTURE Yaletown Roundhouse,0904 FIXTURE Main & Terminal,F001,true,24 Hour,5022,1620,6.8,0.7,0,0
+2024-11-25 16:00,2024-11-25 17:00,0902 FIXTURE Yaletown Roundhouse,0906 FIXTURE Commercial & Broadway,F002,false,365 Day Pass Standard,5022,1620,6.8,0.7,0,0
+2024-11-26 11:00,2024-11-26 11:00,0904 FIXTURE Main & Terminal,0901 FIXTURE Cambie & 2nd,F003,false,365 Day Pass Standard,2418,780,12.4,4.3,0,0
+2024-11-26 13:00,2024-11-26 13:00,0902 FIXTURE Yaletown Roundhouse,0903 FIXTURE Kits Beach Loop,F004,true,365 Day Pass Standard,3534,1140,12.4,4.3,0,0
+2024-11-26 20:00,2024-11-26 21:00,0903 FIXTURE Kits Beach Loop,0901 FIXTURE Cambie & 2nd,F005,false,24 Hour,5022,1620,12.4,4.3,0,0
+2024-11-27 16:00,2024-11-27 17:00,0905 FIXTURE Stanley Park Gate,0904 FIXTURE Main & Terminal,F006,false,365 Day Pass Standard,9486,3060,8.1,2.4,0,0
+2024-11-28 10:00,2024-11-28 10:00,0906 FIXTURE Commercial & Broadway,0903 FIXTURE Kits Beach Loop,F007,false,365 Day Pass Standard,2418,780,11.3,3.1,0,0
+2024-11-28 18:00,2024-11-28 18:00,0903 FIXTURE Kits Beach Loop,0904 FIXTURE Main & Terminal,F008,false,365 Day Pass Standard,5022,1620,11.3,3.1,0,0
+2024-11-29 13:00,2024-11-29 14:00,0905 FIXTURE Stanley Park Gate,0905 FIXTURE Stanley Park Gate,F009,false,365 Day Pass Standard,1302,420,9.5,3.7,0,0
+2024-11-29 14:00,2024-11-29 15:00,0906 FIXTURE Commercial & Broadway,0904 FIXTURE Main & Terminal,F010,true,24 Hour,9486,3060,9.5,3.7,0,0
+2024-11-30 08:00,2024-11-30 08:00,0903 FIXTURE Kits Beach Loop,0901 FIXTURE Cambie & 2nd,F011,false,365 Day Pass Standard,3534,1140,10.3,4.6,0,0
+2024-11-30 11:00,2024-11-30 11:00,0903 FIXTURE Kits Beach Loop,0904 FIXTURE Main & Terminal,F012,false,365 Day Pass Standard,5766,1860,10.3,4.6,0,0

@@ -1043,6 +1043,20 @@ def run_clean(con) -> None:
     # the cleaner will use.
     run_sql(con, "15_dates.sql")
     resolve_date_orders(con)
+    # 20_clean.sql runs HERE, before the timezone stage, because it is where
+    # `parse_ts_ord` and the four macros beneath it are defined and
+    # 17_timezones.sql calls it. A DuckDB macro is a persisted catalog object,
+    # so on any warehouse that has ever run this stage the macro is already
+    # there and the order never mattered. On a FRESH one — the only kind a
+    # clean clone has — the stage aborted with "Scalar Function with name
+    # parse_ts_ord does not exist", i.e. `--stage all` could not build a
+    # warehouse from nothing. Found by spec 029's fixture run, the first thing
+    # in this project to do that.
+    #
+    # The move is safe rather than merely convenient: 20_clean.sql reads
+    # raw_trips and file_date_order and nothing else, and 25_localise.sql —
+    # the one statement that does need file_timezone — still runs after both.
+    run_sql(con, "20_clean.sql")
     run_sql(con, "17_timezones.sql")
     for sys_id, f, basis, trough, n in con.execute(
         "SELECT system_id, source_file, tz_basis, trough_hour, rows_parsed "
@@ -1063,7 +1077,6 @@ def run_clean(con) -> None:
     # answers has not changed.
     record(con, "clean", "files_ambiguous_date_order",
            "SELECT count(*) FROM file_date_order WHERE date_order IN ('conflict','ambiguous')")
-    run_sql(con, "20_clean.sql")
     run_sql(con, "25_localise.sql")
     record(con, "clean", "rows_kept", "SELECT count(*) FROM clean_trips")
     # These MUST use the same context-aware parser clean_trips uses. When they

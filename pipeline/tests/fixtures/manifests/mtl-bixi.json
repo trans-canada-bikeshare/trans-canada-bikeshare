@@ -1,0 +1,56 @@
+{
+  "system_id": "mtl-bixi",
+  "source_page": "synthetic://fixture/mtl-bixi",
+  "data_terms": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence. Nothing in this tree was published by any transit agency or by Environment and Climate Change Canada; the real archive's terms are in DATA-LICENSES.md and do not reach here.",
+  "licence": {
+    "name": "none — synthetic fixture",
+    "url": null,
+    "checked": "2026-07-31",
+    "attribution": "None required. Every value was invented by pipeline/tests/fixtures/generate_fixtures.py.",
+    "note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence"
+  },
+  "weather_station": {
+    "station_id": 990002,
+    "climate_id": "FIXTURE02",
+    "name": "FIXTURE MONTREAL A",
+    "lat": 45.47,
+    "lon": -73.74,
+    "licence": {
+      "name": "none — synthetic fixture",
+      "url": null,
+      "checked": "2026-07-31",
+      "attribution": "None required. Every value was invented by pipeline/tests/fixtures/generate_fixtures.py.",
+      "note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence"
+    }
+  },
+  "sources": {
+    "2024-A": {
+      "url": "synthetic://fixture/mtl-bixi/2024-A.csv",
+      "sha256": "8fd97bc76c9c43d4a8e06df50024e2a9bb5ac8f9904399012527f05ee5349be0",
+      "bytes": 17514,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-D": {
+      "url": "synthetic://fixture/mtl-bixi/2024-D.csv",
+      "sha256": "f469fc21857d6f8e4735363c4e0f7c7a06de694f10f9c8120d2f391c33fae07a",
+      "bytes": 64685,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    }
+  },
+  "reference": {
+    "gbfs_station_information": {
+      "url": "synthetic://fixture/mtl-bixi/reference/gbfs_station_information.json",
+      "sha256": "13b948338d50a0c314fbff1d7834c0877f9cb471a772a0b4ba9e79a4cae4fbeb",
+      "bytes": 1177,
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "weather_2024": {
+      "url": "synthetic://fixture/mtl-bixi/reference/weather_2024.csv",
+      "sha256": "47766ba913844ed2e2fbc507e8c1c24487c0c2c7253864bb63ca7912e41e363c",
+      "bytes": 51542,
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    }
+  }
+}

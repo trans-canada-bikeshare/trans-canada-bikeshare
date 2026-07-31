@@ -20,6 +20,12 @@ __pycache__/
 coverage/
 .vite/
 
+# `make check-fixture`'s scratch tree: a copy of the synthetic fixture archive,
+# the warehouse built from it, and the artifacts published from that. Removed on
+# success; kept by `--keep` for inspection. The fixture SOURCE files are
+# committed, under pipeline/tests/fixtures/.
+.fixture-run/
+
 # agent worktrees and local claude state
 .claude/worktrees/
 

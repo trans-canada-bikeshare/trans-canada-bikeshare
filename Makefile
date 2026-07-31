@@ -59,5 +59,19 @@ check-reconciliation:
 
 check: check-manifest check-metrics check-artifacts check-report check-reconciliation
 
-.PHONY: check check-artifacts check-manifest check-metrics check-report \
-        check-reconciliation
+# Spec 029. The whole pipeline end to end over a synthetic fixture archive:
+# extract -> reference -> clean -> conform -> model -> publish -> quality
+# report, then every gate above that a fixture tree can be asked meaningfully,
+# then assertions about what came out. Two seconds, no network, and it cannot
+# touch data-raw/, data-warehouse/ or src/data/generated/ — which it verifies
+# rather than assumes.
+#
+# This is the ONLY gate here a clean clone can run: every other one needs the
+# ~20 GB archive. It is therefore what CI runs, and it is the reason the
+# reproducibility claim is testable by someone who has never downloaded a byte.
+# See pipeline/tests/fixtures/README.md for what the fixtures cover.
+check-fixture:
+	$(PYTHON) pipeline/fixture_run.py
+
+.PHONY: check check-artifacts check-fixture check-manifest check-metrics \
+        check-report check-reconciliation

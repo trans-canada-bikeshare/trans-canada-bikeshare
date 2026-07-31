@@ -1,0 +1,94 @@
+# Trans-Canada Bikeshare — continuous integration.
+#
+# What a clean GitHub-hosted runner can actually prove: that the pinned
+# toolchain installs, that the pipeline runs end to end over the synthetic
+# fixture archive, and that the site's tests, types and build pass. It has no
+# access to the ~20 GB source archive, so the full-data gates (`make check`)
+# stay local and manual — see docs/runbook.md, "CI".
+#
+# No `continue-on-error`, no `|| true`, no soft failures. A gate that cannot
+# fail is the thing this repository's Makefile header exists to prevent, and a
+# workflow that reports green over a skipped step is the same mistake wearing a
+# different hat.
+#
+# Deployment is NOT here. It is manual, it is documented in the runbook, and no
+# Cloudflare credential exists in this repository's secrets.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# A second push to the same branch cancels the first. The gates are
+# deterministic, so the older run can only ever tell you about older code.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  pipeline:
+    name: Pipeline (Python 3.11)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # 3.11 exactly. `pipeline/requirements.lock` holds CPython 3.11 (cp311)
+      # wheel hashes and nothing else, and `common.require_python` asserts the
+      # version at import, so anything else fails at install or at startup
+      # rather than at the first behavioural difference.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: pipeline/requirements.lock
+
+      # --require-hashes: every distribution, direct and transitive, must match
+      # a sha256 in the lock or the install aborts. This is the step that makes
+      # "reproducible" mean something on a machine nobody has ever run this on.
+      - name: Install the pinned toolchain
+        run: pip install --require-hashes -r pipeline/requirements.lock
+
+      - name: pytest
+        run: python -m pytest pipeline/tests -q
+
+      # The whole pipeline over the fixture archive: extract, reference, clean,
+      # conform, model, publish, quality report, then check-manifest,
+      # check-metrics, check-artifacts, check-report and check-reconciliation
+      # against it. Offline by construction — the fixtures are CSV-only, so
+      # DuckDB's `excel` extension is never needed and
+      # BIKESHARE_ALLOW_EXTENSION_INSTALL=0 makes a fetch a named refusal.
+      - name: make check-fixture
+        run: make check-fixture PYTHON=python
+
+  site:
+    name: Site (Node)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: vitest
+        run: npm test
+
+      - name: typecheck
+        run: npm run typecheck
+
+      # `npm run build` carries its own assertion that MapLibre's tile-parsing
+      # worker reached dist/assets. Spec 021 shipped three maps that drew zero
+      # dots because Rollup never emitted that chunk and the SPA fallback
+      # answered the request with index.html — HTTP 200, no 404, no console
+      # error. The build is a gate here, not a smoke test.
+      - name: build
+        run: npm run build

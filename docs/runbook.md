@@ -133,6 +133,78 @@ refuses to stamp and tells you to re-extract, because overwriting the recorded
 count with a fresh one would erase the only evidence that the warehouse is
 stale.
 
+## The fixture pipeline
+
+```bash
+make check-fixture      # ~2.5s, no network, no archive
+```
+
+Every gate above needs the ~20 GB archive, so until spec 029 nothing in this
+repository could be verified by anyone who had not downloaded it — including a
+GitHub runner. `make check-fixture` closes that: it runs the **whole** pipeline
+end to end over a small synthetic archive and then runs the real gates against
+the result.
+
+- **The fixtures live in `pipeline/tests/fixtures/`** — `archive/` (the source
+  files) and `manifests/` (their checksums), with a README stating what they
+  cover and what they deliberately do not. Every value in them is invented;
+  every station is named `FIXTURE …`, every manifest URL is `synthetic://`,
+  and no source licence reaches them. `pipeline/tests/fixtures/generate_fixtures.py`
+  is how the bytes were made and rewrites both directories together.
+- **The run tree is `.fixture-run/`**, gitignored, removed on success and kept
+  by `--keep`. `BIKESHARE_DATA_ROOT` points at it, so the archive, the
+  warehouse and the manifests move together; `BIKESHARE_GENERATED_DIR` points
+  at `.fixture-run/generated`. `pipeline/fixture_run.py` records the
+  modification times of `src/data/generated/`, `docs/data-quality-report.md`,
+  `data-raw/` and `data-warehouse/` before the run and compares them after, so
+  "it cannot touch the real project" is checked rather than asserted.
+- **It is offline.** `BIKESHARE_ALLOW_EXTENSION_INSTALL=0` and an empty
+  extension directory inside the run tree. The fixtures are CSV-only precisely
+  so DuckDB's `excel` extension — the one thing here that is fetched from the
+  network — is never needed; `icu` ships inside the wheel.
+- **It runs on 1 GB and two threads**, which is what makes the configurable
+  limits a tested property rather than a documented intention.
+
+It runs `check-manifest`, `check-metrics`, `check-artifacts` and `check-report`
+against the fixture tree. The last two are the interesting ones: there are no
+committed fixture artifacts to compare against, so the run publishes and then
+re-publishes and byte-compares, and generates the quality report and then
+regenerates and diffs it. That is the same question `make check-artifacts` asks
+of the real archive — and it is what would have caught spec 029's
+`stations.json` defect, where a sort that was not a total order returned tied
+rows in whatever order the scan produced.
+
+What it does **not** cover is in the fixtures' README: no XLSX, no zips, no
+encoding repair, and nothing about whether any published number is right. Those
+stay with the full archive, and the full archive stays local.
+
+## CI
+
+`.github/workflows/ci.yml`, on every push to `main` and every pull request. Two
+jobs, both on a clean GitHub-hosted runner:
+
+| Job | Runs |
+| --- | --- |
+| **Pipeline (Python 3.11)** | `pip install --require-hashes -r pipeline/requirements.lock`, `pytest pipeline/tests`, `make check-fixture` |
+| **Site (Node)** | `npm ci`, `npm test`, `npm run typecheck`, `npm run build` |
+
+pip and npm caches are keyed on the lock files. No `continue-on-error` and no
+`|| true` anywhere: a gate that cannot fail is worse than an absent one.
+
+**What stays local, and why.** `make check` — manifest, metrics, artifacts,
+report, reconciliation — needs the ~20 GB archive, which is neither committed
+nor downloadable inside a job (a full acquisition is ~25 minutes and one period
+currently 500s at origin). So the full-data gates run on the machine that holds
+the archive, before the artifacts are committed, and CI proves the two things a
+clean clone can prove: that the pinned toolchain installs and that the pipeline
+runs end to end. In a clean clone with no `data-raw/` and no `data-warehouse/`,
+the warehouse-backed tests **skip** — 149 pass, 31 skip — and `make
+check-fixture` passes on its own tree.
+
+**Deployment is not in CI.** No Cloudflare credential exists in this
+repository's secrets, and the deploy is the two commands under "Deploy" below,
+run by hand.
+
 ## Monthly refresh
 
 When a system publishes a new period:

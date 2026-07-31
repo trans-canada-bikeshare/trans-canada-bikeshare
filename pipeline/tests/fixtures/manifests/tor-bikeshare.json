@@ -1,0 +1,56 @@
+{
+  "system_id": "tor-bikeshare",
+  "source_page": "synthetic://fixture/tor-bikeshare",
+  "data_terms": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence. Nothing in this tree was published by any transit agency or by Environment and Climate Change Canada; the real archive's terms are in DATA-LICENSES.md and do not reach here.",
+  "licence": {
+    "name": "none — synthetic fixture",
+    "url": null,
+    "checked": "2026-07-31",
+    "attribution": "None required. Every value was invented by pipeline/tests/fixtures/generate_fixtures.py.",
+    "note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence"
+  },
+  "weather_station": {
+    "station_id": 990003,
+    "climate_id": "FIXTURE03",
+    "name": "FIXTURE TORONTO A",
+    "lat": 43.68,
+    "lon": -79.63,
+    "licence": {
+      "name": "none — synthetic fixture",
+      "url": null,
+      "checked": "2026-07-31",
+      "attribution": "None required. Every value was invented by pipeline/tests/fixtures/generate_fixtures.py.",
+      "note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence"
+    }
+  },
+  "sources": {
+    "2024-H1": {
+      "url": "synthetic://fixture/tor-bikeshare/2024-H1.csv",
+      "sha256": "950f01565af17e7e4c8ea9d260256ce117894aeaca209233ba23c8589fd57a44",
+      "bytes": 53003,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "2024-H2": {
+      "url": "synthetic://fixture/tor-bikeshare/2024-H2.csv",
+      "sha256": "2af463312b32b8bc5faeb2e42337bd8e890a6ad6172cbdd8f080d3eba8b650d0",
+      "bytes": 56961,
+      "content_format": "csv",
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    }
+  },
+  "reference": {
+    "gbfs_station_information": {
+      "url": "synthetic://fixture/tor-bikeshare/reference/gbfs_station_information.json",
+      "sha256": "d58469370b780cf3953a57478e24729d5e1a4d2e2f5e4e4fb6dfb2ca1022c7f5",
+      "bytes": 1057,
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    },
+    "weather_2024": {
+      "url": "synthetic://fixture/tor-bikeshare/reference/weather_2024.csv",
+      "sha256": "fb3ee1af7516ef7be7c8180bda27bccbabfda92ca20d3cb27dc1b42dec051aeb",
+      "bytes": 51029,
+      "downloaded_at": "2026-07-31T00:00:00+00:00"
+    }
+  }
+}

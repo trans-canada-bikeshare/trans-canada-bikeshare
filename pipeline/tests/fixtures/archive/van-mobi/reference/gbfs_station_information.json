@@ -1,0 +1,52 @@
+{
+ "last_updated": 1735689600,
+ "ttl": 60,
+ "version": "2.2",
+ "_note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence",
+ "data": {
+  "stations": [
+   {
+    "station_id": "0901",
+    "name": "FIXTURE Cambie & 2nd",
+    "lat": 49.26805,
+    "lon": -123.11504,
+    "capacity": 16
+   },
+   {
+    "station_id": "0902",
+    "name": "FIXTURE Yaletown Roundhouse",
+    "lat": 49.27448,
+    "lon": -123.12153,
+    "capacity": 16
+   },
+   {
+    "station_id": "0903",
+    "name": "FIXTURE Kits Beach Loop",
+    "lat": 49.27352,
+    "lon": -123.15402,
+    "capacity": 16
+   },
+   {
+    "station_id": "0904",
+    "name": "FIXTURE Main & Terminal",
+    "lat": 49.27351,
+    "lon": -123.10011,
+    "capacity": 16
+   },
+   {
+    "station_id": "0905",
+    "name": "FIXTURE Stanley Park Gate",
+    "lat": 49.29352,
+    "lon": -123.13455,
+    "capacity": 16
+   },
+   {
+    "station_id": "0906",
+    "name": "FIXTURE Commercial & Broadway",
+    "lat": 49.26251,
+    "lon": -123.06903,
+    "capacity": 16
+   }
+  ]
+ }
+}

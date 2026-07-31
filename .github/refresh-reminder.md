@@ -12,6 +12,8 @@ order, are
 - [ ] `discover.py` — new periods appear automatically; a **changed URL for an
       existing period is reported and not applied**. Look at it before passing
       `--accept-changes`.
+- [ ] `weather.py` — derives the ECCC year range from the manifest's own trip
+      periods; the open calendar year repins without complaint.
 - [ ] `download.py` — idempotent; only new files are fetched.
 - [ ] `census.py` — **before ETL.** A header layout the era map does not cover
       aborts extraction, and that abort is the feature.

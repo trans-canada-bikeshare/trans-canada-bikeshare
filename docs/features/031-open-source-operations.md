@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready — firmed at load 2026-07-31 (was Draft, written light by design).
+Complete. Merged 2026-07-31; protection, tag, release and the PVR toggle verified at complete.
 
 ## Context
 
@@ -63,24 +63,24 @@ change: No.
 
 ## Acceptance Criteria
 
-- [ ] CI workflow: all actions SHA-pinned (version comments beside),
+- [x] CI workflow: all actions SHA-pinned (version comments beside),
       `persist-credentials: false`, `timeout-minutes` on every job; green
       on the PR that introduces the changes.
-- [ ] The Makefile contains no stub fallback: deleting any gate script
+- [x] The Makefile contains no stub fallback: deleting any gate script
       makes `make check` fail (demonstrated by test or dry run).
-- [ ] Dependabot config covers npm, pip, github-actions.
-- [ ] GitHub's community-profile checklist is fully green (README,
+- [x] Dependabot config covers npm, pip, github-actions.
+- [x] GitHub's community-profile checklist is fully green (README,
       licence, CoC, CONTRIBUTING, SECURITY, templates).
-- [ ] A contributor can run the fixture pipeline from CONTRIBUTING alone
+- [x] A contributor can run the fixture pipeline from CONTRIBUTING alone
       (commands verified as written, in order, on this machine).
-- [ ] `CHANGELOG.md` exists with one accurate entry per shipped release;
+- [x] `CHANGELOG.md` exists with one accurate entry per shipped release;
       v1.0.0 is tagged and its GitHub release carries the full provenance
       block (SHA, artifact hashes, toolchain versions, data windows).
-- [ ] `docs/data-dictionary.md` regenerates from the schemas; a planted
+- [x] `docs/data-dictionary.md` regenerates from the schemas; a planted
       schema change without regeneration fails a test.
-- [ ] The refresh-reminder workflow parses, is least-privilege, and its
+- [x] The refresh-reminder workflow parses, is least-privilege, and its
       cron and template are documented in the runbook.
-- [ ] Branch protection on `main` verified via API: PRs + required checks
+- [x] Branch protection on `main` verified via API: PRs + required checks
       required, admins exempt; both merge paths documented in
       CONTRIBUTING.
 
@@ -88,11 +88,11 @@ change: No.
 
 - ~~Manifest / schema drift / row accounting / like-for-like / tier
   boundary / encodings~~ — no data or pipeline-behavior changes.
-- [ ] Committed artifacts reproduce byte-for-byte (must be untouched).
-- [ ] Site copy derives from the data window — untouched.
-- [ ] Attribution — CHANGELOG and release notes must not misstate any
+- [x] Committed artifacts reproduce byte-for-byte (must be untouched).
+- [x] Site copy derives from the data window — untouched.
+- [x] Attribution — CHANGELOG and release notes must not misstate any
       licence obligation; DATA-LICENSES.md remains the authority.
-- [ ] No raw trip data committed.
+- [x] No raw trip data committed.
 
 ## Testing
 
@@ -111,3 +111,11 @@ to package registries.
 Configuration only: delete the workflows/files, drop the tag
 (`git push --delete origin v1.0.0`), disable protection via the API.
 Nothing else depends on any of it.
+
+## Accepted from review, noted
+
+The dictionary generator walks today's schema vocabulary and would
+silently omit (not refuse) a future oneOf/anyOf/$ref subtree — a refusal
+would better match house style; the timeout test does not strip comments;
+reminder dedup trusts search indexing at monthly cadence. All three
+optional polish, recorded here.

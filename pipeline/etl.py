@@ -274,7 +274,7 @@ def reader_expr(path: Path, sheet: str | None = None) -> str:
     # guards close that door before this expression can lose anything
     # silently: ensure_utf8 repairs invalid-encoding lines (the one measured
     # loss mode, 31,315 lines, station-biased) and records the count per
-    # file, and extract_system compares an independently counted
+    # file, and run_extract compares an independently counted
     # source_record_count against rows landed and raises
     # ReconciliationFailed on any mismatch. An earlier version of this
     # comment recorded the loss as an open gap; both halves of the fix are

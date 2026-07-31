@@ -14,12 +14,14 @@ deep dive this project generalizes. Built and maintained by
 
 ## Status
 
-**Built, not yet deployed.** The pipeline ingests every year all three systems
-publish — 135.6M trips over a ~20 GB pinned archive — into a DuckDB star
-schema, and the site renders trips, seasonality, stations, e-bike share,
-membership, interactive maps and station flows from small committed
-aggregates. Deployment (spec 027) is written as a runbook and deliberately not
-executed; three owner decisions gate it, recorded in `docs/runbook.md`.
+**Live at [bikeshare.adnanreza.com](https://bikeshare.adnanreza.com).** The
+pipeline ingests every year all three systems publish — 135.6M trips over a
+~20 GB pinned archive — into a DuckDB star schema, and the site renders
+trips, seasonality, stations, e-bike share, membership, interactive maps,
+station flows, forecasts and operational signals from small committed
+aggregates. Deployed 2026-07-30 to Cloudflare Pages (spec 027); the owner
+decisions that gated deployment are recorded in `docs/runbook.md` and
+`docs/decisions.md`.
 
 To reproduce it, or to fold in a new month of data, follow
 [`docs/runbook.md`](docs/runbook.md) — one known caveat there: Vancouver's

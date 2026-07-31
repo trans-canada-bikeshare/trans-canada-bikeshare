@@ -1,25 +1,60 @@
-# Current Feature
+# Current Feature: 027 Deploy
 
 ## Status
 
-**No feature in flight.** Next up: spec 027 — deploy, pending the three owner
-decisions recorded in `docs/runbook.md`.
+In Progress
 
 ## Lifecycle
 
-- [ ] load
-- [ ] start
-- [ ] test
-- [ ] review
+- [x] load — 2026-07-30
+- [x] start — 2026-07-30
+- [x] test — 2026-07-30
+- [x] review — 2026-07-30
 
 ## Goals
 
-<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
+- `https://bikeshare.adnanreza.com` serves the site over HTTPS with a valid
+  certificate, and the `*.pages.dev` URL serves the same build.
+- The served `index.html` carries `rel=canonical` and `og:url`, both reading
+  `https://bikeshare.adnanreza.com/`.
+- Every file under `dist/assets/` and every JSON artifact, rebuilt locally at
+  the deployed commit, hashes identical to the bytes served at the production
+  URL.
+- The MapLibre worker chunk the production site requests returns JavaScript
+  with HTTP 200 — not the SPA fallback serving HTML, the spec-021 failure,
+  checked live by content-type and body.
+- An unknown path (`/no-such-page`) returns the app shell — the SPA fallback
+  is active.
+- In a headed browser against the production URL, each station map draws
+  exactly as many dots as the deployed `stations.json` holds stations with
+  coordinates for that system, and the forecast dials move and refuse outside
+  the envelope.
+- Attribution is visible on the production site: the Toronto OGL sentence,
+  the ECCC acknowledgement, the BIXI unknown-terms statement, and the
+  basemap's own attribution control on the maps.
+- The deployment contains static assets only — no Pages Functions — so site
+  traffic consumes no Workers-plan quota.
+- `make check`, both test suites, typecheck and build are green at the
+  deployed commit.
+- `README.md` no longer says "not yet deployed" and links the production URL;
+  `docs/runbook.md`'s deploy section records the date and the exact commands
+  run; the spec index marks 027 complete.
 
 ## Notes
 
-<!-- Dependencies, sources and cities touched, licence constraints, and
-     whether this feature changes any published artifact. -->
+- **Depends on:** every shipped spec 001–026; load-bearing are 011 (freshness
+  gate), 021 (worker-asset and headed-verification lessons), 025 (site
+  attribution). All are in History below.
+- **Sources / cities:** none touched; all three cities published unchanged.
+- **Published artifacts change: No.** `index.html` gains canonical/og:url;
+  README and runbook prose change from "not deployed" to the live link.
+- **Licence constraints:** deploying makes the BIXI unknown-terms position
+  and the ECCC-derived values public. Both owner decisions are recorded
+  (`docs/decisions.md` 2026-07-28 and 2026-07-30); LICENSE and the site carry
+  the obligations. Trademark search: proceeding without, owner-accepted.
+- **Infrastructure:** Cloudflare Pages, project `trans-canada-bikeshare`,
+  custom domain `bikeshare.adnanreza.com`, static assets only. Wrangler
+  4.116 is authenticated on this machine.
 
 ## History
 

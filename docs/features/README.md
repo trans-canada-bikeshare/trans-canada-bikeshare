@@ -51,7 +51,7 @@ to a reader and to anyone who wants to pick the work up.
 | 024 | [Operational signals](024-operational-signals.md) | Complete — Montreal in the comparable core |
 | 025 | [Methodology and data quality](025-methodology-and-data-quality.md) | Complete |
 | 026 | [Accessibility and responsive](026-accessibility-and-responsive.md) | Complete |
-| 027 | [Deploy](027-deploy.md) | **Not built, deliberately** |
+| 027 | [Deploy](027-deploy.md) | Complete — live at [bikeshare.adnanreza.com](https://bikeshare.adnanreza.com) |
 
 ## Where the record actually lives
 

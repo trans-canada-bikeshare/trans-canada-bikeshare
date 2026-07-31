@@ -554,9 +554,27 @@ because BIXI opens in April; its 2026 stops in June because the archive does.
 From inside the data those are identical, so the yearly chart draws only years
 covered 1 January to 31 December and the page names the five it dropped.
 
-## Next
+## 2026-07-30: Deployed at bikeshare.adnanreza.com, on paths not sub-subdomains
 
-Spec 001: download one real month from BIXI and Bike Share Toronto, read the
-actual headers, and write a verified column-by-column feasibility map
-(especially: e-bike flags, membership fields, station coordinates, timestamp
-precision) before any pipeline code.
+Spec 027 executed after the owner settled the three decisions that gated it.
+The domain is **bikeshare.adnanreza.com** on Cloudflare Pages, chosen over:
+
+- `trans-canada-bikeshare.adnanreza.com` — the sister project's pattern, but
+  long; the project name lives in the title and the page, not the hostname.
+- A path on `adnanreza.com` — Pages cannot mount under another zone's path,
+  so this needs a proxy Worker on every request, which is metered. The site
+  as deployed is static assets only and consumes no Workers-plan quota.
+- `trans-canada-bikeshare.github.io` — a second hosting stack, an SPA 404
+  hack, and a duplicate-content liability for no gain over the repo link.
+
+**If the scope ever grows past Canada, expansion is by path** (`/ca`), never
+a deeper subdomain: fourth-level names fall outside Universal SSL's one-level
+wildcard, and a subdomain split forfeits the host's accumulated standing.
+Fragments survive redirects, so today's anchor links would land correctly
+after a root-to-`/ca` move. A global comparison may equally be a sibling
+project instead — that door stays open either way.
+
+The BIXI position (publish, terms stated unknown, 2026-07-28) and the marks
+(no formal trademark search; 002b's reasoning stands, and is not legal
+advice) were accepted as-is for deploy. Deploying made both public, which is
+what those entries always said would happen.

@@ -486,17 +486,48 @@ def test_a_warehouse_with_no_audit_at_all_is_not_a_pass(con):
 
 
 def test_recount_refuses_to_restamp_a_source_that_actually_changed(audited, tree):
-    """The recount confirms; it never launders. Overwriting the recorded count
-    with a fresh one would erase the only evidence the warehouse is stale."""
+    """The recount confirms; it never launders. A moved pin is refused before
+    any counting happens — the count is not the content."""
     root, manifests = tree
     (root / "van-mobi" / "2024-06.csv").write_text(
         f"{VAN_HEADER}\n{VAN_ROW}\n{VAN_ROW}\n{VAN_ROW}\n", encoding="utf-8")
     repin(manifests, root, "van-mobi", "2024-06")
     failures = check_reconciliation.recount(audited, verbose=False)
-    assert any("diverged" in f for f in failures), failures
+    assert any("pin moved" in f for f in failures), failures
     stored = audited.execute("SELECT source_records FROM raw_file_audit "
                              "WHERE system_id = 'van-mobi'").fetchone()[0]
     assert stored == 2, "the audit still says what extraction measured"
+
+
+def test_recount_refuses_a_count_preserving_republish(audited, tree):
+    """The laundering shape: a publisher fixes values in place, the row count
+    survives, the pin moves. Stamping the new sha over rows extracted from the
+    old bytes would make the audit claim the warehouse holds data it does not.
+    Refused regardless of the matching count; the stored sha stays what it was."""
+    root, manifests = tree
+    before = audited.execute("SELECT source_sha256 FROM raw_file_audit "
+                             "WHERE system_id = 'van-mobi'").fetchone()[0]
+    changed_row = VAN_ROW.replace("0001 Foo", "0001 Fop")
+    (root / "van-mobi" / "2024-06.csv").write_text(
+        f"{VAN_HEADER}\n{changed_row}\n{changed_row}\n", encoding="utf-8")
+    repin(manifests, root, "van-mobi", "2024-06")
+    failures = check_reconciliation.recount(audited, verbose=False)
+    assert any("pin moved" in f for f in failures), failures
+    after = audited.execute("SELECT source_sha256 FROM raw_file_audit "
+                            "WHERE system_id = 'van-mobi'").fetchone()[0]
+    assert after == before, "the audit must keep naming the bytes it read"
+
+
+def test_recount_stamps_only_the_null_sha_bootstrap(audited):
+    """The one legitimate write: a pre-checksum audit row gains its sha after
+    proving its count in full against the pinned source."""
+    audited.execute("UPDATE raw_file_audit SET source_sha256 = NULL")
+    failures = check_reconciliation.recount(audited, verbose=False)
+    assert failures == [], failures
+    remaining = audited.execute(
+        "SELECT count(*) FROM raw_file_audit WHERE source_sha256 IS NULL"
+    ).fetchone()[0]
+    assert remaining == 0, "every bootstrap row should now carry its pin"
 
 
 def test_the_gate_runs_inside_make_check():

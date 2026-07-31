@@ -8,7 +8,7 @@ How to rebuild the archive, regenerate artifacts, and deploy. First deployed
 ```bash
 python3.11 -m venv .venv
 .venv/bin/pip install --require-hashes -r pipeline/requirements.lock
-npm install
+npm ci
 
 .venv/bin/python pipeline/discover.py          # refresh manifests from source
 .venv/bin/python pipeline/weather.py           # derive ECCC weather years from the trip window

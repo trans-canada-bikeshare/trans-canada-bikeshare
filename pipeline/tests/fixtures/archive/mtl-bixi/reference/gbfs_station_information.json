@@ -11,7 +11,7 @@
     "lat": 45.50412,
     "lon": -73.57611,
     "capacity": 16,
-    "short_name": "6501"
+    "short_name": "9901"
    },
    {
     "station_id": "9102",
@@ -19,7 +19,7 @@
     "lat": 45.52618,
     "lon": -73.58402,
     "capacity": 16,
-    "short_name": "6502"
+    "short_name": "9902"
    },
    {
     "station_id": "9103",
@@ -27,7 +27,7 @@
     "lat": 45.49803,
     "lon": -73.57221,
     "capacity": 16,
-    "short_name": "6503"
+    "short_name": "9903"
    },
    {
     "station_id": "9104",
@@ -35,7 +35,7 @@
     "lat": 45.52411,
     "lon": -73.59005,
     "capacity": 16,
-    "short_name": "6504"
+    "short_name": "9904"
    },
    {
     "station_id": "9105",
@@ -43,7 +43,7 @@
     "lat": 45.51502,
     "lon": -73.56304,
     "capacity": 16,
-    "short_name": "6505"
+    "short_name": "9905"
    },
    {
     "station_id": "9106",
@@ -51,7 +51,7 @@
     "lat": 45.53008,
     "lon": -73.59902,
     "capacity": 16,
-    "short_name": "6506"
+    "short_name": "9906"
    }
   ]
  }

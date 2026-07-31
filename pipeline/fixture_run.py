@@ -109,6 +109,16 @@ def snapshot(paths) -> dict[str, tuple[float, int]]:
 
 def prepare(run_dir: Path) -> dict[str, str]:
     """A clean run tree, and the environment every step inherits."""
+    resolved = run_dir.resolve()
+    for tree in GUARDED:
+        guarded = tree.resolve()
+        if resolved == guarded or guarded in resolved.parents \
+                or resolved in guarded.parents:
+            raise SystemExit(
+                f"--run-dir {run_dir} overlaps the guarded tree {tree}; "
+                "the run dir is deleted wholesale and must never be, "
+                "contain, or sit inside real data."
+            )
     if run_dir.exists():
         shutil.rmtree(run_dir)
     run_dir.mkdir(parents=True)

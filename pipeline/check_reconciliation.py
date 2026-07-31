@@ -24,14 +24,16 @@ how much. That is bounded by how much was re-pinned, which is normally nothing.
     make check-reconciliation           # read-only; part of `make check`
     python pipeline/check_reconciliation.py --recount
 
-`--recount` is the write path and it exists for exactly two situations: a
-warehouse extracted before the checksum column existed (every row's sha is
-NULL, and re-reading 20 GB on every `make check` is not a gate anyone leaves
-switched on), and a re-pin whose contents turn out to be identical. It re-reads
-the source, and it stamps the checksum ONLY where the recounted records still
-equal what landed. Where they do not, it refuses and says so — the fix for a
-source that genuinely changed is to extract it again, never to overwrite the
-number that says it was not.
+`--recount` is the write path and it exists for exactly one situation: a
+warehouse extracted before the checksum column existed (a row's sha is NULL,
+and re-reading 20 GB on every `make check` is not a gate anyone leaves
+switched on). It re-reads the source and stamps ONLY such bootstrap rows, and
+only where the recounted records still equal what landed. A row whose sha is
+present but no longer matches the pin is REFUSED regardless of count — an
+equal record count is not equal content, and a publisher fixing values in
+place keeps the count while changing every row. The fix for a moved pin is
+to extract the system again, never to overwrite the number that says which
+bytes the rows came from.
 """
 
 from __future__ import annotations
@@ -336,7 +338,26 @@ def recount(con, verbose: bool = True) -> list[str]:
                 continue
             landed = {r[0]: r[2] for r in rows}
             fresh = recount_period(system_id, period, entry, landed)
-            for label, was, land, _stored in rows:
+            for label, was, land, stored in rows:
+                if stored == pinned:
+                    confirmed += 1
+                    continue
+                if stored is not None:
+                    # The pin MOVED under rows extracted from different bytes.
+                    # An equal record count is not equal content — a publisher
+                    # fixing values in place keeps the count and changes every
+                    # row, which is exactly the republish shape Toronto's
+                    # membership defect would take. Stamping here would launder
+                    # it: the audit would claim these rows came from the new
+                    # pin. Only a re-extract can make that claim true.
+                    failures.append(
+                        f"{system_id} {period} {label}: the manifest pin moved "
+                        f"({stored[:12]}… -> {pinned[:12]}…) after these rows "
+                        "were extracted. A matching record count does not make "
+                        "the content the same; re-extract this system instead "
+                        "of restamping the audit."
+                    )
+                    continue
                 now = fresh.get(label)
                 if now is None:
                     failures.append(
@@ -352,6 +373,8 @@ def recount(con, verbose: bool = True) -> list[str]:
                         "rather than restamping the audit."
                     )
                 else:
+                    # Bootstrap only: a pre-029 audit row that never carried a
+                    # sha gains one, having just proven its count in full.
                     con.execute(
                         "UPDATE raw_file_audit SET source_records = ?, "
                         "source_sha256 = ? WHERE system_id = ? AND "

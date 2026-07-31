@@ -65,13 +65,7 @@ idna==3.18 \
 iniconfig==2.3.0 \
     --hash=sha256:f631c04d2c48c52b84d0d0549c99ff3859c98df65b3101406327ecc7d53fbf12
 
-# joblib-1.5.3-py3-none-any.whl
-joblib==1.5.3 \
-    --hash=sha256:5fc3c5039fc5ca8c0276333a188bbd59d6b7ab37fe6632daa76bc7f9ec18e713
 
-# narwhals-2.24.0-py3-none-any.whl
-narwhals==2.24.0 \
-    --hash=sha256:42fdedf44e5b2ca7505630d45b4ac3058f38d8485cba9fe1652ca23152df7489
 
 # numpy-2.4.6-cp311-cp311-macosx_14_0_arm64.whl
 # numpy-2.4.6-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
@@ -105,25 +99,8 @@ pytest==9.1.1 \
 requests==2.34.2 \
     --hash=sha256:2a0d60c172f83ac6ab31e4554906c0f3b3588d37b5cb939b1c061f4907e278e0
 
-# scikit_learn-1.9.0-cp311-cp311-macosx_12_0_arm64.whl
-# scikit_learn-1.9.0-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
-# scikit_learn-1.9.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
-scikit-learn==1.9.0 \
-    --hash=sha256:f401448645a3e7bc115aa3c094097865155b34bff1cba8101857d9104e99074c \
-    --hash=sha256:fd3a8ef0c758555a3b23c03adaa858af32f7736785ded50ad5991f59c4ed03fa \
-    --hash=sha256:f7e254636164090da847715a27f8e5478feb98c40a9e0ee90cbd277de9e5ceb8
 
-# scipy-1.17.1-cp311-cp311-macosx_14_0_arm64.whl
-# scipy-1.17.1-cp311-cp311-manylinux_2_27_aarch64.manylinux_2_28_aarch64.whl
-# scipy-1.17.1-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl
-scipy==1.17.1 \
-    --hash=sha256:a3472cfbca0a54177d0faa68f697d8ba4c80bbdc19908c3465556d9f7efce9ee \
-    --hash=sha256:744b2bf3640d907b79f3fd7874efe432d1cf171ee721243e350f55234b4cec4c \
-    --hash=sha256:43af8d1f3bea642559019edfe64e9b11192a8978efbd1539d7bc2aaa23d92de4
 
-# threadpoolctl-3.6.0-py3-none-any.whl
-threadpoolctl==3.6.0 \
-    --hash=sha256:43a0b8fd5a2928500110039e43a5eed8480b918967083ea48dc3ab9f13c4a7fb
 
 # urllib3-2.7.0-py3-none-any.whl
 urllib3==2.7.0 \

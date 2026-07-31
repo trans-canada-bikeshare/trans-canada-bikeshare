@@ -159,3 +159,43 @@ def test_fixture_station_identifiers_cannot_collide_with_real_ones():
                 f"{system_id} {st['station_id']}: fixture ids must sit clear of "
                 "the ranges the real systems publish"
             )
+            # The review that forced this clause: fixture Montreal era-A codes
+            # 6501-6506 were REAL BIXI docks (Parc Jean-Drapeau among them),
+            # while this test looked only at GBFS station_id. Every identifier
+            # a fixture publishes — station_id, short_name, and the trip-file
+            # keys below — must sit at 9900+ where no system has ever issued.
+            short = st.get("short_name")
+            if short is not None and str(short).isdigit():
+                assert int(short) >= 9900, (
+                    f"{system_id} short_name {short}: collides with the range "
+                    "real systems issue (BIXI's four-digit codes reach the "
+                    "6000s-7000s)"
+                )
+
+
+def test_fixture_trip_file_station_keys_cannot_collide_with_real_ones():
+    """The trip files' own station keys, not only the GBFS feed's."""
+    import csv as csv_mod
+    for path in sorted((ARCHIVE / "mtl-bixi").glob("*.csv")):
+        with path.open(encoding="utf-8") as fh:
+            rows = list(csv_mod.DictReader(fh))
+        for row in rows:
+            for col in ("start_station_code", "end_station_code",
+                        "emplacement_pk_start", "emplacement_pk_end"):
+                v = row.get(col)
+                if v is not None and v.isdigit() and len(v) >= 4:
+                    assert int(v) >= 9900, (
+                        f"{path.name} {col}={v}: a real BIXI code range"
+                    )
+
+
+def test_no_fixture_value_reaches_the_committed_artifacts():
+    """The leak signature the fixture README names, asserted rather than
+    described: no committed artifact may contain the FIXTURE marker."""
+    generated = Path(__file__).resolve().parents[2] / "src" / "data" / "generated"
+    for artifact in sorted(generated.glob("*.json")):
+        text = artifact.read_text(encoding="utf-8")
+        assert "FIXTURE" not in text, (
+            f"{artifact.name} contains fixture data — a fixture run wrote to "
+            "the real generated directory"
+        )

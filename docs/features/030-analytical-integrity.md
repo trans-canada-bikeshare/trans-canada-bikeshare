@@ -89,6 +89,13 @@ Zero months moved, in zero artifacts — verified, not assumed:
   re-derived — recorded here because the declaration exists precisely so
   its numbers cannot be recalled wrong.
 
+Accepted as-is this spec, from review: the threshold scanner's
+own-coverage check carries slack (docstrings and non-call-site SQL count
+toward what it has "seen"), so it is a smoke check, weaker than its name;
+and tuple-assignment / arithmetic-expression named constants still evade
+the scan. Both noted rather than fixed — the plain and annotated
+assignment forms that occur in this codebase are covered.
+
 ## Changes
 
 1. Execute the owner's path A or B for the forecast section.

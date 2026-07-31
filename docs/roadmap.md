@@ -21,7 +21,7 @@ its own.
 (Toronto and Montreal from 2014, Vancouver from 2017); cross-city comparisons
 default to the **2017+ common window** and say so on the chart, while per-city
 views show that city's full range. v1 carries the whole feature set — maps,
-flows, weather-driven forecast, and operational signals — for all three systems.
+flows, weather scenario, and operational signals — for all three systems.
 
 ## The three systems
 

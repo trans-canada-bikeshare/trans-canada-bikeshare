@@ -17,6 +17,12 @@ forecasting. Two honest paths — the owner picks one at `/feature load`:
   and a model form that can answer unseen months, publishing its (weaker)
   out-of-window error honestly alongside.
 
+> **Decided at load, 2026-07-31: Path A — rename.** The owner chose the
+> rename, with the temporal-validation upgrade available as a future spec
+> if ever warranted. Also noted at load: the hourly-surface criterion was
+> largely satisfied by spec 028 (the ±30-minute rounded-labels copy);
+> start verifies the remaining hourly surfaces rather than assuming.
+
 ## Context
 
 Verified findings this spec resolves (see the 2026-07-31 decisions entry

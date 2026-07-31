@@ -83,8 +83,11 @@ Zero months moved, in zero artifacts — verified, not assumed:
   `dim_station.lifetime_events`) — deliberate, reasoned non-application
   rather than blind harmonization. Measured had they been filtered:
   duration's basis shrinks by 3/372/25 with no quartile moving; no
-  top-8 flow pair changes; 105 stations would move by 1–6 lifetime
-  events.
+  top-8 flow pair changes; 105 stations would move their net by 1–10
+  events (largest drawn: 9). The declaration's first draft said "1 to 6"
+  and "sixth decimal"; the reviewer measured both false and they were
+  re-derived — recorded here because the declaration exists precisely so
+  its numbers cannot be recalled wrong.
 
 ## Changes
 

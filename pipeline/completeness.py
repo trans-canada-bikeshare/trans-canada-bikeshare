@@ -352,8 +352,8 @@ POLICIES: dict[str, dict[str, object]] = {
                   "here; filtering only the net flow would widen the "
                   "already-stated gap between what sizes a dot and what "
                   "colours it, for no gain. Measured: 105 stations would move "
-                  "their net, 73 of them drawn, every one by 1 to 6 events "
-                  "against nets in the thousands.",
+                  "their net, 73 of them drawn, by 1 to 10 events (largest "
+                  "drawn: 9) against nets in the thousands.",
     },
     "membership": {
         "metric": "membership_mix",
@@ -375,7 +375,8 @@ POLICIES: dict[str, dict[str, object]] = {
                   "`linked_trips` is the denominator a reader divides by. "
                   "Measured: applying the month rule moves no pair in any "
                   "city's top eight and changes the top-10 share of Toronto's "
-                  "linked trips in the sixth decimal place.",
+                  "linked trips at the seventh decimal place — rounded to "
+                  "six, both read 0.006595.",
     },
     "forecast": {
         "metric": "forecast",
@@ -705,7 +706,9 @@ def scan_thresholds(source: str, *, filename: str = "<source>",
         # number bound DIRECTLY to a name: `MIN_EVENTS = 100`, not a number
         # somewhere inside a dict literal being assigned, which is rounding,
         # indexing and formatting rather than admission.
-        elif "named" in checks and isinstance(node, ast.Assign):
+        elif "named" in checks and isinstance(node, (ast.Assign, ast.AnnAssign)):
+            # AnnAssign too: `TOP_PAIRS: int = 12` is the same bypass with a
+            # type hint on it — the review demonstrated it scanning clean.
             value = node.value
             if isinstance(value, ast.Constant) and \
                     isinstance(value.value, (int, float)) and \

@@ -293,3 +293,13 @@ def test_the_withheld_membership_months_are_the_declared_eras(artifacts):
         for lo, hi in spans:
             inside = [m for s, m in published if s == system and lo <= m <= hi]
             assert not inside, f"{system} publishes {inside} inside a withheld era"
+
+
+def test_forecast_threshold_is_the_declared_one():
+    """forecast.py:113 sources MIN_REFERENCE_BLOCK_DAYS from the declaration
+    today; this pins it so a hardcoded revert to a literal cannot land quietly
+    (the scanner's named-constant check does not reach forecast.py's Python)."""
+    import completeness
+    import forecast
+    assert forecast.MIN_REFERENCE_BLOCK_DAYS == \
+        completeness.FORECAST_MIN_REFERENCE_BLOCK_DAYS

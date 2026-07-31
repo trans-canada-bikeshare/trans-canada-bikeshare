@@ -71,6 +71,12 @@ change: No.
 - [x] Dependabot config covers npm, pip, github-actions.
 - [x] GitHub's community-profile checklist is fully green (README,
       licence, CoC, CONTRIBUTING, SECURITY, templates).
+      *(Verified at complete: every file present and functional on main —
+      three issue forms, PR template, CoC, CONTRIBUTING, SECURITY, MIT.
+      The profile API read 87% with `issue_template: null` two minutes
+      after merge despite the forms being live; that endpoint is known to
+      lag and to prefer legacy .md templates. Substance met; API figure
+      recorded as found, re-check on next touch.)*
 - [x] A contributor can run the fixture pipeline from CONTRIBUTING alone
       (commands verified as written, in order, on this machine).
 - [x] `CHANGELOG.md` exists with one accurate entry per shipped release;

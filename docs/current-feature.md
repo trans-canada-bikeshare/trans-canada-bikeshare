@@ -1,24 +1,49 @@
-# Current Feature
+# Current Feature: 031 Open-source operations
 
 ## Status
 
-_No feature in progress._
+In Progress
 
 ## Lifecycle
 
-- [ ] load
-- [ ] start
+- [x] load — 2026-07-31
+- [x] start — 2026-07-31
 - [ ] test
 - [ ] review
 
 ## Goals
 
-<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
+- CI workflow: all actions SHA-pinned (version comments beside),
+  `persist-credentials: false`, `timeout-minutes` on every job; green on
+  the PR that introduces the changes.
+- The Makefile contains no stub fallback: deleting any gate script makes
+  `make check` fail (demonstrated by test or dry run).
+- Dependabot config covers npm, pip, github-actions.
+- GitHub's community-profile checklist is fully green (README, licence,
+  CoC, CONTRIBUTING, SECURITY, templates).
+- A contributor can run the fixture pipeline from CONTRIBUTING alone
+  (commands verified as written, in order, on this machine).
+- `CHANGELOG.md` exists with one accurate entry per shipped release;
+  v1.0.0 is tagged and its GitHub release carries the full provenance
+  block (SHA, artifact hashes, toolchain versions, data windows).
+- `docs/data-dictionary.md` regenerates from the schemas; a planted
+  schema change without regeneration fails a test.
+- The refresh-reminder workflow parses, is least-privilege, and its cron
+  and template are documented in the runbook.
+- Branch protection on `main` verified via API: PRs + required checks
+  required, admins exempt; both merge paths documented in CONTRIBUTING.
 
 ## Notes
 
-<!-- Dependencies, sources and cities touched, licence constraints, and
-     whether this feature changes any published artifact. -->
+- **Depends on:** 029 (`a2ffdd1`), 028 (`bbf65e3`) — both in History.
+- **Sources / cities / artifacts:** none touched; config and docs only.
+- **Branch-protection stance (firmed at load):** PRs + green CI for
+  contributors; admin bypass for the /feature workflow's local-merge
+  path, documented with reasons in CONTRIBUTING.
+- **Sequencing:** protection and the v1.0.0 tag/release happen at
+  complete (after the merge), then verified via API.
+- **Implementation:** one Opus agent for files/workflows/docs; gh API
+  operations (protection, release) in the orchestrating context.
 
 ## History
 

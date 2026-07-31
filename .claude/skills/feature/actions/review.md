@@ -128,7 +128,7 @@ against the findings.
      ordering encoding is explained where a first-time viewer will look —
      not only in the methodology page.
    - **Attribution ships with the data.** A new source is credited per its
-     licence, in the manifest and on the site, per `LICENSE`.
+     licence, in the manifest and on the site, per `DATA-LICENSES.md`.
    - **No raw data in the diff.** No trip-level file, no warehouse file, no
      large binary.
 

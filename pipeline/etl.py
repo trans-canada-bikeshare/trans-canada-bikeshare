@@ -270,22 +270,15 @@ def reader_expr(path: Path, sheet: str | None = None) -> str:
         return f"read_xlsx('{quoted}', all_varchar = true, sheet = '{esc}')"
     # ignore_errors keeps one ragged row from killing a 3 GB file.
     #
-    # KNOWN GAP, stated plainly because an earlier version of this comment
-    # claimed the opposite: rows discarded here are counted NOWHERE. The
-    # funnel in run_clean starts at rows_landed, so anything the reader drops
-    # never enters it and is invisible to the quality report's claim that
-    # "every row that entered the pipeline is either kept or dropped for a
-    # named reason". That claim is true only below rows_landed.
-    #
-    # Measured extent: ~25,515 Toronto and ~5,800 Vancouver rows, all
-    # INVALID ENCODING — cp1252 bytes in station names. The loss is
-    # station-biased rather than random: Vancouver's
-    # "0069 šxʷƛ̓ənəq Xwtl'e7énḵ Square" drops from ~944 trips in May to 1 in
-    # June, and Toronto's cluster on "25 York St – Union Station South".
-    #
-    # Tracked in docs/roadmap.md. The fix is a per-file encoding fallback plus
-    # a reconciliation gate comparing source record counts to landed counts;
-    # until that lands, do not describe the funnel as complete.
+    # A row the reader dropped here would enter no count — which is why two
+    # guards close that door before this expression can lose anything
+    # silently: ensure_utf8 repairs invalid-encoding lines (the one measured
+    # loss mode, 31,315 lines, station-biased) and records the count per
+    # file, and run_extract compares an independently counted
+    # source_record_count against rows landed and raises
+    # ReconciliationFailed on any mismatch. An earlier version of this
+    # comment recorded the loss as an open gap; both halves of the fix are
+    # ~100 lines below.
     return (
         f"read_csv('{quoted}', header = true, all_varchar = true, "
         "sample_size = -1, ignore_errors = true, null_padding = true)"
@@ -338,9 +331,7 @@ def classify(header: list[str], maps: dict) -> str | None:
 
 def run_extract(con, systems: list[str], limit: int | None) -> None:
     run_sql(con, "10_extract.sql")
-    con.execute("""CREATE TABLE IF NOT EXISTS raw_file_audit (
-        system_id VARCHAR, source_period VARCHAR, source_file VARCHAR,
-        source_records BIGINT, rows_landed BIGINT, lines_repaired BIGINT)""")
+    ensure_audit_table(con)
     for system_id in systems:
         con.execute("DELETE FROM raw_file_audit WHERE system_id = ?", [system_id])
     # Reloading a system replaces only that system's rows. Without this, a
@@ -389,8 +380,8 @@ def run_extract(con, systems: list[str], limit: int | None) -> None:
                     # quoted newline. Pay for the exact count only when needed.
                     expected = exact_record_count(path)
                 con.execute(
-                    "INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?)",
-                    [system_id, period, label, expected, landed, repaired],
+                    "INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?, ?)",
+                    [system_id, period, label, expected, landed, repaired, kind],
                 )
                 if expected != landed:
                     raise ReconciliationFailed(
@@ -413,6 +404,176 @@ def run_extract(con, systems: list[str], limit: int | None) -> None:
     for system_id in systems:
         record(con, "extract", f"rows_{system_id}",
                f"SELECT count(*) FROM raw_trips WHERE system_id = '{system_id}'")
+    record_encoding_metrics(con)
+
+
+def ensure_audit_table(con) -> None:
+    """The per-file audit: what the source held, what landed, what was repaired.
+
+    `kind` was added by spec 028 so the quality report can separate trip files
+    from station snapshots without a semi-join over 135M rows, and `ALTER ... IF
+    NOT EXISTS` is what lets an existing warehouse gain it without a reload.
+    """
+    con.execute("""CREATE TABLE IF NOT EXISTS raw_file_audit (
+        system_id VARCHAR, source_period VARCHAR, source_file VARCHAR,
+        source_records BIGINT, rows_landed BIGINT, lines_repaired BIGINT,
+        kind VARCHAR)""")
+    con.execute("ALTER TABLE raw_file_audit ADD COLUMN IF NOT EXISTS kind VARCHAR")
+
+
+def record_encoding_metrics(con) -> None:
+    """Roll the per-file repair counts up, so the report never hardcodes them.
+
+    The quality report used to state the encoding loss as prose — "~31,000 rows
+    discarded on invalid cp1252, an open gap" — written before `ensure_utf8`
+    existed and never revised after it did. The rows are not discarded any
+    more; they are repaired, a line at a time, and the count is known per file.
+    A generated report has no business restating from memory something the
+    warehouse can answer.
+    """
+    # The backfill can run against a warehouse the extract stage has not
+    # touched in this session, so it cannot assume 10_extract.sql just ran.
+    con.execute("""CREATE TABLE IF NOT EXISTS etl_metrics (
+        stage VARCHAR NOT NULL, metric VARCHAR NOT NULL, value BIGINT NOT NULL)""")
+    record(con, "extract", "lines_repaired",
+           "SELECT coalesce(sum(lines_repaired), 0) FROM raw_file_audit")
+    record(con, "extract", "files_encoding_repaired",
+           "SELECT count(*) FROM raw_file_audit WHERE lines_repaired > 0")
+
+
+class MissingRepairMarker(Exception):
+    """A scrubbed copy exists but the line count that produced it does not."""
+
+
+def scrub_marker(path: Path) -> Path:
+    """Where ensure_utf8 records how many lines it repaired in `path`."""
+    dest = path.parent / SCRUB_DIR_NAME / path.name
+    return dest.with_suffix(dest.suffix + ".lines")
+
+
+def period_dir(system_id: str, period: str, entry: dict) -> Path | None:
+    """The directory holding a period's tabular files, WITHOUT unpacking.
+
+    `tabular_files` would rebuild a missing cache and re-read every byte of a
+    2.8 GB CSV to decide whether it is UTF-8 clean. The backfill must not do
+    that: it is reading what extraction already wrote down.
+    """
+    path = common.local_path(system_id, period, entry.get("content_format"))
+    if path.suffix.lower() in DATA_SUFFIXES:
+        return path.parent if path.exists() else None
+    sha = (entry.get("sha256") or "nopin")[:12]
+    out_dir = extracted_dir(system_id, period).with_name(f"{period}.{sha}")
+    return out_dir if out_dir.exists() else None
+
+
+def backfill_encoding_repairs(con) -> int:
+    """Read the repair markers on disk into raw_file_audit, no extraction.
+
+    Extraction has recorded `lines_repaired` since the encoding repair landed,
+    but a warehouse built before a given file was scrubbed — or one whose audit
+    predates the column — would carry a zero that reads exactly like "this file
+    was clean". The markers `ensure_utf8` leaves beside each scrubbed copy are
+    the record, so they are the thing to read.
+
+    Loud on every ambiguity: a scrubbed copy with no marker beside it stops the
+    run rather than being counted as zero, and a marker no audit row claims
+    stops it too. A guessed repair count would be a fabricated data-loss
+    figure, which is worse than none.
+    """
+    ensure_audit_table(con)
+    audited = con.execute(
+        "SELECT system_id, source_period, source_file FROM raw_file_audit"
+    ).fetchall()
+    if not audited:
+        raise MissingRepairMarker(
+            "raw_file_audit is empty — there is nothing to backfill into. Run "
+            "the extract stage first."
+        )
+    by_period: dict[tuple[str, str], list[str]] = {}
+    for system_id, period, label in audited:
+        by_period.setdefault((system_id, period), []).append(label)
+
+    consumed: set[Path] = set()
+    updates: list[tuple[int, str, str, str]] = []
+    found = 0
+    for (system_id, period), labels in sorted(by_period.items()):
+        entry = common.load_manifest(system_id).get("sources", {}).get(period)
+        if entry is None:
+            raise MissingRepairMarker(
+                f"{system_id} {period}: audited but absent from the manifest"
+            )
+        directory = period_dir(system_id, period, entry)
+        for label in labels:
+            base = label.split("#", 1)[0]
+            if not base.lower().endswith(".csv"):
+                # Only CSVs are ever scrubbed: a workbook is read by openpyxl,
+                # which decodes XML, not bytes in an unknown code page.
+                updates.append((0, system_id, period, label))
+                continue
+            if directory is None:
+                raise MissingRepairMarker(
+                    f"{system_id} {period}: the source files are not on disk, so "
+                    f"the repair count for {label!r} cannot be read. Restore the "
+                    "archive rather than assuming zero."
+                )
+            scrubbed = directory / SCRUB_DIR_NAME / base
+            marker = scrub_marker(directory / base)
+            if marker.exists():
+                consumed.add(marker.resolve())
+                updates.append((int(marker.read_text()), system_id, period, label))
+                found += 1
+            elif scrubbed.exists():
+                raise MissingRepairMarker(
+                    f"{system_id} {period} {label}: a UTF-8 repaired copy exists at "
+                    f"{scrubbed} with no {marker.name} beside it. How many lines it "
+                    "repaired is unknown and will not be guessed — delete the copy "
+                    "and re-run the extract stage."
+                )
+            else:
+                updates.append((0, system_id, period, label))
+
+    changed = 0
+    for value, system_id, period, label in updates:
+        before = con.execute(
+            "SELECT coalesce(lines_repaired, -1) FROM raw_file_audit "
+            "WHERE system_id = ? AND source_period = ? AND source_file = ?",
+            [system_id, period, label],
+        ).fetchone()[0]
+        if before != value:
+            print(f"  {system_id} {period} {label}: {before} -> {value}")
+            changed += 1
+        con.execute(
+            "UPDATE raw_file_audit SET lines_repaired = ? "
+            "WHERE system_id = ? AND source_period = ? AND source_file = ?",
+            [value, system_id, period, label],
+        )
+
+    orphans = sorted(
+        p for p in common.DATA_RAW.rglob(f"{SCRUB_DIR_NAME}/*.lines")
+        if p.resolve() not in consumed
+    )
+    if orphans:
+        raise MissingRepairMarker(
+            f"{len(orphans)} repair marker(s) belong to no audited file, first "
+            f"{orphans[0]}. Either the audit is incomplete or the archive holds a "
+            "file the manifest does not pin."
+        )
+
+    # `kind` is inferable exactly: a station snapshot is a file whose rows
+    # landed in raw_stations, which holds a few thousand rows against the
+    # fact's 135M. So this reads the small table and never the large one.
+    if con.execute("SELECT count(*) FROM information_schema.tables "
+                   "WHERE table_name = 'raw_stations'").fetchone()[0]:
+        con.execute("""
+          UPDATE raw_file_audit a SET kind = CASE WHEN EXISTS (
+            SELECT 1 FROM raw_stations s
+            WHERE s.system_id = a.system_id AND s.source_period = a.source_period
+              AND s.source_file = a.source_file) THEN 'stations' ELSE 'trips' END
+          WHERE a.kind IS NULL""")
+    record_encoding_metrics(con)
+    print(f"backfill: {found} marker(s) read, {changed} audit row(s) changed, "
+          f"{len(updates)} file(s) confirmed")
+    return 0
 
 
 def run_sql(con, name: str) -> None:
@@ -641,6 +802,9 @@ def run_clean(con) -> None:
            WHERE coalesce(parse_ts_ord(r.departure_raw, o.date_order),
                           epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NULL""",
     )
+    # Normalised, not merely trimmed — the same test 20_clean.sql applies. The
+    # trimmed form counted the literal token 'NULL' as a station name, so five
+    # Toronto rows were neither dropped nor countable under any reason.
     record(
         con, "clean", "rows_dropped_no_departure_station",
         """SELECT count(*) FROM raw_trips r
@@ -648,33 +812,66 @@ def run_clean(con) -> None:
              ON o.system_id = r.system_id AND o.source_file = r.source_file
            WHERE coalesce(parse_ts_ord(r.departure_raw, o.date_order),
                           epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NOT NULL
-             AND nullif(trim(r.departure_station_key), '') IS NULL
-             AND nullif(trim(r.departure_station_name), '') IS NULL""",
+             AND norm_key(r.departure_station_key) IS NULL
+             AND norm_name(r.departure_station_name) IS NULL""",
     )
-    # Whatever the two named reasons do not account for is exact-duplicate
-    # removal by SELECT DISTINCT. Deriving it keeps the funnel closed by
-    # construction rather than by hope.
-    con.execute("DELETE FROM etl_metrics WHERE stage='clean' AND metric='rows_dropped_duplicates'")
-    con.execute(
-        """INSERT INTO etl_metrics
-           SELECT 'clean', 'rows_dropped_duplicates',
-             (SELECT value FROM etl_metrics WHERE stage='extract' AND metric='rows_landed')
-           - (SELECT value FROM etl_metrics WHERE stage='clean' AND metric='rows_kept')
-           - (SELECT value FROM etl_metrics WHERE stage='clean' AND metric='rows_dropped_no_departure_time')
-           - (SELECT value FROM etl_metrics WHERE stage='clean' AND metric='rows_dropped_no_departure_station')"""
+    # Duplicates are COUNTED, not inferred. This was previously landed minus
+    # kept minus the other reasons, which closes the funnel by construction:
+    # the residual below could not be anything but zero, so it tested nothing.
+    # A row lands here only if it would otherwise have been kept — it has a
+    # departure time and a departure station and lost the dedupe — so the three
+    # reasons stay disjoint and the sum is a real claim.
+    record(
+        con, "clean", "rows_dropped_duplicates",
+        """SELECT count(*) FROM raw_trips r
+           LEFT JOIN file_date_order o
+             ON o.system_id = r.system_id AND o.source_file = r.source_file
+           WHERE r.system_id = 'van-mobi'
+             AND coalesce(parse_ts_ord(r.departure_raw, o.date_order),
+                          epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NOT NULL
+             AND (norm_key(r.departure_station_key) IS NOT NULL
+                  OR norm_name(r.departure_station_name) IS NOT NULL)
+             AND r.rowid NOT IN (SELECT keep_rid FROM van_dedupe_keep)""",
     )
-    dupes = con.execute(
-        "SELECT value FROM etl_metrics WHERE stage='clean' AND metric='rows_dropped_duplicates'"
-    ).fetchone()[0]
-    print(f"clean.rows_dropped_duplicates = {dupes:,}")
-    if dupes < 0:
-        raise SystemExit(
-            f"funnel does not close: derived duplicate count is negative ({dupes:,}). "
-            "A drop reason is being double-counted."
-        )
     record(con, "clean", "rows_unterminated",
            "SELECT count(*) FROM clean_trips WHERE return_ts IS NULL")
     record(con, "clean", "station_rows", "SELECT count(*) FROM clean_stations")
+    assert_funnel_closes(con)
+
+
+DROP_REASONS = (
+    "rows_dropped_no_departure_time",
+    "rows_dropped_no_departure_station",
+    "rows_dropped_duplicates",
+)
+
+
+def funnel(con) -> tuple[int, int, list[tuple[str, int]], int]:
+    """(landed, kept, [(reason, rows)], residual) — every term counted alone."""
+    metrics = dict(
+        ((s, m), v) for s, m, v in
+        con.execute("SELECT stage, metric, value FROM etl_metrics").fetchall()
+    )
+    landed = metrics.get(("extract", "rows_landed"), 0)
+    kept = metrics.get(("clean", "rows_kept"), 0)
+    named = [(r, metrics.get(("clean", r), 0)) for r in DROP_REASONS]
+    return landed, kept, named, landed - kept - sum(n for _, n in named)
+
+
+def assert_funnel_closes(con) -> None:
+    landed, kept, named, residual = funnel(con)
+    for reason, n in named:
+        print(f"clean.{reason} = {n:,}")
+    if residual:
+        raise SystemExit(
+            f"funnel does not close: {landed:,} landed, {kept:,} kept, "
+            + ", ".join(f"{n:,} {r}" for r, n in named)
+            + f" — residual {residual:,}. Every drop is counted at the stage that "
+            "makes it, so a non-zero residual means rows are leaving the pipeline "
+            "under no reason at all, or one reason is counting another's rows."
+        )
+    print(f"funnel closes: {landed:,} landed = {kept:,} kept + "
+          f"{sum(n for _, n in named):,} dropped")
 
 
 def record(con, stage: str, metric: str, query: str) -> None:
@@ -706,10 +903,23 @@ def main() -> int:
     parser.add_argument("--system", choices=sorted(common.SYSTEMS), action="append")
     parser.add_argument("--limit", type=int)
     parser.add_argument("--db", type=Path, default=WAREHOUSE)
+    parser.add_argument(
+        "--backfill-encoding-repairs", action="store_true",
+        help="read the UTF-8 repair markers on disk into raw_file_audit and "
+             "exit, without re-running extraction",
+    )
     args = parser.parse_args()
 
     systems = args.system or sorted(common.SYSTEMS)
     con = connect(args.db)
+    if args.backfill_encoding_repairs:
+        try:
+            return backfill_encoding_repairs(con)
+        except MissingRepairMarker as exc:
+            print(f"\nABORT: {exc}", file=sys.stderr)
+            return 1
+        finally:
+            con.close()
     stages = STAGES if args.stage == "all" else (args.stage,)
     try:
         for stage in stages:

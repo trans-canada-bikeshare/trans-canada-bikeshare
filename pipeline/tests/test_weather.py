@@ -73,7 +73,7 @@ def test_licence_matches_what_the_governing_page_actually_says():
 
 
 def test_the_site_carries_the_required_acknowledgement():
-    """`LICENSE` claims the attribution is reproduced on the site.
+    """`DATA-LICENSES.md` claims the attribution is reproduced on the site.
 
     It was not, for the whole of spec 013's first draft. The wording is
     dictated by the licence, so this pins the literal string rather than a

@@ -96,7 +96,7 @@
 
 11. **Attribution gate.** If the feature added a source system or a new data
     file from an existing one, confirm before finishing that its licence and
-    credit are live in both the manifest and the site, per `LICENSE`. If the
+    credit are live in both the manifest and the site, per `DATA-LICENSES.md`. If the
     site does not exist yet, confirm the manifest entry and note the site
     credit as owed.
 

@@ -265,10 +265,19 @@ describe("App", () => {
     expect(section.textContent).toMatch(/one day in 5 held out/i);
   });
 
-  it("declares no government affiliation", () => {
+  // The disclaimer has to name the operators, not only the Crown: a reader
+  // seeing three systems compared could reasonably assume one of them ran it.
+  it("declares no affiliation with any operator or with the government", () => {
     render(<App />);
-    expect(
-      screen.getByText(/not affiliated with or endorsed by the government of canada/i),
-    ).toBeInTheDocument();
+    const disclaimer = screen.getByText(/not affiliated with or endorsed by/i);
+    expect(disclaimer).toBeInTheDocument();
+    for (const name of [
+      "Mobi by Rogers",
+      "BIXI Montréal",
+      "Bike Share Toronto",
+      "Government of Canada",
+    ]) {
+      expect(disclaimer.textContent).toContain(name);
+    }
   });
 });

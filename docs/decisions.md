@@ -69,8 +69,9 @@ Decision: **ingest and publish Montreal, and say plainly that the terms are
 unknown.** Absence of stated terms is not a prohibition — BIXI presents these
 files as open data on its own site — and a three-city comparison without
 Montreal is not the project. The unresolved status is recorded in
-`pipeline/manifests/mtl-bixi.json`, in `LICENSE`, and on the methodology page,
-and BIXI Montreal is attributed throughout.
+`pipeline/manifests/mtl-bixi.json`, in `LICENSE` (moved to `DATA-LICENSES.md`
+on 2026-07-31, when `LICENSE` became the MIT text alone), and on the
+methodology page, and BIXI Montreal is attributed throughout.
 
 `LICENSE` previously claimed "BIXI Montreal open data terms". That claim was
 unsupported and has been removed rather than softened. Toronto's required
@@ -312,7 +313,9 @@ satisfiable for this project as it stands — the site is free, so no fee is
 charged for the ECCC product, and value-added services are expressly permitted.
 The obligation that survives is on anyone redistributing *from* here: they must
 agree to the same restrictions. That is why the restriction text lives in
-`LICENSE` and in every manifest rather than only in this entry.
+`LICENSE` and in every manifest rather than only in this entry. (It moved from
+`LICENSE` to `DATA-LICENSES.md` on 2026-07-31, verbatim; the manifests are
+unchanged.)
 
 **The current year is pinned but marked `volatile`.** ECCC is still writing
 2026, so its export gains a row daily and its checksum cannot be stable.
@@ -503,6 +506,18 @@ from it.
 
 ## 2026-07-30: Mobi publishes the hour and nothing finer
 
+> **Corrected 2026-07-31 by the source page itself: "cannot be recovered" was
+> wrong.** Mobi's system-data page states that the times "have been rounded to
+> the nearest hour to maintain the privacy of our users" — so the labels round
+> rather than floor, and the reason is a deliberate privacy measure rather than
+> an unexplained artifact. The same page states that operations-team
+> rebalancing and maintenance trips have been removed, which qualifies
+> Vancouver's rebalancing signal. Both were on the page; nobody had read it
+> since spec 001. The entry below stands on everything it measured — hour-only
+> precision, the 24 distinct time strings, the 27.5% return-hour check — and is
+> wrong only where it inferred silence from not looking. See the 2026-07-31
+> entry at the end of this log.
+
 Found while checking why Vancouver's dwell quartiles were 3600 / 10800 / 50400
 seconds in **every year**. `data-raw/van-mobi/2025-01.csv` has 62,518 rows and
 **24 distinct time-of-day strings**. In the warehouse, 100% of Vancouver rows
@@ -578,3 +593,79 @@ The BIXI position (publish, terms stated unknown, 2026-07-28) and the marks
 (no formal trademark search; 002b's reasoning stands, and is not legal
 advice) were accepted as-is for deploy. Deploying made both public, which is
 what those entries always said would happen.
+
+## 2026-07-31: The trust instruments were the thing that was false, and the source page was never re-read
+
+Two findings, from two directions, on the same day. Spec 028 implements the
+fixes for both.
+
+**An external review, verified claim by claim.** A review arrived from outside
+the project. Every claim in it was checked against the warehouse or the live
+source page before any of it was acted on — the 2026-07-29 rule about severity-1
+findings, applied to a reviewer nobody here chose. Parts did not survive that
+check and were dropped. What did survive is worse than any single number,
+because all of it sits in `docs/data-quality-report.md`, the document this
+project points at when it asks to be trusted:
+
+- **The report publishes 0.0% for Montreal canonical-station resolution.** The
+  warehouse answers **88.9%** — 78,431,689 of 88,197,834 trips.
+  `pipeline/quality_report.py:146` joins the fact's already-canonical station id
+  against the bridge's *era-local* id, so the join matches nothing and the
+  generator reports the empty result as a measurement. A figure of exactly 0.0%
+  for a city with 88M trips is not a plausible reading of anything, and it was
+  committed, rendered, and left there.
+- **The encoding-loss paragraph is hardcoded prose.** It still describes ~31,000
+  rows discarded on invalid encoding as an open gap; `etl.py` has repaired those
+  lines since the overnight review fixes, and the roadmap already records the
+  repair. A sentence that cannot change when the code changes is not a report.
+- **The funnel's duplicate count is landed minus everything else.** Its zero
+  residual is true by construction. It reads exactly like a check that passed
+  and is arithmetic restating itself.
+- **The report sits outside every gate.** `check_freshness.py` never touches it.
+  Three of this project's four gates guard the artifacts the site reads; the
+  document that vouches for those artifacts was guarded by nobody.
+
+The pattern is one this log has now written down twice — 2026-07-29 on review
+independence, 2026-07-30 on a licence named from memory — arriving a third time
+in its most awkward form: **the instruments that certify the data were the last
+thing anyone certified.** Everything the gates were pointed at held. The
+gate-shaped hole was where the project describes itself.
+
+**Mobi's source page answers a question this log called unanswerable.**
+https://www.mobibikes.ca/en/system-data, fetched 2026-07-31, states verbatim:
+
+> Departure and Return times of trips have been rounded to the nearest hour to maintain the privacy of our users.
+
+> Trips made by our Operations team for purposes of rebalancing and maintenance have been removed.
+
+Two consequences.
+
+**The 2026-07-30 hour entry is corrected.** It said "whether the label floors or
+rounds the true time is not stated and cannot be recovered". It is stated, on
+the page the manifest links, and had been while that sentence was written. The
+measurement in that entry was right and remains the reason we knew at all; the
+error was concluding *not stated* from *not looked at*. Rounding also changes
+the reading: half an hour of phase error either side of the label, not up to a
+full hour after it — and the reason is privacy, which is worth saying because it
+makes the resolution a design decision by the publisher rather than a defect.
+
+**Vancouver's `rebalancing_pressure` is computed from data with the operations
+trips removed.** The metric is an implied lower bound on rebalancing moves,
+derived from where riders left bikes; Mobi's publication has already taken the
+real operations movements out. So for Vancouver the figure can neither include
+those moves nor be checked against them — the one city where the ground truth
+exists is the one city that does not publish it. This does not break the
+comparison, and it is not grounds to withhold the metric: the bound is derived
+identically in all three systems from rider trips alone. It is grounds to say
+so where the number appears, so the `rebalancing_pressure` caveat in
+`pipeline/mappings/metric_support.json` carries it and the page renders it
+verbatim, per the 2026-07-30 rule that the caveat is a registry field rather
+than a comment.
+
+**The rule: a source page is re-read, not remembered, and its statements about
+the data are recorded beside its licence.** Spec 001 read these pages for
+headers and licences and never came back. `DATA-LICENSES.md` now carries what a
+publisher says about how its data was made, dated, in the publisher's own words,
+next to the terms it is published under — because a sentence like "operations
+trips have been removed" constrains what a metric may claim just as firmly as a
+licence constrains where it may be published.

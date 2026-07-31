@@ -848,9 +848,10 @@ export default function App() {
                     {SYSTEM_ORDER.filter((s) => s !== id)
                       .map((s) => `${percent(hourGridShare(s) ?? 0, 3)} in ${cityOf(s)}`)
                       .join(" and ")}
-                    . The hour a bike is counted in is therefore the hour the
-                    source labelled it, whose position inside that hour the
-                    source does not state.{" "}
+                    . The hour a bike is counted in is the hour the source
+                    labelled it — rounded to the nearest hour as a stated
+                    privacy measure, so each label sits within ±30 minutes of
+                    the true time.{" "}
                   </span>
                 );
               })}
@@ -1136,13 +1137,13 @@ export default function App() {
               Sources: Mobi by Rogers, BIXI Montréal, and Bike Share Toronto open
               data. Contains information licensed under the Open Government
               Licence – Toronto. BIXI's open data page states no licence terms;
-              that is unresolved and recorded as such in the repository. Daily
-              climate data is{" "}
+              that is unresolved and recorded as such in DATA-LICENSES.md in
+              the repository. Daily climate data is{" "}
               <strong className="font-medium text-foreground">
                 based on Environment and Climate Change Canada data
               </strong>
               , used under a licence whose redistribution restrictions are
-              recorded in the repository.
+              recorded in that same file.
             </Note>
           </Section>
         </div>
@@ -1154,7 +1155,11 @@ export default function App() {
             Data generated {longDate(meta.generated_at)}. Built by Adnan Reza.
             Sister project to Mobi Transit Explorer.
           </p>
-          <p>Not affiliated with or endorsed by the Government of Canada.</p>
+          <p>
+            An independent project: not affiliated with or endorsed by Mobi by
+            Rogers, BIXI Montréal, Bike Share Toronto, or the Government of
+            Canada.
+          </p>
         </div>
       </footer>
     </div>

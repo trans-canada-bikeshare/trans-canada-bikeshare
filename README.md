@@ -5,7 +5,8 @@ Canada's bike share systems, measured the same way.
 One pipeline, one set of definitions, one site: trips, active stations, e-bike
 share, station flows, weather-driven forecasts, and operational signals for
 Canada's public bike share systems, computed from each system's published
-open data and compared like for like.
+open data and compared like for like where the sources support it — and
+labelled per-city where they do not.
 
 Sister project to [Mobi Transit Explorer](https://mobi-transit-explorer.adnanreza.com)
 ([source](https://github.com/adnanreza/mobi-transit-explorer)), the single-city
@@ -40,9 +41,12 @@ the archived copy the manifest documents. The spec-by-spec record lives in
 | Montreal | BIXI | 2014 |
 | Toronto | Bike Share Toronto | 2017 |
 
-Three docked systems with per-trip origin and destination records. Every
-metric on the site works for all three: trips, stations, e-bike share, flows,
-forecast, signals.
+Three docked systems with per-trip origin and destination records. Trips,
+seasonality, duration, stations, flows, forecast and rebalancing pressure are
+three-city comparisons; e-bike share and membership mix are published for
+Vancouver and Toronto with Montreal labelled not-published; per-bike dwell is
+era-limited and not comparable. `pipeline/mappings/metric_support.json` is the authority, and
+`make check-metrics` fails a cross-city series the registry does not support.
 
 **Tier 2, the dockless panel (v2):** Calgary and Edmonton publish shared
 micromobility (e-scooter and e-bike) trip data. Locations are anonymized and
@@ -66,5 +70,8 @@ not presented as like-for-like columns next to the docked systems.
 
 ## Licence
 
-Code is MIT. Generated data artifacts remain governed by each source system's
-open data licence, credited in the manifest and on the site. See LICENSE.
+Code is MIT — see [`LICENSE`](LICENSE), which carries the MIT text and nothing
+else. Generated data artifacts remain governed by each source system's open
+data licence, credited in the manifest and on the site; every source term,
+required attribution string and redistribution restriction is recorded in
+[`DATA-LICENSES.md`](DATA-LICENSES.md).

@@ -1,0 +1,78 @@
+name: Bug report
+description: Something in the site, the pipeline or the gates behaves wrongly
+title: "[bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For a figure that looks wrong, use **Data quality report** instead — it
+        asks for the provenance that makes a number arguable. This template is
+        for behaviour: a page that does not render, a pipeline stage that
+        crashes, a gate that passes when it should not.
+
+        A gate that passes when it should not is the most serious kind of bug
+        this project has, so say so plainly if that is what you found.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Where
+      options:
+        - The site (bikeshare.adnanreza.com, or a local dev build)
+        - The pipeline (download, ETL, publish, quality report)
+        - The gates (make check, make check-fixture, the test suites)
+        - The docs (runbook, data dictionary, methodology)
+        - Somewhere else
+    validations:
+      required: true
+
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: >-
+        What you ran or clicked, what happened, and what you expected. Paste
+        the command and its output where there is one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: >-
+        Numbered, from a clean clone where possible. `make check-fixture` runs
+        the whole pipeline offline in about two seconds and is usually the
+        smallest reproduction — see CONTRIBUTING.md.
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Commit
+      description: >-
+        The commit you are on (`git rev-parse --short HEAD`), or the release
+        tag. For a site bug, the browser and version too.
+      placeholder: "a2ffdd1 — Chrome 141, macOS"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: >-
+        For a pipeline or gate bug: OS, `python --version`, and whether you
+        installed from `pipeline/requirements.lock` with `--require-hashes`.
+        The pipeline is pinned to Python 3.11 and refuses anything else by
+        design, so an interpreter mismatch reports itself.
+
+  - type: checkboxes
+    id: raw
+    attributes:
+      label: Before you submit
+      options:
+        - label: >-
+            I have not attached raw trip data or any file from `data-raw/`.
+          required: true

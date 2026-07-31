@@ -13,6 +13,22 @@
 #
 # Deployment is NOT here. It is manual, it is documented in the runbook, and no
 # Cloudflare credential exists in this repository's secrets.
+#
+# Spec 031 hardening, deferred here by name from 029's review:
+#
+#   * Every action is pinned to a full commit SHA with its version beside it. A
+#     tag is a moving pointer the action's owner can repoint at any commit,
+#     including after a compromise; a SHA is the code that was reviewed. Each
+#     SHA below was resolved from the tag with `gh api
+#     repos/<action>/git/ref/tags/<major>` and confirmed against the semver tag
+#     pointing at the same commit — the table is in spec 031's record.
+#   * `persist-credentials: false` on both checkouts. `actions/checkout` writes
+#     the job's token into `.git/config` by default, where every later step —
+#     including anything a dependency's install script runs — can read and push
+#     with it. Nothing here pushes.
+#   * `timeout-minutes` on both jobs. The gates take about two minutes; a job
+#     still running at fifteen is hung, not slow, and a hung job holds a runner
+#     until GitHub's six-hour default kills it.
 
 name: CI
 
@@ -34,14 +50,17 @@ jobs:
   pipeline:
     name: Pipeline (Python 3.11)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       # 3.11 exactly. `pipeline/requirements.lock` holds CPython 3.11 (cp311)
       # wheel hashes and nothing else, and `common.require_python` asserts the
       # version at import, so anything else fails at install or at startup
       # rather than at the first behavioural difference.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5.6.0
         with:
           python-version: '3.11'
           cache: pip
@@ -68,10 +87,13 @@ jobs:
   site:
     name: Site (Node)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: '22'
           cache: npm

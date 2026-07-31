@@ -69,6 +69,24 @@ not presented as like-for-like columns next to the docked systems.
   will look.
 - Raw trip data is never committed. Only small generated aggregates ship.
 
+## Contributing, and reading the record
+
+- [`CONTRIBUTING.md`](CONTRIBUTING.md) — how to run the whole pipeline from a
+  clean clone in about two seconds with no archive, what the gates are, and the
+  two merge paths (the maintainer merges locally through the `/feature`
+  workflow with the full-archive gates and an independent review; everyone else
+  opens a PR that CI must pass).
+- [`docs/data-dictionary.md`](docs/data-dictionary.md) — every field of every
+  published artifact, generated from the schema contracts.
+- [`CHANGELOG.md`](CHANGELOG.md) — what changed, per release.
+- [`SECURITY.md`](SECURITY.md) — private vulnerability reporting.
+- [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md) — Contributor Covenant v2.1.
+
+A figure on the site that looks wrong is the most useful issue you can file:
+the **Data quality report** template asks for the number you computed and the
+query you computed it with, because a disagreement between two numbers is only
+settleable when both can be re-derived.
+
 ## Licence
 
 Code is MIT — see [`LICENSE`](LICENSE), which carries the MIT text and nothing

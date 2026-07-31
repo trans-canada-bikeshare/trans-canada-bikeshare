@@ -1,0 +1,64 @@
+# Trans-Canada Bikeshare — monthly refresh reminder.
+#
+# The archive only moves when someone runs the refresh, and the refresh is
+# manual by design: it needs the ~20 GB source archive, which is neither
+# committed nor fetchable inside a job. So this workflow does the one part a
+# runner can do — it opens an issue on the first of the month with the runbook's
+# steps in it, and nothing else.
+#
+# It touches no data, runs no gate, and has no access to anything: `issues:
+# write` to file the reminder, `contents: read` to read the body template, and
+# no other permission at all. There is no checkout token left on disk for a
+# later step to find, because `persist-credentials: false`, and there is no
+# later step.
+#
+# The body lives in `.github/refresh-reminder.md` rather than inline here, so
+# the reminder's content can be edited without touching a workflow — and so the
+# runbook can point at one file. Documented in docs/runbook.md, "CI".
+
+name: Monthly refresh reminder
+
+on:
+  schedule:
+    # 14:00 UTC on the 1st of every month. UTC, because GitHub's scheduler is
+    # UTC and a local-time cron would silently shift by an hour twice a year.
+    - cron: '0 14 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  open-reminder:
+    name: Open the refresh issue
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      # `gh` is on the runner image and authenticates from GITHUB_TOKEN, so no
+      # third-party action handles the token. One issue per month: the title
+      # carries the month, and an existing open issue with that exact title
+      # means this has already fired (or been dispatched by hand) and the step
+      # says so instead of filing a duplicate.
+      - name: File the reminder
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          title="Monthly data refresh — $(date -u +'%B %Y')"
+          existing=$(gh issue list --state open --search "$title in:title" \
+            --json title --jq "map(select(.title == \"$title\")) | length")
+          if [ "$existing" != "0" ]; then
+            echo "an open issue titled '$title' already exists; nothing to do"
+            exit 0
+          fi
+          # No `--label`: gh fails the run when a label does not exist in the
+          # repository, and a reminder that cannot file itself because of a
+          # missing label is a worse outcome than an unlabelled issue.
+          gh issue create --title "$title" \
+            --body-file .github/refresh-reminder.md

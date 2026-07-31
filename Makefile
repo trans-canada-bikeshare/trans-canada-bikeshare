@@ -1,31 +1,32 @@
 # Trans-Canada Bikeshare — quality gates.
 #
 # These exist so `/feature review` runs commands with exit codes instead of
-# self-attesting against prose. Each target below is a stub until its spec
-# lands; every stub says which spec makes it real and exits 0 so the workflow
-# can call them from the first data spec onward.
+# self-attesting against prose. Every target runs its script directly: no
+# `if [ -f ... ]`, no `||`, no fallback that prints and exits 0.
+#
+# They did not start that way. Each was written in spec 002 as a stub that
+# announced which future spec would make it real, and `check-artifacts` and
+# `check-manifest` still carried the `if [ -f script ]; then run; else echo
+# "stub"; fi` shape long after the scripts existed — so a gate whose script was
+# deleted, renamed or moved would have gone on printing a spec-002 message and
+# exiting 0, under a `make check` that reports success. That is the exact
+# failure `check-metrics` was caught in on 2026-07-29 (spec 009b): a gate that
+# cannot fail, believed by everything downstream. Spec 031 removed the last two.
+#
+# The rule, for anything added here: a gate invokes its script unconditionally,
+# and a missing script is a failed target.
 
 PYTHON := .venv/bin/python
 
 # Spec 011. Byte-compares committed artifacts against a fresh publish run.
 # Exits non-zero and lists drifted files on any mismatch.
 check-artifacts:
-	@if [ -f pipeline/check_freshness.py ]; then \
-		$(PYTHON) pipeline/check_freshness.py; \
-	else \
-		echo "check-artifacts: stub — spec 011 makes this real."; \
-		echo "  will byte-compare src/data/generated/ against a fresh publish run"; \
-	fi
+	$(PYTHON) pipeline/check_freshness.py
 
 # Spec 003. Verifies every manifest entry against the archive on disk:
 # checksums, byte sizes, and gaps in the expected period run.
 check-manifest:
-	@if [ -f pipeline/inventory.py ]; then \
-		$(PYTHON) pipeline/inventory.py; \
-	else \
-		echo "check-manifest: stub — specs 003/004 make this real."; \
-		echo "  will verify pipeline/manifests/*.json against data-raw/"; \
-	fi
+	$(PYTHON) pipeline/inventory.py
 
 # Spec 009. Fails if a cross-city artifact publishes a metric the registry does
 # not mark supported for every system in it, OR if an artifact carrying
@@ -57,7 +58,18 @@ check-report:
 check-reconciliation:
 	$(PYTHON) pipeline/check_reconciliation.py
 
-check: check-manifest check-metrics check-artifacts check-report check-reconciliation
+# Spec 031. Regenerates docs/data-dictionary.md from the fifteen artifact
+# schemas and the completeness declaration, and fails on any difference from the
+# committed copy. The generated document carries no timestamp, deliberately, so
+# the diff is total: every line of it is derived and every line is checked. It
+# is the only gate here that needs neither the archive nor the warehouse.
+check-dictionary:
+	$(PYTHON) pipeline/generate_data_dictionary.py --check
+
+# One line, deliberately: `pipeline/tests/test_reproducibility.py` reads this
+# target as a single line to assert its own gate is inside it, and a backslash
+# continuation would hide half the list from that check.
+check: check-manifest check-metrics check-artifacts check-report check-reconciliation check-dictionary
 
 # Spec 029. The whole pipeline end to end over a synthetic fixture archive:
 # extract -> reference -> clean -> conform -> model -> publish -> quality
@@ -66,12 +78,13 @@ check: check-manifest check-metrics check-artifacts check-report check-reconcili
 # touch data-raw/, data-warehouse/ or src/data/generated/ — which it verifies
 # rather than assumes.
 #
-# This is the ONLY gate here a clean clone can run: every other one needs the
-# ~20 GB archive. It is therefore what CI runs, and it is the reason the
-# reproducibility claim is testable by someone who has never downloaded a byte.
+# Every gate in `make check` but `check-dictionary` needs the ~20 GB archive,
+# and this one needs nothing at all. It is therefore what CI runs, and it is the
+# reason the reproducibility claim is testable by someone who has never
+# downloaded a byte.
 # See pipeline/tests/fixtures/README.md for what the fixtures cover.
 check-fixture:
 	$(PYTHON) pipeline/fixture_run.py
 
-.PHONY: check check-artifacts check-fixture check-manifest check-metrics \
-        check-report check-reconciliation
+.PHONY: check check-artifacts check-dictionary check-fixture check-manifest \
+        check-metrics check-report check-reconciliation

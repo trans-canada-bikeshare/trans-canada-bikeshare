@@ -1,45 +1,24 @@
-# Current Feature: 030 Analytical integrity
+# Current Feature
 
 ## Status
 
-In Progress
+_No feature in progress._
 
 ## Lifecycle
 
-- [x] load — 2026-07-31
-- [x] start — 2026-07-31
-- [x] test — 2026-07-31
-- [x] review — 2026-07-31
+- [ ] load
+- [ ] start
+- [ ] test
+- [ ] review
 
 ## Goals
 
-- The forecast section's name, copy, artifact self-description, and
-  validation method are mutually consistent under the chosen path.
-- Every completeness threshold lives in the central declaration; a planted
-  rogue threshold in a publisher query fails a test.
-- Any month excluded or newly included by unification is enumerated in the
-  spec record with before/after counts.
-- Hourly surfaces say "rounded to the nearest hour" for Vancouver.
-- All artifacts validate against their schemas at publish and in CI; a
-  planted shape drift fails.
+<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
 
 ## Notes
 
-- **Depends on:** 028 (truthful fit_basis baseline, `bbf65e3`), 029 (CI to
-  hold the contract tests, `a2ffdd1`). Both in History.
-- **Owner decision, recorded in the spec:** Path A — the section is renamed
-  ("Weather scenario"); no model change. Temporal validation stays a
-  possible future spec.
-- **Sources / cities:** none; all three cities.
-- **Published artifacts change:** possibly — any month moved by the
-  completeness-policy unification (enumerated at review with before/after);
-  otherwise none expected from the rename (site-side strings). Schemas are
-  new files.
-- **Hourly criterion:** largely satisfied by 028's ±30-minute copy; start
-  verifies remaining hourly surfaces (dwell's ±1 h note reads correct).
-- **Implementation:** two Opus agents in parallel — pipeline (policy module,
-  schemas, publish-time validation, lock update if jsonschema is added) and
-  site (rename + tests). Fable reviews.
+<!-- Dependencies, sources and cities touched, licence constraints, and
+     whether this feature changes any published artifact. -->
 
 ## History
 
@@ -151,3 +130,8 @@ In Progress
   GitHub runners; the 2025-05 "ambiguity" and the fresh-warehouse build bug
   both never-existed/always-existed and are corrected.
   `docs/features/029-reproducibility-release.md`
+- 2026-07-31 `21c007a` — spec 030: analytical integrity. Weather scenario
+  rename (anchor and keys kept); one completeness declaration, zero months
+  moved (verified twice); 15 JSON Schema contracts validated at publish and
+  in vitest; artifacts byte-identical.
+  `docs/features/030-analytical-integrity.md`

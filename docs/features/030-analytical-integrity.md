@@ -127,7 +127,7 @@ assignment forms that occur in this codebase are covered.
 - [x] Committed artifacts reproduce byte-for-byte after regeneration.
 - [x] Site copy derives from the data window.
 - [x] Encodings explained — any changed forecast presentation re-checked.
-- ~~Attribution~~ / [ ] No raw data — standard.
+- ~~Attribution~~ — no new sources. [x] No raw data — diff is code, schemas, tests, docs.
 
 ## Testing
 

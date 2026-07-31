@@ -578,8 +578,3 @@ The BIXI position (publish, terms stated unknown, 2026-07-28) and the marks
 (no formal trademark search; 002b's reasoning stands, and is not legal
 advice) were accepted as-is for deploy. Deploying made both public, which is
 what those entries always said would happen.
-
-Spec 001: download one real month from BIXI and Bike Share Toronto, read the
-actual headers, and write a verified column-by-column feasibility map
-(especially: e-bike flags, membership fields, station coordinates, timestamp
-precision) before any pipeline code.

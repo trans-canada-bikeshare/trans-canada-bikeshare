@@ -2,7 +2,7 @@
 
 ## Status
 
-In progress. Loaded and started 2026-07-30.
+Complete. Deployed and verified against production 2026-07-30.
 
 Until today this file read "**Not built, deliberately**" — the instruction for
 the overnight autonomous build was to stop before deployment, so that deploying
@@ -66,30 +66,30 @@ headed-verification lessons), 025 (attribution on the site).
 
 ## Acceptance Criteria
 
-- [ ] `https://bikeshare.adnanreza.com` serves the site over HTTPS with a
+- [x] `https://bikeshare.adnanreza.com` serves the site over HTTPS with a
       valid certificate, and the `*.pages.dev` URL serves the same build.
-- [ ] The served `index.html` carries `rel=canonical` and `og:url`, both
+- [x] The served `index.html` carries `rel=canonical` and `og:url`, both
       reading `https://bikeshare.adnanreza.com/`.
-- [ ] Every file under `dist/assets/` and every JSON artifact, rebuilt locally
+- [x] Every file under `dist/assets/` and every JSON artifact, rebuilt locally
       at the deployed commit, hashes identical to the bytes served at the
       production URL.
-- [ ] The MapLibre worker chunk the production site requests returns
+- [x] The MapLibre worker chunk the production site requests returns
       JavaScript with HTTP 200 — not the SPA fallback serving HTML, the
       spec-021 failure, checked live by content-type and body.
-- [ ] An unknown path (`/no-such-page`) returns the app shell — the SPA
+- [x] An unknown path (`/no-such-page`) returns the app shell — the SPA
       fallback is active.
-- [ ] In a headed browser against the production URL, each station map draws
+- [x] In a headed browser against the production URL, each station map draws
       exactly as many dots as the deployed `stations.json` holds stations
       with coordinates for that system, and the forecast dials move and
       refuse outside the envelope.
-- [ ] Attribution is visible on the production site: the Toronto OGL
+- [x] Attribution is visible on the production site: the Toronto OGL
       sentence, the ECCC acknowledgement, the BIXI unknown-terms statement,
       and the basemap's own attribution control on the maps.
-- [ ] The deployment contains static assets only — no Pages Functions — so
+- [x] The deployment contains static assets only — no Pages Functions — so
       site traffic consumes no Workers-plan quota.
-- [ ] `make check`, both test suites, typecheck and build are green at the
+- [x] `make check`, both test suites, typecheck and build are green at the
       deployed commit.
-- [ ] `README.md` no longer says "not yet deployed" and links the production
+- [x] `README.md` no longer says "not yet deployed" and links the production
       URL; `docs/runbook.md`'s deploy section records the date and the exact
       commands run; the spec index marks 027 complete.
 
@@ -100,14 +100,14 @@ headed-verification lessons), 025 (attribution on the site).
 - ~~Schema drift mapped explicitly~~ — no pipeline changes.
 - ~~Row accounting closes~~ — no pipeline changes.
 - ~~Metrics defined identically across tier-1 cities~~ — no metric changes.
-- [ ] Committed artifacts reproduce byte-for-byte from a fresh run — and,
+- [x] Committed artifacts reproduce byte-for-byte from a fresh run — and,
       new here, the *served* files match the committed build's bytes.
-- [ ] Site copy derives from the data window — the README/runbook edits state
+- [x] Site copy derives from the data window — the README/runbook edits state
       deployment facts only, no data claims.
 - ~~New encodings explained~~ — no new encodings.
-- [ ] Source licence attribution present in manifest and on the site —
+- [x] Source licence attribution present in manifest and on the site —
       verified on the production URL, not localhost.
-- [ ] No raw trip data committed — nothing in `dist/` may contain anything
+- [x] No raw trip data committed — nothing in `dist/` may contain anything
       absent from `src/data/generated/`.
 
 ## Testing

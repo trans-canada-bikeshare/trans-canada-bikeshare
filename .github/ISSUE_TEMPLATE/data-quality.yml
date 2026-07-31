@@ -1,0 +1,97 @@
+name: Data quality report
+description: A number on the site or in an artifact looks wrong
+title: "[data] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most valuable issue you can file here, and the fields below
+        are what make it actionable. A disagreement between two numbers can
+        only be settled if both can be re-derived — so this template asks for
+        the number you got **and** how you got it.
+
+        Two references worth checking first, because they may already answer
+        it: [`docs/data-quality-report.md`](https://github.com/trans-canada-bikeshare/trans-canada-bikeshare/blob/main/docs/data-quality-report.md)
+        (every row landed, dropped or flagged) and
+        [`docs/data-dictionary.md`](https://github.com/trans-canada-bikeshare/trans-canada-bikeshare/blob/main/docs/data-dictionary.md)
+        (what each published field means, and which rows reach it).
+
+  - type: dropdown
+    id: system
+    attributes:
+      label: System
+      description: Which system the figure is about.
+      options:
+        - Vancouver — Mobi by Rogers (van-mobi)
+        - Montreal — BIXI (mtl-bixi)
+        - Toronto — Bike Share Toronto (tor-bikeshare)
+        - More than one / a cross-city comparison
+        - Not system-specific
+    validations:
+      required: true
+
+  - type: input
+    id: period
+    attributes:
+      label: Period
+      description: >-
+        The window the figure covers. A month (2025-08), a year (2019), a date
+        range, or "whole archive".
+      placeholder: "2025-08"
+    validations:
+      required: true
+
+  - type: input
+    id: published
+    attributes:
+      label: The number as published
+      description: >-
+        What the site or the artifact says, exactly as it appears, and where you
+        saw it — the section of the page, or the file and key in
+        `src/data/generated/`.
+      placeholder: "trips_monthly.json, van-mobi 2025-08: 144,105 — Trips section"
+    validations:
+      required: true
+
+  - type: input
+    id: computed
+    attributes:
+      label: The number you computed
+      description: What you got instead.
+      placeholder: "151,332"
+    validations:
+      required: true
+
+  - type: textarea
+    id: query
+    attributes:
+      label: Your query, or how you computed it
+      description: >-
+        SQL, a script, a spreadsheet formula, or the steps you took — enough
+        that it can be run again. Name the source file if you computed from the
+        published open data directly, including which one and from where.
+      render: sql
+    validations:
+      required: true
+
+  - type: textarea
+    id: definition
+    attributes:
+      label: Definitional differences you have already ruled out
+      description: >-
+        Optional, and it often resolves the issue on its own. The usual
+        suspects: incomplete months are excluded from every per-month series;
+        durations are filtered to 1..86400 seconds; a trip is dated by its
+        departure in local time; Toronto's member label is withheld for
+        2021-10..2023-12. All of them are in the data dictionary.
+
+  - type: checkboxes
+    id: raw
+    attributes:
+      label: Before you submit
+      options:
+        - label: >-
+            I have not attached raw trip data. Raw trip files never enter this
+            repository, including in issue attachments — quote a handful of
+            rows if you need to show the shape.
+          required: true

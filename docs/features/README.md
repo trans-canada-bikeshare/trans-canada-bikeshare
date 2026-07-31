@@ -55,7 +55,7 @@ to a reader and to anyone who wants to pick the work up.
 | 028 | [Trust release](028-trust-release.md) | Complete — report figures derived and gated, LICENSE reads MIT |
 | 029 | [Reproducibility release](029-reproducibility-release.md) | Complete — clean clone builds and CI proves it |
 | 030 | [Analytical integrity](030-analytical-integrity.md) | Complete — Weather scenario; one completeness declaration; 15 schema contracts |
-| 031 | [Open-source operations](031-open-source-operations.md) | Draft — firmed at load, shaped by 029's CI |
+| 031 | [Open-source operations](031-open-source-operations.md) | Ready — firmed at load 2026-07-31 |
 | 032 | [Portfolio surface](032-portfolio-surface.md) | Draft — firmed at load against a fresh headed pass |
 
 ## Where the record actually lives

@@ -1,0 +1,39 @@
+# Blank issues are disabled: both templates ask for the provenance that makes a
+# report actionable, and a blank issue is the path of least resistance around
+# them. A question that fits neither template is welcome — the links below say
+# where the answer probably already is, and the bug template's "Somewhere else"
+# takes anything the two do not cover.
+blank_issues_enabled: false
+
+contact_links:
+  - name: How the numbers are computed
+    url: https://bikeshare.adnanreza.com/#method
+    about: >-
+      The methodology section: definitions, what is excluded and why, and which
+      metrics are not comparable across all three systems. Most "is this figure
+      right?" questions are answered here.
+
+  - name: Row accounting — the data quality report
+    url: https://github.com/trans-canada-bikeshare/trans-canada-bikeshare/blob/main/docs/data-quality-report.md
+    about: >-
+      Every row landed, dropped or flagged, per system and per source file,
+      generated from the warehouse and checked by a gate.
+
+  - name: What each published field means
+    url: https://github.com/trans-canada-bikeshare/trans-canada-bikeshare/blob/main/docs/data-dictionary.md
+    about: >-
+      The data dictionary: every field of every artifact, its constraints, and
+      the completeness rule that decides which rows reach it.
+
+  - name: The choices that bind the work
+    url: https://github.com/trans-canada-bikeshare/trans-canada-bikeshare/blob/main/docs/decisions.md
+    about: >-
+      Why Montreal has no e-bike share, why Toronto's 2021-10..2023-12
+      membership is withheld, why dockless cities are a separate panel. If a
+      decision looks wrong, the entry explaining it is the place to argue with.
+
+  - name: Report a security vulnerability privately
+    url: https://github.com/trans-canada-bikeshare/trans-canada-bikeshare/security/advisories/new
+    about: >-
+      GitHub private vulnerability reporting. Do not open a public issue for a
+      security finding — see SECURITY.md.

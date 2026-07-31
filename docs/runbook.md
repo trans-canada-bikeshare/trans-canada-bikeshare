@@ -1,7 +1,7 @@
 # Runbook
 
-How to rebuild the archive, regenerate artifacts, and deploy. **Nothing here
-has been deployed** — spec 027 is written, not executed.
+How to rebuild the archive, regenerate artifacts, and deploy. First deployed
+2026-07-30 (spec 027) to https://bikeshare.adnanreza.com.
 
 ## Rebuild from nothing
 
@@ -69,27 +69,37 @@ When a system publishes a new period:
    sentence and chart derives from the committed artifacts, so a republish is
    the whole update; there is no other copy to edit.
 
-## Deploy — NOT YET RUN
+## Deploy — first run 2026-07-30
 
 The site is a static Vite build. `npm run build` emits `dist/`.
 
-Cloudflare Pages, matching the sister project:
+Cloudflare Pages, matching the sister project. The commands actually run:
 
 ```bash
-npx wrangler pages project create trans-canada-bikeshare   # once
+npx wrangler pages project create trans-canada-bikeshare --production-branch main   # once, done
 npm run build
-npx wrangler pages deploy dist --project-name trans-canada-bikeshare
+npx wrangler pages deploy dist --project-name trans-canada-bikeshare --branch main
 ```
 
-Before the first deploy:
+The custom domain `bikeshare.adnanreza.com` is attached to the Pages project
+(dashboard: Workers & Pages → trans-canada-bikeshare → Custom domains; the
+adnanreza.com zone is on the same account, so Cloudflare created the CNAME
+and certificate itself — wrangler has no command for this step). `og:url`
+and `rel=canonical` in `index.html` carry the same URL.
 
-- **Resolve the BIXI licence question.** The source page states no terms. The
-  site currently says so plainly, which is honest, but shipping Montreal data
-  publicly is a decision to make deliberately. See `docs/decisions.md`.
-- **Consider a trademark search** on the logo and favicon. The reasoning in
-  `docs/features/002b-brand-identity.md` is not legal advice.
-- Decide on a custom domain and set `og:url` and a canonical link, which are
-  currently absent because no URL is committed to.
+A redeploy is the last two commands. The site serves static assets only — no
+Pages Functions — so traffic consumes nothing from the Workers plan.
+
+The owner decisions that gated the first deploy, all settled 2026-07-30:
+
+- **The BIXI licence question** — proceed, publishing Montreal with its terms
+  stated as unknown, per the 2026-07-28 decision. The escape hatch stands:
+  if terms arrive that forbid this, one publish run drops Montreal.
+- **Trademark search** on the logo and favicon — proceeding without a formal
+  search; `docs/features/002b-brand-identity.md` records the reasoning and
+  remains not legal advice.
+- **The canonical URL** — `bikeshare.adnanreza.com`; the reasoning is in
+  `docs/decisions.md` (2026-07-30).
 
 ## Known gaps
 

@@ -48,7 +48,7 @@ archive), site (`src/`, Vite/React reading committed aggregates), and real
 gates. The commands are:
 
 ```
-make check                      # manifest + metric registry + artifact freshness
+make check                      # manifest + metric registry + artifact freshness + quality report
 .venv/bin/python -m pytest pipeline/tests
 npm test && npm run typecheck && npm run build
 ```

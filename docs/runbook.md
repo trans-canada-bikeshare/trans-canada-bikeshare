@@ -34,7 +34,9 @@ make check-manifest    # archive matches the manifests; pending vs corrupt
 make check-artifacts   # committed artifacts match a fresh publish run
 make check-metrics     # no cross-city series for a metric the registry does not
                        #   support, and no system-keyed artifact left undeclared
-make check             # all three
+make check-report      # committed quality report matches a fresh generation
+                       #   from the warehouse (timestamp excluded)
+make check             # all four
 npm test && npm run typecheck && npm run build
 .venv/bin/python -m pytest pipeline/tests
 ```

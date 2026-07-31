@@ -1,6 +1,7 @@
 {
   "system_id": "van-mobi",
   "source_page": "https://www.mobibikes.ca/en/system-data",
+  "data_terms": "All data-source terms are collected in DATA-LICENSES.md at the repository root; the licence objects in this manifest are carried there verbatim and neither supersedes the other.",
   "licence": {
     "name": "Mobi Data License Agreement",
     "url": "https://www.mobibikes.ca/en/system-data",

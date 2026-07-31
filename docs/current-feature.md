@@ -57,8 +57,9 @@ In Progress
 - **Sources / cities:** no new sources; all three cities' report figures
   affected, Montreal's most.
 - **Published artifacts change: YES** — `forecast.json` (fit_basis),
-  `rebalancing.json` (caveat). Quality report regenerates under a new
-  gate. Everything else must byte-match.
+  `rebalancing.json` (caveat + van-mobi note), and the five-row Toronto
+  2016 knock-ons enumerated in the Goals. Quality report regenerates under
+  a new gate. Everything else must byte-match.
 - **Licence constraints:** LICENSE→MIT + DATA-LICENSES.md restructure must
   not lose any obligation text (BIXI unknown-terms, Toronto OGL string,
   ECCC restrictions, Mobi agreement). Verbatim carry-over is a review item.

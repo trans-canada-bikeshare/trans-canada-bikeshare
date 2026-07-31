@@ -151,6 +151,11 @@ def load_manifest(system_id: str) -> dict:
     return {
         "system_id": system_id,
         "source_page": SYSTEMS[system_id]["source_page"],
+        "data_terms": (
+            "All data-source terms are collected in DATA-LICENSES.md at the "
+            "repository root; the licence objects in this manifest are "
+            "carried there verbatim and neither supersedes the other."
+        ),
         "licence": None,
         "sources": {},
         "reference": {},

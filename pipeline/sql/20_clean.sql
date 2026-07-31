@@ -122,7 +122,7 @@ CREATE OR REPLACE MACRO parse_ts(s) AS fix_short_year(coalesce(excel_ts(s), pars
 -- Deduplication, scoped by measurement rather than applied blindly.
 --
 -- Measured rates over the full archive (pipeline/census + a hash count, ~10s):
---   van-mobi       2.812%  (documented cross-file spillover)
+--   van-mobi       2.78%   (documented cross-file spillover)
 --   mtl-bixi       0.030%
 --   tor-bikeshare  0.020%
 --

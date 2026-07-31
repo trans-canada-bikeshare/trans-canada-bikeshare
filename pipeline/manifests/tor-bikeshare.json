@@ -1,6 +1,7 @@
 {
   "system_id": "tor-bikeshare",
   "source_page": "https://open.toronto.ca/dataset/bike-share-toronto-ridership-data/",
+  "data_terms": "All data-source terms are collected in DATA-LICENSES.md at the repository root; the licence objects in this manifest are carried there verbatim and neither supersedes the other.",
   "licence": {
     "name": "Open Government Licence – Toronto",
     "url": "https://open.toronto.ca/open-data-licence/",

@@ -1,24 +1,53 @@
-# Current Feature
+# Current Feature: 029 Reproducibility release
 
 ## Status
 
-_No feature in progress._
+In Progress
 
 ## Lifecycle
 
-- [ ] load
-- [ ] start
+- [x] load — 2026-07-31
+- [x] start — 2026-07-31
 - [ ] test
 - [ ] review
 
 ## Goals
 
-<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
+- A clean clone with the pinned toolchain runs the fixture pipeline
+  end-to-end green with no network access beyond package install.
+- A planted mid-extract failure leaves the prior warehouse queryable and
+  unchanged (test).
+- A manifest entry missing its checksum aborts extraction (test).
+- A cache keyed to a checksum serves nothing for changed content under the
+  same filename (test).
+- van-mobi 2025-05 parses via `year_evidence` — the ambiguity premise was
+  wrong (it is `YYYY/MM/DD`; corrected in the spec at build); the exception
+  mechanism exists and ships empty, a stale declaration is refused, and a
+  planted genuinely ambiguous fixture aborts (tests).
+- Per-file source record counts reconcile to `rows_landed` across the full
+  archive; a planted mismatch fails `make check` (test); the quality
+  report states the reconciliation result.
+- CI runs on a clean GitHub-hosted runner: fixture pipeline, both suites,
+  typecheck, build — green on the PR that introduces it.
+- Runbook updated: lock install, resource flags, fixture path, and the
+  van-mobi 2022-10 archived-copy caveat retained honestly.
 
 ## Notes
 
-<!-- Dependencies, sources and cities touched, licence constraints, and
-     whether this feature changes any published artifact. -->
+- **Depends on:** 028 (complete, `bbf65e3` — extract-time reconciliation
+  and the audit table already exist; this spec adds the *standing* gate
+  over them plus the clean-clone story).
+- **Sources / cities:** none downloaded anew; source files re-read once
+  for cached-by-checksum record counts. Fixtures are synthetic and say so.
+- **Published artifacts change: Order only** (amended at build) —
+  `stations.json`'s non-deterministic sort fixed; five adjacent equal-count
+  pairs swap, set byte-identical; `meta.json` timestamp. The quality report
+  gains the reconciliation section under 028's gate.
+- **Licence constraints:** none new; fixture data must be synthetic,
+  never sampled from real trip files.
+- **Implementation model:** Opus subagents implement sequentially (pipeline
+  hardening first, then fixtures+CI which depend on its path/config
+  interface); Fable reviews. CI proven green via a PR before merge.
 
 ## History
 

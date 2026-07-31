@@ -11,6 +11,12 @@ only orchestrates and records row accounting into etl_metrics.
 
 Usage: python pipeline/etl.py [--stage extract|clean|conform|model|all]
                               [--system SYSTEM] [--limit N]
+                              [--memory-limit 10GB] [--threads 8]
+
+Resource limits and every data path are configurable; see `common` and the
+runbook's Configuration section. Nothing about WHAT the pipeline reads changes
+with them — the era maps, the metric registry and the date-order exceptions are
+code and have no override.
 """
 
 from __future__ import annotations
@@ -43,6 +49,22 @@ EXCLUDED: dict[tuple[str, str], str] = {
 
 class UnknownColumns(Exception):
     """A source file has headers the era map does not know about."""
+
+
+class UnpinnedSource(Exception):
+    """A manifest entry has no checksum, so nothing can vouch for its bytes."""
+
+
+class AmbiguousDateOrder(Exception):
+    """A file's date order cannot be derived and nothing declares it."""
+
+
+class StaleDateOrderException(Exception):
+    """A declared date order for a file that no longer needs one."""
+
+
+class ExtensionUnavailable(Exception):
+    """A DuckDB extension the pipeline needs is neither present nor installable."""
 
 
 def load_map(system_id: str) -> dict:
@@ -166,7 +188,26 @@ def sheets_in(path: Path) -> list[str]:
 SCRUB_DIR_NAME = "_utf8"
 
 
-def ensure_utf8(path: Path) -> tuple[Path, int]:
+def read_marker(marker: Path) -> tuple[int, str | None]:
+    """(lines repaired, source sha256) from a repair marker.
+
+    Two formats exist. The current one is two lines — the count, then the
+    sha256 of the manifest entry the repaired copy was made from. The original
+    was the count alone, written before the cache was keyed to anything; those
+    are still a truthful record of how many lines the copy beside them
+    repaired, which is all `backfill_encoding_repairs` asks of them, so they
+    are read rather than rejected. They are not a cache HIT, though: with no
+    sha, nothing says which bytes produced them.
+    """
+    parts = marker.read_text(encoding="utf-8").split()
+    return int(parts[0]), (parts[1] if len(parts) > 1 else None)
+
+
+def write_marker(marker: Path, repaired: int, source_sha: str) -> None:
+    marker.write_text(f"{repaired}\n{source_sha}\n", encoding="utf-8")
+
+
+def ensure_utf8(path: Path, source_sha: str) -> tuple[Path, int]:
     """Return a UTF-8-clean copy of a CSV, plus the number of lines repaired.
 
     Some Toronto and Vancouver months carry cp1252 bytes in station names — an
@@ -182,6 +223,22 @@ def ensure_utf8(path: Path) -> tuple[Path, int]:
     encoding='latin-1' is not a fix — DuckDB 1.5.5 validates C1 bytes and
     rejects these files outright. So the repair happens a line at a time:
     UTF-8 strict, then cp1252, then latin-1 as a last resort.
+
+    **The cache is keyed by `source_sha`, the manifest checksum of the file
+    this one was unpacked from.** It was keyed by filename alone, which is safe
+    for the 20 of 23 repaired copies that sit inside `_extracted/<period>.<sha>`
+    — that directory carries the pin in its name — and unsafe for the three
+    that do not: a Vancouver month re-published under the same name and
+    re-pinned with `--accept-changes` would have been served last month's
+    repaired bytes with nothing to notice. The key is the manifest sha rather
+    than a hash of the file because it is already computed, already verified by
+    `make check-manifest`, and costs nothing; hashing a 2.8 GB member to decide
+    whether to re-read it would cost more than the repair.
+
+    Migration: a marker written before this carries no sha, so it is not a hit
+    and the copy is rebuilt — 23 files, 1.6 GB, once, on the next full extract.
+    The path is unchanged, so the old marker is overwritten in place and no
+    orphan is left for `backfill_encoding_repairs` to trip over.
     """
     if path.suffix.lower() != ".csv":
         return path, 0
@@ -203,7 +260,9 @@ def ensure_utf8(path: Path) -> tuple[Path, int]:
     dest = path.parent / SCRUB_DIR_NAME / path.name
     marker = dest.with_suffix(dest.suffix + ".lines")
     if dest.exists() and marker.exists():
-        return dest, int(marker.read_text())
+        repaired, cached_sha = read_marker(marker)
+        if cached_sha == source_sha:
+            return dest, repaired
 
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_suffix(dest.suffix + ".part")
@@ -224,7 +283,7 @@ def ensure_utf8(path: Path) -> tuple[Path, int]:
                     line = line.decode("utf-8", errors="replace").encode("utf-8")
             out.write(line)
     tmp.replace(dest)
-    marker.write_text(str(repaired))
+    write_marker(marker, repaired, source_sha)
     return dest, repaired
 
 
@@ -234,6 +293,12 @@ def source_record_count(path: Path, sheet: str | None = None) -> int:
     A fast line count first; only if that disagrees with what landed does the
     caller pay for a csv.reader pass, which is the one that handles quoted
     embedded newlines correctly.
+
+    The line count is done in 4 MB chunks rather than by iterating the file
+    object. It is the same number — binary-mode iteration splits on b"\\n" and
+    nothing else, and the trailing partial line is added back below — and it is
+    what makes `make check-reconciliation` re-countable over a 20 GB archive in
+    minutes instead of an hour. BIXI's single 2.8 GB member is most of that.
     """
     if path.suffix.lower() == ".xlsx":
         import openpyxl
@@ -244,8 +309,14 @@ def source_record_count(path: Path, sheet: str | None = None) -> int:
             return max(0, ws.max_row - 1)
         finally:
             book.close()
+    lines = 0
+    tail = b""
     with path.open("rb") as fh:
-        lines = sum(1 for _ in fh)
+        while chunk := fh.read(1 << 22):
+            lines += chunk.count(b"\n")
+            tail = chunk[-1:]
+    if tail and tail != b"\n":
+        lines += 1              # a final line with no newline after it
     return max(0, lines - 1)
 
 
@@ -286,6 +357,15 @@ def reader_expr(path: Path, sheet: str | None = None) -> str:
 
 
 def read_header(con, path: Path, sheet: str | None = None) -> list[str]:
+    """Column names as published. The first thing that touches a source file.
+
+    Loading `excel` here rather than at connect is what keeps a CSV-only run
+    off the network entirely: this is the earliest point at which the pipeline
+    knows a workbook is about to be read, and every path that reads one comes
+    through here first.
+    """
+    if path.suffix.lower() == ".xlsx":
+        load_extension(con, "excel")
     rows = con.execute(f"DESCRIBE SELECT * FROM {reader_expr(path, sheet)}").fetchall()
     return [r[0] for r in rows]
 
@@ -293,15 +373,40 @@ def read_header(con, path: Path, sheet: str | None = None) -> list[str]:
 def tabular_units(system_id: str, period: str, entry: dict) -> list[tuple[Path, str | None, int]]:
     """(file, sheet, lines_repaired) triples to load, CSVs made UTF-8 clean."""
     units: list[tuple[Path, str | None, int]] = []
+    source_sha = require_sha(system_id, period, entry)
     for path in tabular_files(system_id, period, entry):
         if path.suffix.lower() == ".xlsx":
             names = sheets_in(path)
             units += ([(path, n, 0) for n in names] if len(names) > 1
                       else [(path, None, 0)])
         else:
-            scrubbed, repaired = ensure_utf8(path)
+            scrubbed, repaired = ensure_utf8(path, source_sha)
             units.append((scrubbed, None, repaired))
     return units
+
+
+def require_sha(system_id: str, period: str, entry: dict) -> str:
+    """The manifest checksum for a period, or an abort naming the fix.
+
+    An entry without one used to be SKIPPED, silently, in the middle of the
+    loop that loads the archive — so a manifest that had grown a period nobody
+    had downloaded yet produced a smaller warehouse and said nothing. Every
+    count on the site derives from what landed, so a quiet skip is a quiet
+    wrong number; and the checksum is the whole basis of the claim that a
+    figure traces to a pinned file.
+    """
+    sha = (entry or {}).get("sha256")
+    if not sha:
+        raise UnpinnedSource(
+            f"{system_id} {period}: the manifest entry has no sha256, so "
+            "nothing pins the bytes this period would contribute. Run "
+            f"`python pipeline/download.py --system {system_id} --period "
+            f"{period}` to acquire and pin it, or remove the entry from "
+            f"pipeline/manifests/{system_id}.json. A period that is "
+            "deliberately not loaded belongs in etl.EXCLUDED with a reason, "
+            "not in a manifest without a checksum."
+        )
+    return sha
 
 
 def plan(header: list[str], column_map: dict, source: str) -> list[tuple[str, str]]:
@@ -330,72 +435,61 @@ def classify(header: list[str], maps: dict) -> str | None:
 
 
 def run_extract(con, systems: list[str], limit: int | None) -> None:
+    """Reload each system's raw rows, ONE SYSTEM PER TRANSACTION.
+
+    This used to DELETE every requested system's rows up front and then load
+    them one at a time, so a failure anywhere past the first system left the
+    warehouse in a state no run had ever produced: system one reloaded, systems
+    two and three simply gone. Extraction is the stage most likely to abort —
+    an unmapped header, an unclassifiable archive member, a reconciliation
+    mismatch are all deliberate aborts — which makes it the worst place to have
+    no way back.
+
+    **The unit of atomicity is the system, not the whole run.** A system is
+    independent of the others in the raw tables (system_id partitions every
+    one of them), so per-system commits leave a coherent warehouse under any
+    failure: each system is either entirely its previous contents or entirely
+    its new ones, and never a mixture. The alternative — one transaction over
+    all three — would buy the ability to say "the run as a whole did not
+    happen" at the cost of holding 135.6M rows of uncommitted state, and would
+    still leave the operator re-running everything after a failure in the last
+    file of the last system.
+
+    Memory, measured rather than assumed (DuckDB 1.5.5, 20M-row table, whole
+    partition deleted inside an open transaction, peak RSS): the uncommitted
+    delete cost **1.52 bytes per row**, so Montreal's 88.2M rows come to about
+    134 MB against the 10 GB the connection is given. Reloading 20M rows into
+    the same open transaction added 274 MB — about 14 bytes per row, well under
+    the row width, so the appends are going to the database file rather than
+    being buffered whole. Neither figure is near a limit. Re-measure if
+    DuckDB's delete representation changes; the reason this is written down is
+    that "one transaction over 88M rows" is exactly the kind of claim that gets
+    assumed either safe or unsafe without anyone checking.
+
+    `--limit` still applies per system, and the audit rows are deleted and
+    rewritten inside the same transaction as the data they describe — they were
+    two separate loops, which is how an audit can outlive the rows it audits.
+    """
     run_sql(con, "10_extract.sql")
     ensure_audit_table(con)
     for system_id in systems:
-        con.execute("DELETE FROM raw_file_audit WHERE system_id = ?", [system_id])
-    # Reloading a system replaces only that system's rows. Without this, a
-    # re-run would double every count instead of refreshing it.
-    for system_id in systems:
-        con.execute("DELETE FROM raw_trips WHERE system_id = ?", [system_id])
-        con.execute("DELETE FROM raw_stations WHERE system_id = ?", [system_id])
-    for system_id in systems:
-        maps = load_map(system_id)
-        manifest = common.load_manifest(system_id)
-        loaded = skipped = 0
-        for period in sorted(manifest.get("sources", {})):
-            entry = manifest["sources"][period]
-            if not entry.get("sha256"):
-                continue
-            if (system_id, period) in EXCLUDED:
-                print(f"  {system_id} {period}: excluded — {EXCLUDED[(system_id, period)]}")
-                skipped += 1
-                continue
-            for path, sheet, repaired in tabular_units(system_id, period, entry):
-                label = path.name if sheet is None else f"{path.name}#{sheet.strip()}"
-                header = read_header(con, path, sheet)
-                kind = classify(header, maps)
-                if kind is None:
-                    raise UnknownColumns(
-                        f"{system_id} {period} {label}: header matches neither "
-                        f"the trips nor the stations map: {header!r}"
-                    )
-                pairs = plan(header, maps[kind], f"{system_id} {period} {label}")
-                cols = ", ".join(f'"{u}"' for _, u in pairs)
-                sel = ", ".join(f'"{r}"' for r, _ in pairs)
-                table = "raw_trips" if kind == "trips" else "raw_stations"
-                con.execute(
-                    f"INSERT INTO {table} (system_id, source_period, source_file, {cols}) "
-                    f"SELECT ?, ?, ?, {sel} FROM {reader_expr(path, sheet)}",
-                    [system_id, period, label],
-                )
-                landed = con.execute(
-                    f"SELECT count(*) FROM {table} WHERE system_id = ? "
-                    "AND source_period = ? AND source_file = ?",
-                    [system_id, period, label],
-                ).fetchone()[0]
-                expected = source_record_count(path, sheet)
-                if expected != landed and path.suffix.lower() == ".csv":
-                    # Line count and record count differ when a field contains a
-                    # quoted newline. Pay for the exact count only when needed.
-                    expected = exact_record_count(path)
-                con.execute(
-                    "INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?, ?)",
-                    [system_id, period, label, expected, landed, repaired, kind],
-                )
-                if expected != landed:
-                    raise ReconciliationFailed(
-                        f"{system_id} {period} {label}: source has {expected:,} "
-                        f"records, {landed:,} landed — {expected - landed:,} "
-                        "unaccounted for. The funnel begins at rows_landed, so a "
-                        "row lost here is invisible to every later count."
-                    )
-                loaded += 1
-                note = f"  (+{repaired:,} lines repaired)" if repaired else ""
-                print(f"  {system_id} {period} {label}: {kind}{note}", flush=True)
-            if limit and loaded >= limit:
-                break
-        print(f"{system_id}: {loaded} file(s) loaded, {skipped} excluded")
+        con.execute("BEGIN TRANSACTION")
+        try:
+            extract_system(con, system_id, limit)
+        except BaseException:
+            # BaseException, not Exception: a KeyboardInterrupt in the middle of
+            # an 11-minute extract is exactly the case this exists for.
+            try:
+                con.execute("ROLLBACK")
+            except duckdb.Error:
+                # DuckDB invalidates a transaction that failed inside the
+                # engine and has already discarded it. Nothing to undo, and a
+                # secondary error here must not replace the real one.
+                pass
+            print(f"{system_id}: ROLLED BACK — its previous rows are untouched",
+                  file=sys.stderr, flush=True)
+            raise
+        con.execute("COMMIT")
 
     record(con, "extract", "rows_landed", "SELECT count(*) FROM raw_trips")
     record(con, "extract", "files_landed",
@@ -407,18 +501,94 @@ def run_extract(con, systems: list[str], limit: int | None) -> None:
     record_encoding_metrics(con)
 
 
+def extract_system(con, system_id: str, limit: int | None) -> None:
+    """Land one system's whole archive. Called inside its own transaction."""
+    maps = load_map(system_id)
+    manifest = common.load_manifest(system_id)
+    # Reloading a system replaces only that system's rows. Without this, a
+    # re-run would double every count instead of refreshing it.
+    con.execute("DELETE FROM raw_file_audit WHERE system_id = ?", [system_id])
+    con.execute("DELETE FROM raw_trips WHERE system_id = ?", [system_id])
+    con.execute("DELETE FROM raw_stations WHERE system_id = ?", [system_id])
+    loaded = skipped = 0
+    for period in sorted(manifest.get("sources", {})):
+        entry = manifest["sources"][period]
+        # EXCLUDED first: a period this pipeline deliberately never reads does
+        # not need a checksum to justify not reading it, and the exclusion
+        # carries its own written reason. Everything else must be pinned.
+        if (system_id, period) in EXCLUDED:
+            print(f"  {system_id} {period}: excluded — {EXCLUDED[(system_id, period)]}")
+            skipped += 1
+            continue
+        source_sha = require_sha(system_id, period, entry)
+        for path, sheet, repaired in tabular_units(system_id, period, entry):
+            label = path.name if sheet is None else f"{path.name}#{sheet.strip()}"
+            header = read_header(con, path, sheet)
+            kind = classify(header, maps)
+            if kind is None:
+                raise UnknownColumns(
+                    f"{system_id} {period} {label}: header matches neither "
+                    f"the trips nor the stations map: {header!r}"
+                )
+            pairs = plan(header, maps[kind], f"{system_id} {period} {label}")
+            cols = ", ".join(f'"{u}"' for _, u in pairs)
+            sel = ", ".join(f'"{r}"' for r, _ in pairs)
+            table = "raw_trips" if kind == "trips" else "raw_stations"
+            con.execute(
+                f"INSERT INTO {table} (system_id, source_period, source_file, {cols}) "
+                f"SELECT ?, ?, ?, {sel} FROM {reader_expr(path, sheet)}",
+                [system_id, period, label],
+            )
+            landed = con.execute(
+                f"SELECT count(*) FROM {table} WHERE system_id = ? "
+                "AND source_period = ? AND source_file = ?",
+                [system_id, period, label],
+            ).fetchone()[0]
+            expected = source_record_count(path, sheet)
+            if expected != landed and path.suffix.lower() == ".csv":
+                # Line count and record count differ when a field contains a
+                # quoted newline. Pay for the exact count only when needed.
+                expected = exact_record_count(path)
+            con.execute(
+                "INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                [system_id, period, label, expected, landed, repaired, kind,
+                 source_sha],
+            )
+            if expected != landed:
+                raise ReconciliationFailed(
+                    f"{system_id} {period} {label}: source has {expected:,} "
+                    f"records, {landed:,} landed — {expected - landed:,} "
+                    "unaccounted for. The funnel begins at rows_landed, so a "
+                    "row lost here is invisible to every later count."
+                )
+            loaded += 1
+            note = f"  (+{repaired:,} lines repaired)" if repaired else ""
+            print(f"  {system_id} {period} {label}: {kind}{note}", flush=True)
+        if limit and loaded >= limit:
+            break
+    print(f"{system_id}: {loaded} file(s) loaded, {skipped} excluded")
+
+
 def ensure_audit_table(con) -> None:
     """The per-file audit: what the source held, what landed, what was repaired.
 
     `kind` was added by spec 028 so the quality report can separate trip files
     from station snapshots without a semi-join over 135M rows, and `ALTER ... IF
     NOT EXISTS` is what lets an existing warehouse gain it without a reload.
+
+    `source_sha256` (spec 029) is the checksum of the manifest entry the row
+    was read from. It is what makes the reconciliation a STANDING claim rather
+    than a note about one afternoon: without it, a re-pinned source and an
+    un-re-extracted warehouse are indistinguishable, and every count in the
+    audit silently describes bytes that are no longer on disk. See
+    `pipeline/check_reconciliation.py`.
     """
     con.execute("""CREATE TABLE IF NOT EXISTS raw_file_audit (
         system_id VARCHAR, source_period VARCHAR, source_file VARCHAR,
         source_records BIGINT, rows_landed BIGINT, lines_repaired BIGINT,
-        kind VARCHAR)""")
+        kind VARCHAR, source_sha256 VARCHAR)""")
     con.execute("ALTER TABLE raw_file_audit ADD COLUMN IF NOT EXISTS kind VARCHAR")
+    con.execute("ALTER TABLE raw_file_audit ADD COLUMN IF NOT EXISTS source_sha256 VARCHAR")
 
 
 def record_encoding_metrics(con) -> None:
@@ -520,7 +690,12 @@ def backfill_encoding_repairs(con) -> int:
             marker = scrub_marker(directory / base)
             if marker.exists():
                 consumed.add(marker.resolve())
-                updates.append((int(marker.read_text()), system_id, period, label))
+                # The sha beside the count is not checked here. This reads what
+                # a past extract measured, and a marker written before the key
+                # existed still says truthfully how many lines the copy next to
+                # it repaired. Whether that copy is CURRENT is a different
+                # question, asked by ensure_utf8 and by check_reconciliation.
+                updates.append((read_marker(marker)[0], system_id, period, label))
                 found += 1
             elif scrubbed.exists():
                 raise MissingRepairMarker(
@@ -758,6 +933,103 @@ def load_weather(con) -> None:
     )
 
 
+DATE_ORDER_MAP = "date_order.json"
+DECLARABLE_ORDERS = ("day", "month")
+UNDERIVABLE = ("ambiguous", "conflict")
+
+
+def load_date_order_exceptions() -> dict[str, dict[str, dict]]:
+    """The declared date order for files the evidence cannot resolve."""
+    path = common.MAPPINGS_DIR / DATE_ORDER_MAP
+    if not path.exists():
+        return {}
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    return {k: v for k, v in raw.get("exceptions", {}).items() if not k.startswith("_")}
+
+
+def resolve_date_orders(con) -> None:
+    """Every file's date order is derived or declared. Never defaulted.
+
+    15_dates.sql proves the order from the values where it can. What it cannot
+    prove used to fall through to month-first with a printed line, and that is
+    the shape of default this project has been burnt by twice: a line that
+    prints on every run is a line nobody reads, and day-first and month-first
+    agree for every date before the 13th, so the wrong choice is invisible in
+    40% of rows and catastrophic in the rest.
+
+    So an underivable file must be named in pipeline/mappings/date_order.json
+    with the order and the evidence for it, or this raises. The check runs both
+    ways: a declaration for a file the data can now resolve on its own raises
+    too, because a stale exception is a claim nobody re-examined.
+
+    `resolved_order` is written beside the derived `date_order` rather than
+    over it. 20_clean.sql parses by the resolved value; the derived one stays
+    visible, so what the DATA said and what a person DECIDED never collapse
+    into one column that cannot tell them apart.
+    """
+    declared = load_date_order_exceptions()
+    con.execute("ALTER TABLE file_date_order ADD COLUMN IF NOT EXISTS resolved_order VARCHAR")
+    con.execute("UPDATE file_date_order SET resolved_order = date_order")
+
+    rows = con.execute(
+        "SELECT system_id, source_file, date_order FROM file_date_order"
+    ).fetchall()
+    present = {(s, f): o for s, f, o in rows}
+    systems_present = {s for s, _ in present}
+
+    for system_id, files in sorted(declared.items()):
+        for source_file, spec in sorted(files.items()):
+            order = spec.get("date_order")
+            if order not in DECLARABLE_ORDERS:
+                raise StaleDateOrderException(
+                    f"{system_id} {source_file}: declared date_order "
+                    f"{order!r} in {DATE_ORDER_MAP}; allowed: "
+                    f"{list(DECLARABLE_ORDERS)}"
+                )
+            if system_id not in systems_present:
+                # This system was not extracted in this warehouse — a
+                # `--system` run, or a fixture tree. Not a stale declaration.
+                continue
+            derived = present.get((system_id, source_file))
+            if derived is None:
+                raise StaleDateOrderException(
+                    f"{system_id} {source_file}: declared in {DATE_ORDER_MAP}, "
+                    "but no file by that name carries slash-separated dates in "
+                    "this warehouse. Either the source stopped shipping it or "
+                    "the name changed; remove the entry or correct it."
+                )
+            if derived not in UNDERIVABLE:
+                raise StaleDateOrderException(
+                    f"{system_id} {source_file}: declared {order!r} in "
+                    f"{DATE_ORDER_MAP}, but the file now proves {derived!r} "
+                    "from its own values. The declaration is no longer needed "
+                    "and would override evidence — remove it."
+                )
+            con.execute(
+                "UPDATE file_date_order SET resolved_order = ? "
+                "WHERE system_id = ? AND source_file = ?",
+                [order, system_id, source_file],
+            )
+            print(f"  date order {derived.upper()} for {system_id} {source_file} "
+                  f"— declared {order.upper()}-first by mappings/{DATE_ORDER_MAP}",
+                  flush=True)
+
+    undeclared = [
+        (s, f, o) for (s, f), o in sorted(present.items())
+        if o in UNDERIVABLE and f not in declared.get(s, {})
+    ]
+    if undeclared:
+        listing = "; ".join(f"{s} {f} ({o})" for s, f, o in undeclared)
+        raise AmbiguousDateOrder(
+            f"{len(undeclared)} file(s) whose date order the values cannot "
+            f"prove and nothing declares: {listing}. Day-first and month-first "
+            "agree on every date before the 13th, so guessing is wrong in "
+            "silence for roughly 40% of the rows and wrong loudly for none of "
+            f"them. Add an entry to pipeline/mappings/{DATE_ORDER_MAP} with "
+            "the order and the evidence for it."
+        )
+
+
 def run_clean(con) -> None:
     """Resolve per-file date order, clean, then account for every dropped row.
 
@@ -766,7 +1038,11 @@ def run_clean(con) -> None:
     quality report exists to make impossible.
     """
     # Must precede clean: the parser reads each file's proven date order.
+    # And resolution must precede the timezone stage, which parses timestamps
+    # to find each file's departure trough and therefore needs the same order
+    # the cleaner will use.
     run_sql(con, "15_dates.sql")
+    resolve_date_orders(con)
     run_sql(con, "17_timezones.sql")
     for sys_id, f, basis, trough, n in con.execute(
         "SELECT system_id, source_file, tz_basis, trough_hour, rows_parsed "
@@ -778,14 +1054,13 @@ def run_clean(con) -> None:
            "SELECT count(*) FROM file_timezone WHERE tz_basis = 'utc'")
     record(con, "clean", "files_tz_unknown",
            "SELECT count(*) FROM file_timezone WHERE tz_basis = 'unknown'")
-    odd = con.execute(
-        "SELECT system_id, source_file, date_order FROM file_date_order "
-        "WHERE date_order IN ('conflict', 'ambiguous')"
-    ).fetchall()
-    for sys_id, f, ord_ in odd:
-        print(f"  date order {ord_.upper()} for {sys_id} {f} — parsed month-first", flush=True)
     record(con, "clean", "files_day_first",
-           "SELECT count(*) FROM file_date_order WHERE date_order = 'day'")
+           "SELECT count(*) FROM file_date_order WHERE resolved_order = 'day'")
+    # Files whose order the VALUES could not prove. Every one of them is
+    # declared in mappings/date_order.json by the time this runs — the clean
+    # stage aborts otherwise — so this counts declarations in force rather
+    # than unexplained guesses, and the name is kept because the question it
+    # answers has not changed.
     record(con, "clean", "files_ambiguous_date_order",
            "SELECT count(*) FROM file_date_order WHERE date_order IN ('conflict','ambiguous')")
     run_sql(con, "20_clean.sql")
@@ -799,7 +1074,7 @@ def run_clean(con) -> None:
         """SELECT count(*) FROM raw_trips r
            LEFT JOIN file_date_order o
              ON o.system_id = r.system_id AND o.source_file = r.source_file
-           WHERE coalesce(parse_ts_ord(r.departure_raw, o.date_order),
+           WHERE coalesce(parse_ts_ord(r.departure_raw, o.resolved_order),
                           epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NULL""",
     )
     # Normalised, not merely trimmed — the same test 20_clean.sql applies. The
@@ -810,7 +1085,7 @@ def run_clean(con) -> None:
         """SELECT count(*) FROM raw_trips r
            LEFT JOIN file_date_order o
              ON o.system_id = r.system_id AND o.source_file = r.source_file
-           WHERE coalesce(parse_ts_ord(r.departure_raw, o.date_order),
+           WHERE coalesce(parse_ts_ord(r.departure_raw, o.resolved_order),
                           epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NOT NULL
              AND norm_key(r.departure_station_key) IS NULL
              AND norm_name(r.departure_station_name) IS NULL""",
@@ -827,7 +1102,7 @@ def run_clean(con) -> None:
            LEFT JOIN file_date_order o
              ON o.system_id = r.system_id AND o.source_file = r.source_file
            WHERE r.system_id = 'van-mobi'
-             AND coalesce(parse_ts_ord(r.departure_raw, o.date_order),
+             AND coalesce(parse_ts_ord(r.departure_raw, o.resolved_order),
                           epoch_ms(try_cast(r.departure_ms AS BIGINT))) IS NOT NULL
              AND (norm_key(r.departure_station_key) IS NOT NULL
                   OR norm_name(r.departure_station_name) IS NOT NULL)
@@ -881,17 +1156,91 @@ def record(con, stage: str, metric: str, query: str) -> None:
     print(f"{stage}.{metric} = {value:,}")
 
 
-def connect(db_path: Path) -> duckdb.DuckDBPyConnection:
+# The DuckDB extensions this pipeline needs, and where each actually comes
+# from. Verified against duckdb 1.5.5 with an empty extension directory:
+#
+#   icu    STATICALLY_LINKED — it ships inside the Python wheel. `LOAD icu`
+#          works with no network and no extension directory at all. The old
+#          `INSTALL icu` was asking a repository for something already in the
+#          process, on every single connection.
+#   excel  NOT bundled. `read_xlsx` is what reads Toronto's 2016 workbook and
+#          Mobi's eight XLSX months, so it is not optional, and it is the one
+#          place a rebuild reaches the network outside downloading data.
+#
+# Extensions are NOT vendored into git: they are per-platform, per-version
+# binaries under a licence this project does not control, and a stale one is
+# worse than an absent one. The offline path is the extension DIRECTORY —
+# point BIKESHARE_DUCKDB_EXTENSION_DIR at a cached copy (a CI cache, a shared
+# volume) and nothing is fetched. BIKESHARE_ALLOW_EXTENSION_INSTALL=0 turns a
+# missing extension into a refusal instead of a download, so a run that claims
+# to be offline is one.
+#
+# `excel` is therefore loaded WHERE IT IS USED rather than on every connection.
+# A run over CSV sources needs no network at all, and that is worth having:
+# `INSTALL excel` used to run on every `etl.py` invocation, including
+# `--stage clean`, which reads no files.
+WHY = {
+    "icu": "timestamps are converted between zones in 20_clean.sql",
+    "excel": "read_xlsx() reads the XLSX months and Toronto's 2016 workbook",
+}
+
+
+def load_extension(con, name: str) -> None:
+    """LOAD if it is here; INSTALL only if it is not, and say which and why."""
+    try:
+        con.execute(f"LOAD {name}")
+        return
+    except duckdb.Error:
+        pass
+    if not common.DUCKDB_ALLOW_EXTENSION_INSTALL:
+        raise ExtensionUnavailable(
+            f"the DuckDB '{name}' extension is not installed and "
+            "BIKESHARE_ALLOW_EXTENSION_INSTALL=0 forbids fetching it. Point "
+            "BIKESHARE_DUCKDB_EXTENSION_DIR at a directory that has it, or "
+            f"allow the install. It is needed because {WHY[name]}."
+        )
+    try:
+        con.execute(f"INSTALL {name}")
+        con.execute(f"LOAD {name}")
+    except duckdb.Error as exc:
+        raise ExtensionUnavailable(
+            f"the DuckDB '{name}' extension could not be installed: {exc}. It "
+            "is fetched from DuckDB's extension repository, so this is usually "
+            "no network. A cached extension directory passed as "
+            "BIKESHARE_DUCKDB_EXTENSION_DIR removes the dependency. It is "
+            f"needed because {WHY[name]}."
+        ) from exc
+
+
+def load_extensions(con) -> None:
+    """What every connection needs — which is `icu`, and nothing else."""
+    if common.DUCKDB_EXTENSION_DIR:
+        directory = Path(common.DUCKDB_EXTENSION_DIR).expanduser()
+        directory.mkdir(parents=True, exist_ok=True)
+        con.execute(f"SET extension_directory = '{directory}'")
+    # Autoinstall would reach the network from inside a query, at whatever
+    # moment a function first needed an extension — which is precisely the
+    # implicit behaviour this block exists to replace.
+    con.execute("SET autoinstall_known_extensions = false")
+    load_extension(con, "icu")
+
+
+def connect(db_path: Path, memory_limit: str | None = None,
+            threads: int | None = None) -> duckdb.DuckDBPyConnection:
+    """Open the warehouse with bounded resources and the extensions loaded.
+
+    135M rows on a 16 GB machine: bound memory explicitly and give the spill a
+    home on the data volume. Left to its own devices DuckDB will take ~80% of
+    RAM and then thrash. The 10 GB / 8 threads that measurement produced are
+    now the DEFAULTS rather than the only option — a CI runner has 7 GB and
+    two cores, and had no way to say so.
+    """
     db_path.parent.mkdir(parents=True, exist_ok=True)
     con = duckdb.connect(str(db_path))
-    con.execute("INSTALL excel; LOAD excel;")
-    con.execute("INSTALL icu; LOAD icu;")  # timezone conversion in 20_clean.sql
-    # 135M rows on a 16 GB machine: bound memory explicitly and give the spill
-    # a home on the data volume. Left to its own devices DuckDB will take ~80%
-    # of RAM and then thrash.
+    load_extensions(con)
     con.execute("SET preserve_insertion_order = false;")
-    con.execute("SET memory_limit = '10GB';")
-    con.execute("SET threads = 8;")
+    con.execute("SET memory_limit = ?;", [memory_limit or common.DUCKDB_MEMORY_LIMIT])
+    con.execute("SET threads = ?;", [threads or common.DUCKDB_THREADS])
     (common.DATA_WAREHOUSE / "tmp").mkdir(parents=True, exist_ok=True)
     con.execute(f"SET temp_directory = '{common.DATA_WAREHOUSE / 'tmp'}';")
     return con
@@ -904,6 +1253,16 @@ def main() -> int:
     parser.add_argument("--limit", type=int)
     parser.add_argument("--db", type=Path, default=WAREHOUSE)
     parser.add_argument(
+        "--memory-limit", default=common.DUCKDB_MEMORY_LIMIT,
+        help="DuckDB memory limit, e.g. 4GB (env BIKESHARE_DUCKDB_MEMORY_LIMIT; "
+             f"default {common.DUCKDB_MEMORY_LIMIT})",
+    )
+    parser.add_argument(
+        "--threads", type=int, default=common.DUCKDB_THREADS,
+        help=f"DuckDB thread count (env BIKESHARE_DUCKDB_THREADS; default "
+             f"{common.DUCKDB_THREADS})",
+    )
+    parser.add_argument(
         "--backfill-encoding-repairs", action="store_true",
         help="read the UTF-8 repair markers on disk into raw_file_audit and "
              "exit, without re-running extraction",
@@ -911,7 +1270,7 @@ def main() -> int:
     args = parser.parse_args()
 
     systems = args.system or sorted(common.SYSTEMS)
-    con = connect(args.db)
+    con = connect(args.db, args.memory_limit, args.threads)
     if args.backfill_encoding_repairs:
         try:
             return backfill_encoding_repairs(con)
@@ -934,7 +1293,8 @@ def main() -> int:
                 run_model(con)
             else:
                 run_sql(con, SQL_FILES[stage])
-    except (UnknownColumns, UnknownMember, ReconciliationFailed,
+    except (UnknownColumns, UnknownMember, ReconciliationFailed, UnpinnedSource,
+            AmbiguousDateOrder, StaleDateOrderException, ExtensionUnavailable,
             FileNotFoundError) as exc:
         print(f"\nABORT: {exc}", file=sys.stderr)
         return 1

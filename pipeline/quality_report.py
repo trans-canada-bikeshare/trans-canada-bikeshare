@@ -90,18 +90,27 @@ def funnel(con) -> tuple[int, int, list[tuple[str, int]], int]:
     return landed, kept, named, landed - kept - sum(n for _, n in named)
 
 
-def landing_reconciliation(con) -> tuple[int, int, int, int]:
-    """(trip files, source records, rows landed, files that disagree).
+def landing_reconciliation(con) -> tuple[int, int, int, int, int]:
+    """(trip files, source records, rows landed, files that disagree, unpinned).
 
     Extraction counts the records in every file it reads and aborts if that
     differs from what landed (`etl.ReconciliationFailed`). This reads back what
     it wrote, so the report can say where the accounting starts instead of
     calling it an open gap.
+
+    The last column is spec 029's: how many of those counts do NOT record the
+    checksum they were taken from. A count with no checksum beside it describes
+    bytes nobody can identify, which is a weaker claim than this paragraph
+    makes — so it is asserted to zero rather than reported.
     """
-    return con.execute("""
+    sha = "source_sha256" if con.execute(
+        "SELECT count(*) FROM information_schema.columns WHERE table_name = "
+        "'raw_file_audit' AND column_name = 'source_sha256'").fetchone()[0] else "NULL"
+    return con.execute(f"""
         SELECT count(*), coalesce(sum(source_records), 0),
                coalesce(sum(rows_landed), 0),
-               count(*) FILTER (source_records <> rows_landed)
+               count(*) FILTER (source_records <> rows_landed),
+               count(*) FILTER ({sha} IS NULL)
         FROM raw_file_audit WHERE kind = 'trips'""").fetchone()
 
 
@@ -172,11 +181,20 @@ def assert_invariants(con) -> None:
             "means rows left the pipeline under no named reason, or one reason "
             "counted another's rows. Fix the pipeline, not this report."
         )
-    files, source_records, audit_landed, disagree = landing_reconciliation(con)
+    files, source_records, audit_landed, disagree, unpinned = landing_reconciliation(con)
     if disagree:
         raise ReportInvariant(
             f"{disagree:,} source file(s) landed a different number of rows than "
             "they contain. Extraction is supposed to abort on that."
+        )
+    if unpinned:
+        raise ReportInvariant(
+            f"{unpinned:,} source file(s) have a record count with no checksum "
+            "recorded beside it, so nothing says which bytes were counted. The "
+            "paragraph this report opens with claims a reconciliation against "
+            "the pinned archive; without the checksum it is a reconciliation "
+            "against whatever happened to be on disk. Run `python "
+            "pipeline/check_reconciliation.py --recount` once."
         )
     if audit_landed != landed:
         raise ReportInvariant(
@@ -213,7 +231,7 @@ def build(con, now: datetime | None = None) -> str:
     stamp = (now or datetime.now(timezone.utc)).isoformat(timespec="seconds")
 
     landed, kept, named, residual = funnel(con)
-    files, source_records, _, _ = landing_reconciliation(con)
+    files, source_records, _, _, _ = landing_reconciliation(con)
 
     doc = [
         "# Data Quality Report",
@@ -237,6 +255,17 @@ def build(con, now: datetime | None = None) -> str:
         "disagreed would abort the run rather than be reported here. Rows are "
         "no longer lost to invalid encoding either — they are repaired, and "
         "the counts are below.",
+        "",
+        "Each of those counts is stored with the sha256 of the manifest entry "
+        "it was read from, and `make check-reconciliation` compares that "
+        "against the checksum the manifest pins **now**. Without it the "
+        "reconciliation would be a statement about one morning: a source its "
+        "publisher replaced and `download.py --accept-changes` re-pinned "
+        "leaves every other gate green — the archive still matches the "
+        "manifest, the artifacts still match a publish run — while the numbers "
+        "in this section quietly describe bytes that are gone. Any file whose "
+        "pin has moved is re-counted, and this report refuses to generate if a "
+        "count has no checksum beside it at all.",
         "",
     ]
 

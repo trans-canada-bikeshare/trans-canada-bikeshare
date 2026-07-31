@@ -2,6 +2,11 @@
 
 Scaffold (spec 002): paths, the system registry, checksums, and format
 detection. The downloader, ETL, and publish stages arrive in specs 003 onward.
+
+Spec 029 adds the runtime configuration every stage reads: the Python version
+this pipeline is pinned to, and the environment overrides that let the whole
+pipeline be pointed at a different data tree without editing a line. See
+`docs/runbook.md`, "Configuration".
 """
 
 from __future__ import annotations
@@ -10,9 +15,55 @@ import hashlib
 import json
 import os
 import re
+import sys
 from pathlib import Path
 
 USER_AGENT = "trans-canada-bikeshare-pipeline (+https://github.com/adnanreza)"
+
+# The one place the Python version is stated. `pipeline/requirements.lock`
+# carries CPython 3.11 (`cp311`) wheel hashes and nothing else, so 3.12 has
+# nothing to install — but a machine with the packages already present would
+# otherwise run happily on an interpreter this project has never tested, and
+# find out at the first behavioural difference rather than at startup.
+PYTHON_REQUIRES = (3, 11)
+
+
+class WrongPython(Exception):
+    """The interpreter is not the version the lock file pins."""
+
+
+def require_python(version: tuple[int, int] | None = None) -> None:
+    """Abort on an interpreter the lock file does not cover.
+
+    Called at import, because every pipeline entry point imports this module
+    and the failure has to arrive before any work does. Loud, named, and with
+    the fix in the message — the same shape as every other refusal here.
+    """
+    found = version or sys.version_info[:2]
+    if tuple(found) != PYTHON_REQUIRES:
+        want = ".".join(str(n) for n in PYTHON_REQUIRES)
+        have = ".".join(str(n) for n in found)
+        raise WrongPython(
+            f"this pipeline is pinned to Python {want}; running on {have}. "
+            f"pipeline/requirements.lock contains cp{PYTHON_REQUIRES[0]}"
+            f"{PYTHON_REQUIRES[1]} wheel hashes only, so the environment this "
+            "is running in was not built from it. Create the venv with "
+            f"python{want} and install from the lock."
+        )
+
+
+require_python()
+
+
+def env_path(name: str, default: Path) -> Path:
+    """An overridable path. Empty or unset means the default.
+
+    Paths are resolved so a relative override ('--data-root ./fixtures') means
+    the same thing to every stage regardless of where it was launched from.
+    """
+    raw = os.environ.get(name, "").strip()
+    return Path(raw).expanduser().resolve() if raw else default
+
 
 MONTH_NAMES = {
     "january": 1, "february": 2, "march": 3, "april": 4,
@@ -30,11 +81,61 @@ DRIVE_FILE_RE = re.compile(
 
 PIPELINE_DIR = Path(__file__).resolve().parent
 REPO_ROOT = PIPELINE_DIR.parent
-DATA_RAW = REPO_ROOT / "data-raw"
-DATA_WAREHOUSE = REPO_ROOT / "data-warehouse"
-MANIFEST_DIR = PIPELINE_DIR / "manifests"
+
+# Where the data lives. Every one of these is overridable, because a fixture
+# run has to be able to point the WHOLE pipeline — etl, publish, the quality
+# report and every gate — at a different tree in one move. `BIKESHARE_DATA_ROOT`
+# moves the three that must move together; the individual variables exist for
+# the cases where they must not.
+#
+# The archive, the warehouse and the manifests are one unit: a manifest pins
+# the bytes in the archive, and the warehouse records which pinned bytes it was
+# built from. Point two of them at a fixture tree and the third at the real one
+# and every checksum comparison is meaningless. So DATA_ROOT moves all three,
+# to `<root>/data-raw`, `<root>/data-warehouse` and `<root>/manifests`.
+_DATA_ROOT_SET = bool(os.environ.get("BIKESHARE_DATA_ROOT", "").strip())
+DATA_ROOT = env_path("BIKESHARE_DATA_ROOT", REPO_ROOT)
+DATA_RAW = env_path("BIKESHARE_DATA_RAW", DATA_ROOT / "data-raw")
+DATA_WAREHOUSE = env_path("BIKESHARE_DATA_WAREHOUSE", DATA_ROOT / "data-warehouse")
+# Manifests default to their in-repo home, which is NOT under DATA_ROOT — they
+# are committed and versioned. Once DATA_ROOT moves, they move with it, because
+# a fixture archive pinned by the real manifests would fail every checksum.
+MANIFEST_DIR = env_path(
+    "BIKESHARE_MANIFEST_DIR",
+    DATA_ROOT / "manifests" if _DATA_ROOT_SET else PIPELINE_DIR / "manifests",
+)
+
+# NOT overridable, deliberately. The era maps, the membership groups, the
+# metric registry and the date-order exceptions are CODE: they encode decisions
+# about what the published bytes mean, they are reviewed as code, and every one
+# of them is the thing a gate checks against. A run that could swap them out
+# could also make any archive parse "correctly", which is the one substitution
+# this project must not permit — a fixture run proves the mappings work, it
+# does not get its own.
 MAPPINGS_DIR = PIPELINE_DIR / "mappings"
-GENERATED_DIR = REPO_ROOT / "src" / "data" / "generated"
+
+# The site's data directory. Separate from DATA_ROOT because publishing to a
+# scratch directory while reading the real warehouse is a legitimate thing to
+# want (`publish.py --out`), and the freshness gate is what stops it shipping.
+GENERATED_DIR = env_path("BIKESHARE_GENERATED_DIR", REPO_ROOT / "src" / "data" / "generated")
+
+# DuckDB runtime limits. The defaults are what specs 005-008 measured on a
+# 16 GB machine against 135.6M rows; a smaller machine or a CI runner needs
+# smaller, and neither should have to edit etl.py to say so.
+DUCKDB_MEMORY_LIMIT = os.environ.get("BIKESHARE_DUCKDB_MEMORY_LIMIT", "").strip() or "10GB"
+DUCKDB_THREADS = int(os.environ.get("BIKESHARE_DUCKDB_THREADS", "").strip() or "8")
+
+# Where DuckDB keeps its extension binaries. Unset means DuckDB's own default
+# (~/.duckdb). A CI job that caches this directory installs the excel extension
+# once instead of on every run — see etl.load_extensions for why one extension
+# needs a network install at all and the other does not.
+DUCKDB_EXTENSION_DIR = os.environ.get("BIKESHARE_DUCKDB_EXTENSION_DIR", "").strip()
+
+# Set to "0" to forbid the network install of a missing DuckDB extension, so a
+# run that claims to be offline fails instead of quietly reaching out.
+DUCKDB_ALLOW_EXTENSION_INSTALL = (
+    os.environ.get("BIKESHARE_ALLOW_EXTENSION_INSTALL", "").strip() != "0"
+)
 
 # Total gzipped budget for everything published to the browser. The Vancouver
 # project ships ~80 KB for one city; three cities plus comparison artifacts get

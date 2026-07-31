@@ -298,7 +298,21 @@ def build(con, registry: dict) -> dict[str, object]:
              lifetime_events, is_active
       FROM dim_station
       WHERE lat IS NOT NULL AND lifetime_events >= {MIN_EVENTS}
-      ORDER BY system_id, lifetime_events DESC
+      -- station_id breaks the tie, and it is not decoration. `ORDER BY
+      -- system_id, lifetime_events DESC` is not a TOTAL order: 26 of the 2,333
+      -- drawn stations sit in 13 groups sharing an event count, and DuckDB
+      -- returns tied rows in whatever order the scan produced. Two publish runs
+      -- over two builds of the same warehouse emitted the same 2,333 stations
+      -- with 4 positions swapped — identical data, different bytes, and
+      -- `make check-artifacts` byte-compares. So the freshness gate would have
+      -- failed for anyone who rebuilt the warehouse, which is precisely the
+      -- person it exists to serve. Found by spec 029 rebuilding clean → model
+      -- and re-publishing.
+      --   The same class was fixed once already, in quality_report.py's bridge
+      -- table, and its comment says why: "a bare ORDER BY 2 DESC let two runs
+      -- over one warehouse produce two different documents". Every ordering
+      -- that reaches an artifact needs a total order.
+      ORDER BY system_id, lifetime_events DESC, station_id
     """)
     # A per-system series across all three cities is exactly what the registry
     # governs, and this artifact skipped it while every other one called guard().
@@ -896,7 +910,11 @@ def build(con, registry: dict) -> dict[str, object]:
                       FILTER (same_dock AND dwell_s >= 0) AS BIGINT)  AS median_s,
                  CAST(quantile_cont(dwell_s, 0.75)
                       FILTER (same_dock AND dwell_s >= 0) AS BIGINT)  AS p75_s
-          FROM paired GROUP BY 1, 2, 3, 4 ORDER BY 1, 2, 4
+          -- All four group keys, in order. Three of them left the fourth free
+          -- to come back either way if a system ever had two eras sharing a
+          -- first year — the same untotal-ordering that made stations.json
+          -- unreproducible above. It costs nothing to close.
+          FROM paired GROUP BY 1, 2, 3, 4 ORDER BY 1, 2, 3, 4
         """, [*params, *skip_keys])
     guard(registry, "bike_dwell", sorted({r["system_id"] for r in dwell}))
 

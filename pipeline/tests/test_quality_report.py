@@ -72,7 +72,7 @@ def make_db(tmp_path: Path, name: str = "fixture.duckdb") -> Path:
     con.execute("""CREATE TABLE raw_file_audit (
         system_id VARCHAR, source_period VARCHAR, source_file VARCHAR,
         source_records BIGINT, rows_landed BIGINT, lines_repaired BIGINT,
-        kind VARCHAR)""")
+        kind VARCHAR, source_sha256 VARCHAR)""")
 
     def trip(system, ts, dep, ret, label, ret_label, member, flags):
         con.execute(
@@ -127,10 +127,11 @@ def make_db(tmp_path: Path, name: str = "fixture.duckdb") -> Path:
         ("tor-bikeshare", "2024", "2024-05.csv", 4, 7),
         ("van-mobi", "2024-05", "2024-05.csv", 3, 0),
     ]:
-        con.execute("INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?, 'trips')",
-                    [system, period, fname, records, records, repaired])
+        con.execute(
+            "INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?, 'trips', ?)",
+            [system, period, fname, records, records, repaired, fname * 4])
     con.execute("INSERT INTO raw_file_audit VALUES "
-                "('mtl-bixi', '2024', 'stations.csv', 2, 2, 0, 'stations')")
+                "('mtl-bixi', '2024', 'stations.csv', 2, 2, 0, 'stations', 'sha')")
     for stage, metric, value in [
         ("extract", "rows_landed", 13),
         ("extract", "lines_repaired", 7),
@@ -234,6 +235,17 @@ def test_a_file_that_landed_the_wrong_row_count_refuses(db):
     edit(db, "UPDATE raw_file_audit SET rows_landed = rows_landed - 1 "
              "WHERE source_file = '2024.csv'")
     with pytest.raises(quality_report.ReportInvariant, match="landed a different"):
+        render(db)
+
+
+def test_a_record_count_with_no_checksum_beside_it_refuses(db):
+    """The report opens by claiming a reconciliation against the PINNED
+    archive. A count with no checksum recorded is a reconciliation against
+    whatever happened to be on disk, which is a weaker claim than the sentence
+    makes — so it refuses rather than softening the sentence."""
+    edit(db, "UPDATE raw_file_audit SET source_sha256 = NULL "
+             "WHERE source_file = '2024.csv'")
+    with pytest.raises(quality_report.ReportInvariant, match="no checksum"):
         render(db)
 
 

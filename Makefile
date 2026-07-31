@@ -49,6 +49,15 @@ check-metrics:
 check-report:
 	$(PYTHON) pipeline/check_report.py
 
-check: check-manifest check-metrics check-artifacts check-report
+# Spec 029. The standing half of spec 028's per-file reconciliation. Extraction
+# proves source records == rows landed once, against the bytes on disk that
+# morning; this proves the audit is still true of the archive the manifests
+# pin now, and recounts any period whose checksum has moved. Cheap by design —
+# it reads files only where a pin changed, which is normally nowhere.
+check-reconciliation:
+	$(PYTHON) pipeline/check_reconciliation.py
 
-.PHONY: check check-artifacts check-manifest check-metrics check-report
+check: check-manifest check-metrics check-artifacts check-report check-reconciliation
+
+.PHONY: check check-artifacts check-manifest check-metrics check-report \
+        check-reconciliation

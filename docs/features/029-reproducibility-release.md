@@ -22,6 +22,17 @@ practice. Verified gaps:
 - van-mobi `2025-05` date-order ambiguity is a silent default
   (month-first); known exceptions should be explicit mappings and new
   ambiguity should abort.
+
+  > **Corrected at build, 2026-07-31: the premise was wrong.** 2025-05 is
+  > not ambiguous — it is `YYYY/MM/DD` (133,643 slashed rows, every first
+  > field `2025`, every second field `05`). Both evidence regexes captured
+  > only 1-2 digits before a slash, so a four-digit year matched neither
+  > and the file fell through to the month-first default — parsing
+  > correctly for the wrong reason while the runbook and clean log
+  > reported an ambiguity that does not exist. Found because the new
+  > stale-declaration check refused the exception entry this spec asked
+  > for. The fix is `year_evidence` in `15_dates.sql`; the exception
+  > mechanism ships with zero entries; new genuine ambiguity still aborts.
 - The freshness gate proves warehouse→JSON reproducibility only. Nothing
   reconciles `rows_landed` against source record counts — the blind spot
   the quality report (post-028) names honestly. The external reviewer's own
@@ -39,9 +50,14 @@ practice. Verified gaps:
   the reconciliation counts (cached by checksum).
 - **Cities touched:** all three, published unchanged.
 - **Tier:** neither.
-- **Published artifacts change:** No (pipeline mechanics only). The quality
-  report gains the source-reconciliation section — it regenerates under
-  028's gate.
+- **Published artifacts change:** Order only, amended at build. Fixing
+  `stations.json`'s non-deterministic sort (26 stations in 13 tied groups
+  — two rebuilds of the same warehouse swapped their positions, which
+  would have failed `make check-artifacts` for anyone reproducing the
+  project) reorders five adjacent equal-count pairs; the station set is
+  byte-identical as a set. `meta.json` moves its timestamp. No value
+  changes anywhere. The quality report gains the reconciliation section
+  and regenerates under 028's gate.
 
 ## Changes
 
@@ -79,8 +95,11 @@ practice. Verified gaps:
 - [ ] A manifest entry missing its checksum aborts extraction (test).
 - [ ] A cache keyed to a checksum serves nothing for changed content under
       the same filename (test).
-- [ ] van-mobi 2025-05 parses via an explicit mapping entry; a planted
-      ambiguous fixture aborts (test).
+- [ ] van-mobi 2025-05 parses via `year_evidence` — a four-digit year is
+      its own date-order proof, no exception entry needed (the premise
+      correction above); the exception mechanism exists, ships empty, a
+      stale declaration is refused, and a planted genuinely ambiguous
+      fixture aborts (tests).
 - [ ] Per-file source record counts reconcile to `rows_landed` across the
       full archive; a planted mismatch fails `make check` (test); the
       quality report states the reconciliation result.

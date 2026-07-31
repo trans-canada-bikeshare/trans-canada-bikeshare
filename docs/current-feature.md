@@ -8,7 +8,7 @@ In Progress
 
 - [x] load — 2026-07-30
 - [x] start — 2026-07-30
-- [ ] test
+- [x] test — 2026-07-30
 - [ ] review
 
 ## Goals

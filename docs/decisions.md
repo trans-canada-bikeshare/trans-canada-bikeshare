@@ -429,7 +429,6 @@ review demonstrated live; months where most trips carry no label are withheld
 (Vancouver 2025-05 was measured on eleven days and nothing said so); and the
 quality report is order-deterministic.
 
-<<<<<<< HEAD
 ## 2026-07-30: A model is validated against days that happened, not against its own R²
 
 Spec 023's first ridership model was additive in month-of-year and calendar
@@ -478,7 +477,7 @@ Two smaller rules came out of the same work:
   the daily-low dial produced three "that is not a day" refusals and hid the
   one thing the control exists to show. The dials are now coupled. This is the
   2026-07-29 rule about rendering, extended: interaction is output too.
-=======
+
 ## 2026-07-30: A registry key is split by what each signal needs, not by its narrowest one
 
 `operational_signals` covered two things: signals any trip record supports, and
@@ -554,7 +553,6 @@ from a year the system only operated part of.** Montreal's 2014 opens in April
 because BIXI opens in April; its 2026 stops in June because the archive does.
 From inside the data those are identical, so the yearly chart draws only years
 covered 1 January to 31 December and the page names the five it dropped.
->>>>>>> worktree-agent-a7155e643693e23e4
 
 ## Next
 

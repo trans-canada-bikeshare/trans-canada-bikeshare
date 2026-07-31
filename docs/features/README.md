@@ -47,8 +47,8 @@ to a reader and to anyone who wants to pick the work up.
 | 020 | [Membership mix](020-membership-mix.md) | Complete — Toronto 2021-10..2023-12 withheld, source defect |
 | 021 | [Station maps](021-station-maps.md) | Complete |
 | 022 | [Station flows](022-station-flows.md) | Complete |
-| 023 | [Forecast](023-forecast.md) | **Not built** — next up; 013 now unblocks it |
-| 024 | [Operational signals](024-operational-signals.md) | **Not built** — reduced two-city scope agreed 2026-07-29 |
+| 023 | [Forecast](023-forecast.md) | Complete — coefficients published, not predictions; out-of-sample fit stated |
+| 024 | [Operational signals](024-operational-signals.md) | Complete — Montreal in the comparable core |
 | 025 | [Methodology and data quality](025-methodology-and-data-quality.md) | Complete |
 | 026 | [Accessibility and responsive](026-accessibility-and-responsive.md) | Complete |
 | 027 | [Deploy](027-deploy.md) | **Not built, deliberately** |

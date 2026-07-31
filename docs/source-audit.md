@@ -78,6 +78,14 @@ Two things the download surfaced that the carried map does not capture:
 
 1. **Vancouver timestamps here are minute precision** — `2025-02-01 0:00`, no
    seconds. Same floor as Toronto's pre-2025 files.
+
+   > **Corrected 2026-07-30, spec 024: this was wrong.** The sampled rows all
+   > read `0:00`, which is consistent with hour-only data and settled nothing.
+   > This same file has 62,518 rows and **24 distinct time-of-day strings** —
+   > Mobi publishes the hour and nothing finer, in every era but two files
+   > (`2019-04`, `2025-05`). A precision claim needs the distinct-value count,
+   > not a row that happens to look like the claim. `docs/decisions.md`,
+   > 2026-07-30.
 2. **The period label is not the content month.** The file published as
    `2025-01` contains rows dated `2025-02-01`. The Vancouver project handles
    this by deriving a canonical departure month at conform rather than trusting
@@ -342,8 +350,10 @@ headers is the only safe posture.
 
 **3. Timestamp precision is not uniform** — Toronto is minute-precision through
 2022, BIXI minute → second → millisecond → epoch ms, Vancouver five formats and
-minute precision in the file sampled. Any hour-of-day comparison must state the
-floor; only Toronto 2025 and BIXI 2020–2021 support sub-minute analysis at all.
+~~minute precision in the file sampled~~ **hour precision throughout**
+(corrected 2026-07-30 — see the annotation under the Vancouver section above).
+Any hour-of-day comparison must state the floor; only Toronto 2025 and BIXI
+2020–2021 support sub-minute analysis at all.
 
 **4. Three things need handling Vancouver never needed:** BIXI's per-era station
 key bridge, BIXI's unterminated trips, and Toronto's month-first dates.

@@ -2,32 +2,15 @@
 
 ## Status
 
-**Spec 023 — Forecast.** Built and tested; awaiting independent review.
+**No feature in flight.** Next up: spec 027 — deploy, pending the three owner
+decisions recorded in `docs/runbook.md`.
 
 ## Lifecycle
 
-- [x] load
-- [x] start
-- [x] test
+- [ ] load
+- [ ] start
+- [ ] test
 - [ ] review
-
-## Goals
-
-One weather-and-calendar ridership model per system, published as coefficients
-and fit statistics rather than predictions, with a refusal outside the training
-envelope and an interactive section that computes the prediction in the browser.
-
-## Notes
-
-- The specification changed mid-build after validating against actual days: the
-  additive month-of-year plus year model overstated a warm dry August 2025
-  weekday in Vancouver by 43%. A level per calendar month fixes it. Recorded in
-  `docs/decisions.md`.
-- `pipeline/mappings/metric_support.json` named the wrong ECCC stations for
-  `forecast` (Vancouver Harbour, downtown Montreal, Toronto City). Spec 013 uses
-  the airports. Corrected.
-- Fit is in-sample and labelled so. Toronto is the weakest of the three on the
-  trips scale and the section names it.
 
 ## Goals
 
@@ -71,14 +54,17 @@ envelope and an interactive section that computes the prediction in the browser.
 - 2026-07-28 `a343ccc`+`cb10b98` — specs 005-008: the warehouse. Era maps,
   staged extract → clean → conform → model, Kimball star schema over the full
   archive. `docs/features/005-008-warehouse.md`
-- 2026-07-28 `cb10b98` — specs 009-010: metric support registry and the
-  generated quality report. **009 shipped only half-built** — the registry
-  landed, its `make check-metrics` enforcement was a stub until 2026-07-29.
+- 2026-07-28 `cb10b98` — specs 009-010 and 014: metric support registry, the
+  generated quality report, and the publish step that writes the committed
+  aggregates. **009 shipped only half-built** — the registry landed, its
+  `make check-metrics` enforcement was a stub until 2026-07-29.
 - 2026-07-28 `b077d75` — spec 011: `make check-artifacts` byte-compares
   committed artifacts against a fresh publish run.
 - 2026-07-28 `0ddd43c` — specs 015-019: app shell, overview, trips,
   seasonality, active stations, e-bike share.
 - 2026-07-29 `3edb79a` — spec 026: chart legends carry values without hover.
+  Same commit and neighbours carried spec 025, the `#method` section deriving
+  its figures from `exclusions.json`.
 - 2026-07-29 `71b2d64` — spec 012: GBFS station geography, and the Montreal
   station bridge that reconciled three era key spaces into one identity.
 - 2026-07-29 `c6dd7db`, `cf7ec27`, `74371ec`, `13993fb` — the independent Fable
@@ -107,3 +93,26 @@ envelope and an interactive section that computes the prediction in the browser.
   case 021 needed. 12 tests, each planting a violation. 38 pytest. Same merge
   gave every spec number 001-027 a file and an index, for a repository about
   to be public. `docs/features/009b-metric-gate.md`
+- 2026-07-29 `66da202` — spec 022: station flows. Its review exposed that
+  `fact_trips` and `dim_station` resolved station ids differently since spec
+  012, inflating Vancouver's distinct-pair count 44% — fixed by materialising
+  `station_identity` and joining every consumer to it.
+  `docs/features/022-station-flows.md`
+- 2026-07-29 `a83eb87` — spec 013: ECCC daily weather, one airport station per
+  city, pinned per year. Review found the licence had been named from memory
+  and wrong (`d0a330c`); the owner decision to publish under the actual ECCC
+  terms is `51fcb40`. `docs/features/013-weather.md`
+- 2026-07-30 `fb91a78` — spec 020 + the adversarial audit: membership mix,
+  with Toronto's file-scoped label corruption withheld (2021-10..2023-12,
+  11,089,535 trips). The audit also found Toronto's 2016.xlsx Q4 day/month
+  transposition and added the containment and coercion-signature gates.
+  `docs/features/020-membership-mix.md`
+- 2026-07-30 `3c7be44` — spec 023: forecast. One weather-and-calendar model per
+  system, published as coefficients with an in-browser prediction and an
+  out-of-envelope refusal; the additive model was replaced after validation
+  against actual days (43% overstatement). Out-of-sample fit added in
+  `ce93a23`. `docs/features/023-forecast.md`
+- 2026-07-30 `69d230e` — spec 024: operational signals, Montreal in the
+  comparable core. Registry key split into `rebalancing_pressure` and
+  `bike_dwell`; found Mobi publishes hour-only timestamps and that archive-edge
+  days diluted per-day denominators. `docs/features/024-operational-signals.md`

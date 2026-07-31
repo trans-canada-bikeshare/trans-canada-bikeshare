@@ -1,71 +1,24 @@
-# Current Feature: 028 Trust release
+# Current Feature
 
 ## Status
 
-In Progress
+_No feature in progress._
 
 ## Lifecycle
 
-- [x] load — 2026-07-31
-- [x] start — 2026-07-31
-- [x] test — 2026-07-31
-- [x] review — 2026-07-31
+- [ ] load
+- [ ] start
+- [ ] test
+- [ ] review
 
 ## Goals
 
-- The committed quality report states the Montreal canonical share derived
-  from the corrected query (~88.9% against the current warehouse) and
-  contains no hardcoded row counts anywhere — every figure traces to a
-  query or a warehouse-recorded extraction metric.
-- The funnel's duplicate count is computed independently; a planted
-  double-counted reason makes the residual nonzero and fails both the
-  report generation and a test.
-- Zero kept rows have a null departure station id; the five 2016 rows are
-  accounted for under a named reason; the report explains the
-  literal-'NULL' raw labels and no rendered surface displays 'NULL' as a
-  station name.
-- The per-system table shows no first/last date sourced from an
-  `implausible_date` row.
-- `make check` fails when the committed quality report differs from a
-  fresh generation (timestamp excluded); this is demonstrated by a planted
-  stale report in a test.
-- `forecast.json`'s `fit_basis` describes both the in-sample statistics
-  and the day-holdout validation accurately; the site's forecast section
-  renders consistently with it.
-- `rebalancing.json`'s caveat (registry-sourced) states Vancouver's source
-  removes operations trips; the operations page renders it.
-- README no longer claims every metric works for all three systems.
-- decisions.md carries the Mobi rounding/ops-removal correction with the
-  fetch date; source-audit.md is annotated to match.
-- `LICENSE` is pure MIT and GitHub's API reports the licence as MIT;
-  `DATA-LICENSES.md` carries every data term verbatim (BIXI unknown,
-  Toronto OGL string, ECCC restrictions, Mobi agreement pointer); README,
-  manifests, and the site methodology link to it; the footer disclaimer
-  names Mobi by Rogers, BIXI Montréal, and Bike Share Toronto as
-  unaffiliated operators.
-- `pipeline/README.md` and the runbook describe the metric gate as it
-  exists; roadmap's encoding-gap entry reflects the repair.
-- All artifacts byte-match the previous publish except: `forecast.json`
-  (fit_basis only), any artifact carrying the `rebalancing_pressure` caveat
-  or the van-mobi hour-rounding note (those fields only), and any artifact
-  whose Toronto 2016 figures move by exactly the five re-accounted rows —
-  each diff enumerated at review with before/after values.
+<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
 
 ## Notes
 
-- **Depends on:** none — first hardening release, blocks 029-032.
-- **Sources / cities:** no new sources; all three cities' report figures
-  affected, Montreal's most.
-- **Published artifacts change: YES** — `forecast.json` (fit_basis),
-  `rebalancing.json` (caveat + van-mobi note), and the five-row Toronto
-  2016 knock-ons enumerated in the Goals. Quality report regenerates under
-  a new gate. Everything else must byte-match.
-- **Licence constraints:** LICENSE→MIT + DATA-LICENSES.md restructure must
-  not lose any obligation text (BIXI unknown-terms, Toronto OGL string,
-  ECCC restrictions, Mobi agreement). Verbatim carry-over is a review item.
-- **Implementation model:** Opus subagents implement the well-specified
-  chunks; Fable reviews (author/reviewer on different models). Main
-  context verifies severity-1 findings and every warehouse-derived figure.
+<!-- Dependencies, sources and cities touched, licence constraints, and
+     whether this feature changes any published artifact. -->
 
 ## History
 
@@ -165,3 +118,9 @@ In Progress
 - 2026-07-30 `7d7607a` — spec 027: deployed to Cloudflare Pages at
   bikeshare.adnanreza.com; artifacts unchanged, verified byte-identical
   local-to-served and headed in production. `docs/features/027-deploy.md`
+- 2026-07-31 `bbf65e3` — spec 028: the trust release. Quality report's false
+  0.0% Montreal figure corrected to a derived 88.9%; funnel made independent
+  with a refusal; report under make check; five null-station rows
+  re-accounted; fit_basis truthful; LICENSE pure MIT with DATA-LICENSES.md
+  carrying every obligation; Mobi's stated hour-rounding recorded.
+  `docs/features/028-trust-release.md`

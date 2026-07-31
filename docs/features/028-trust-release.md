@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready. Written 2026-07-31 from findings verified against the warehouse and
+Complete. Merged 2026-07-31 (`bbf65e3`). Written the same day from findings verified against the warehouse and
 the live source pages the same day (external review, claim-by-claim
 verification recorded in the decisions log when this spec completes).
 

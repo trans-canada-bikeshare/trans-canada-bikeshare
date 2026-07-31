@@ -13,7 +13,10 @@ obligation here is also recorded in the manifest entry for the files it covers
 ## Vancouver — Mobi by Rogers
 
 - Mobi by Rogers trip data: Mobi Data License Agreement, non-commercial
-  analysis use (https://www.mobibikes.ca/en/system-data).
+  analysis use (https://www.mobibikes.ca/en/system-data). Attribution, as
+  carried in the manifest:
+
+      Contains information from Mobi by Rogers.
 
 ### What the source states about the data itself
 

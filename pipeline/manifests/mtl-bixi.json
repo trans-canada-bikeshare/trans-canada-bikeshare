@@ -1,7 +1,7 @@
 {
   "system_id": "mtl-bixi",
   "source_page": "https://bixi.com/en/open-data/",
-  "data_terms": "All data-source terms are collected in DATA-LICENSES.md at the repository root; the licence objects in this manifest are carried there verbatim and neither supersedes the other.",
+  "data_terms": "All data-source terms are collected in DATA-LICENSES.md at the repository root; the obligations in this manifest's licence entries are recorded there, and neither file supersedes the other.",
   "licence": {
     "name": null,
     "url": "https://bixi.com/en/open-data/",

@@ -153,8 +153,9 @@ def load_manifest(system_id: str) -> dict:
         "source_page": SYSTEMS[system_id]["source_page"],
         "data_terms": (
             "All data-source terms are collected in DATA-LICENSES.md at the "
-            "repository root; the licence objects in this manifest are "
-            "carried there verbatim and neither supersedes the other."
+            "repository root; the obligations in this manifest's licence "
+            "entries are recorded there, and neither file supersedes the "
+            "other."
         ),
         "licence": None,
         "sources": {},

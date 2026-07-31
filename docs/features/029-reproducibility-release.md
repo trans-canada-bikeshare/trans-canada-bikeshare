@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready. Written 2026-07-31 from externally-reviewed, author-verified findings.
+Complete. Merged 2026-07-31. Written the same day from externally-reviewed, author-verified findings; premise and scope corrections recorded below at build.
 
 ## Context
 

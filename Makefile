@@ -49,6 +49,29 @@ check-metrics:
 check-report:
 	$(PYTHON) pipeline/check_report.py
 
-check: check-manifest check-metrics check-artifacts check-report
+# Spec 029. The standing half of spec 028's per-file reconciliation. Extraction
+# proves source records == rows landed once, against the bytes on disk that
+# morning; this proves the audit is still true of the archive the manifests
+# pin now, and recounts any period whose checksum has moved. Cheap by design —
+# it reads files only where a pin changed, which is normally nowhere.
+check-reconciliation:
+	$(PYTHON) pipeline/check_reconciliation.py
 
-.PHONY: check check-artifacts check-manifest check-metrics check-report
+check: check-manifest check-metrics check-artifacts check-report check-reconciliation
+
+# Spec 029. The whole pipeline end to end over a synthetic fixture archive:
+# extract -> reference -> clean -> conform -> model -> publish -> quality
+# report, then every gate above that a fixture tree can be asked meaningfully,
+# then assertions about what came out. Two seconds, no network, and it cannot
+# touch data-raw/, data-warehouse/ or src/data/generated/ — which it verifies
+# rather than assumes.
+#
+# This is the ONLY gate here a clean clone can run: every other one needs the
+# ~20 GB archive. It is therefore what CI runs, and it is the reason the
+# reproducibility claim is testable by someone who has never downloaded a byte.
+# See pipeline/tests/fixtures/README.md for what the fixtures cover.
+check-fixture:
+	$(PYTHON) pipeline/fixture_run.py
+
+.PHONY: check check-artifacts check-fixture check-manifest check-metrics \
+        check-report check-reconciliation

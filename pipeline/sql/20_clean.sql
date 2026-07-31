@@ -108,7 +108,12 @@ CREATE OR REPLACE MACRO fix_short_year(ts) AS
        THEN ts + INTERVAL 2000 YEAR ELSE ts END;
 
 -- Context-aware: Excel serial, then the file's proven date order, then the
--- general list. `ord` comes from file_date_order (stage 15).
+-- general list. `ord` is file_date_order.resolved_order — the order the values
+-- PROVED, or, where they could not, the one declared in
+-- pipeline/mappings/date_order.json. The derived value stays in `date_order`
+-- beside it, so what the data said and what a person decided never collapse
+-- into one column that cannot tell them apart. Nothing is defaulted: a file
+-- with neither aborts the stage (etl.AmbiguousDateOrder).
 CREATE OR REPLACE MACRO parse_ts_ord(s, ord) AS fix_short_year(coalesce(
   excel_ts(s),
   CASE WHEN ord = 'day' THEN parse_day_first(s) END,
@@ -180,9 +185,9 @@ typed AS (
     -- out to be UTC are corrected in 25_localise.sql. Applying the conversion
     -- inline evaluated ICU across all 135M rows and segfaulted DuckDB, for the
     -- benefit of the ~1.3M that need it.
-    coalesce(parse_ts_ord(r.departure_raw, o.date_order),
+    coalesce(parse_ts_ord(r.departure_raw, o.resolved_order),
              to_local(r.system_id, r.departure_ms))               AS departure_ts,
-    coalesce(parse_ts_ord(r.return_raw, o.date_order),
+    coalesce(parse_ts_ord(r.return_raw, o.resolved_order),
              to_local(r.system_id, r.return_ms))                  AS return_ts,
 
     nullif(trim(r.departure_station_key), '')                     AS departure_station_key,

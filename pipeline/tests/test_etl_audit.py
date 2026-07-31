@@ -38,15 +38,16 @@ def archive(tmp_path, monkeypatch):
 
 def audit_one(con, system="van-mobi", period="2023-06", name="2023-06.csv"):
     etl.ensure_audit_table(con)
-    con.execute("INSERT INTO raw_file_audit VALUES (?, ?, ?, 1, 1, 0, 'trips')",
-                [system, period, name])
+    con.execute("INSERT INTO raw_file_audit VALUES (?, ?, ?, 1, 1, 0, 'trips', ?)",
+                [system, period, name, "0" * 64])
 
 
-def test_the_audit_table_gains_kind_without_a_reload(con):
-    """An existing warehouse must be able to grow the column, not be rebuilt.
+def test_the_audit_table_gains_its_columns_without_a_reload(con):
+    """An existing warehouse must be able to grow the columns, not be rebuilt.
 
     A 13 GB reload to add one nullable column is a cost nobody pays, which
-    means the column never arrives and the report keeps guessing.
+    means the column never arrives and the report keeps guessing. `kind` came
+    this way in spec 028 and `source_sha256` in 029.
     """
     con.execute("""CREATE TABLE raw_file_audit (
         system_id VARCHAR, source_period VARCHAR, source_file VARCHAR,
@@ -54,12 +55,16 @@ def test_the_audit_table_gains_kind_without_a_reload(con):
     con.execute("INSERT INTO raw_file_audit VALUES ('van-mobi', '2023-06', 'x.csv', 1, 1, 0)")
     etl.ensure_audit_table(con)
     cols = [r[0] for r in con.execute("DESCRIBE raw_file_audit").fetchall()]
-    assert cols[-1] == "kind"
+    assert cols[-2:] == ["kind", "source_sha256"]
     # The extract path inserts positionally; the widened table must accept it.
-    con.execute("INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?, ?)",
-                ["van-mobi", "2023-07", "y.csv", 2, 2, 9, "trips"])
+    con.execute("INSERT INTO raw_file_audit VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                ["van-mobi", "2023-07", "y.csv", 2, 2, 9, "trips", "a" * 64])
     assert con.execute("SELECT lines_repaired FROM raw_file_audit "
                        "WHERE source_file = 'y.csv'").fetchone()[0] == 9
+    # And the pre-existing row keeps NULL rather than a fabricated checksum:
+    # `check_reconciliation --recount` is what resolves it, by reading the file.
+    assert con.execute("SELECT source_sha256 FROM raw_file_audit "
+                       "WHERE source_file = 'x.csv'").fetchone()[0] is None
 
 
 def test_a_marker_is_read_into_the_audit(con, archive):

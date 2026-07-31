@@ -594,6 +594,33 @@ The BIXI position (publish, terms stated unknown, 2026-07-28) and the marks
 advice) were accepted as-is for deploy. Deploying made both public, which is
 what those entries always said would happen.
 
+## 2026-07-31: An ambiguity the pipeline reported for months did not exist
+
+Spec 029 set out to make van-mobi `2025-05`'s "ambiguous" date order an
+explicit declared exception. The declaration could not be written: the new
+stale-declaration check refused it, because the file is not ambiguous — it
+is `YYYY/MM/DD` (133,643 slashed rows, every first field `2025`, every
+second field `05`, day fields spanning the month). Both evidence regexes
+captured only one or two digits before a slash, so a four-digit year
+matched neither rule, both evidence counts read zero, and the file fell to
+the month-first fallback — parsing correctly, for the wrong reason, while
+the runbook and every clean run reported an ambiguity that was never there.
+
+Two rules out of this. **An "unknown" verdict must be distinguishable from
+"my rules cannot see the answer"** — the evidence rules now include
+`year_evidence`, and a file with no evidence still aborts rather than
+defaulting. And **a declared exception needs a check that refuses it when
+it stops being true**, which is the only reason this was found: the
+mechanism built to hold the exception rejected it as unfounded. The
+mechanism ships with zero entries, which is the correct number.
+
+Same spec, same class: `stations.json` was ordered by a sort with ties (13
+groups, 26 stations), so two rebuilds of the same warehouse produced
+element-swapped artifacts and `make check-artifacts` would have failed for
+exactly the person reproducing the project. **Any ORDER BY that feeds a
+committed artifact must be a total order.** Both instances are fixed and
+the tie-break is part of the definition now.
+
 ## 2026-07-31: The trust instruments were the thing that was false, and the source page was never re-read
 
 Two findings, from two directions, on the same day. Spec 028 implements the

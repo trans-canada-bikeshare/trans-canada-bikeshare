@@ -21,13 +21,13 @@ WITH hourly AS (
   SELECT
     r.system_id,
     r.source_file,
-    hour(parse_ts_ord(r.departure_raw, o.date_order)) AS h,
+    hour(parse_ts_ord(r.departure_raw, o.resolved_order)) AS h,
     count(*) AS n
   FROM raw_trips r
   LEFT JOIN file_date_order o
     ON o.system_id = r.system_id AND o.source_file = r.source_file
   WHERE r.departure_raw IS NOT NULL
-    AND parse_ts_ord(r.departure_raw, o.date_order) IS NOT NULL
+    AND parse_ts_ord(r.departure_raw, o.resolved_order) IS NOT NULL
   GROUP BY 1, 2, 3
 ),
 totals AS (

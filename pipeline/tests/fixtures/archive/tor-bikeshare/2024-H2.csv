@@ -1,0 +1,411 @@
+Trip Id,Trip  Duration,Start Station Id,Start Time,Start Station Name,End Station Id,End Time,End Station Name,Bike Id,User Type
+900368,1620,9302,07/01/2024 09:22,FIXTURE Union Fixture Station,9304,07/01/2024 09:49,FIXTURE College St / Fixture Rd,F008,Annual Member
+900369,780,9306,07/01/2024 14:44,FIXTURE Danforth / Fixture Ave,9301,07/01/2024 14:57,FIXTURE Queen St W / Fixture Ave,F009,Annual Member
+900370,1140,9301,07/01/2024 16:07,FIXTURE Queen St W / Fixture Ave,9304,07/01/2024 16:26,FIXTURE College St / Fixture Rd,F010,Annual Member
+900371,900,9306,07/02/2024 08:04,FIXTURE Danforth / Fixture Ave,9303,07/02/2024 08:19,FIXTURE Bloor St W / Fixture St,F011,Annual Member
+900372,1140,9306,07/02/2024 13:27,FIXTURE Danforth / Fixture Ave,9303,07/02/2024 13:46,FIXTURE Bloor St W / Fixture St,F012,Annual Member
+900373,2580,9306,07/02/2024 17:43,FIXTURE Danforth / Fixture Ave,9305,07/02/2024 18:26,FIXTURE Harbourfront Fixture Quay,F001,Annual Member
+900374,3060,9301,07/03/2024 06:06,FIXTURE Queen St W / Fixture Ave,9301,07/03/2024 06:57,FIXTURE Queen St W / Fixture Ave,F002,Casual Member
+900375,1860,9303,07/03/2024 07:35,FIXTURE Bloor St W / Fixture St,9305,07/03/2024 08:06,FIXTURE Harbourfront Fixture Quay,F003,Annual Member
+900376,900,9303,07/03/2024 08:55,FIXTURE Bloor St W / Fixture St,9302,07/03/2024 09:10,FIXTURE Union Fixture Station,F004,Annual Member
+900377,420,9304,07/04/2024 13:16,FIXTURE College St / Fixture Rd,9305,07/04/2024 13:23,FIXTURE Harbourfront Fixture Quay,F005,Annual Member
+900378,1380,9302,07/04/2024 18:57,FIXTURE Union Fixture Station,9303,07/04/2024 19:20,FIXTURE Bloor St W / Fixture St,F006,Casual Member
+900379,1620,9302,07/04/2024 20:08,FIXTURE Union Fixture Station,9303,07/04/2024 20:35,FIXTURE Bloor St W / Fixture St,F007,Annual Member
+900380,3060,9304,07/05/2024 12:23,FIXTURE College St / Fixture Rd,9303,07/05/2024 13:14,FIXTURE Bloor St W / Fixture St,F008,Annual Member
+900381,540,9301,07/05/2024 20:37,FIXTURE Queen St W / Fixture Ave,9305,07/05/2024 20:46,FIXTURE Harbourfront Fixture Quay,F009,Annual Member
+900382,1380,9304,07/06/2024 07:44,FIXTURE College St / Fixture Rd,9301,07/06/2024 08:07,FIXTURE Queen St W / Fixture Ave,F010,Casual Member
+900383,780,9303,07/06/2024 15:16,FIXTURE Bloor St W / Fixture St,9301,07/06/2024 15:29,FIXTURE Queen St W / Fixture Ave,F011,Annual Member
+900384,660,9303,07/06/2024 17:50,FIXTURE Bloor St W / Fixture St,9303,07/06/2024 18:01,FIXTURE Bloor St W / Fixture St,F012,Casual Member
+900385,420,9305,07/06/2024 18:15,FIXTURE Harbourfront Fixture Quay,9303,07/06/2024 18:22,FIXTURE Bloor St W / Fixture St,F001,Casual Member
+900386,420,9301,07/07/2024 07:51,FIXTURE Queen St W / Fixture Ave,9301,07/07/2024 07:58,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900387,780,9305,07/07/2024 09:08,FIXTURE Harbourfront Fixture Quay,9305,07/07/2024 09:21,FIXTURE Harbourfront Fixture Quay,F003,Casual Member
+900388,1380,9302,07/07/2024 20:58,FIXTURE Union Fixture Station,9302,07/07/2024 21:21,FIXTURE Union Fixture Station,F004,Annual Member
+900389,660,9305,07/08/2024 19:44,FIXTURE Harbourfront Fixture Quay,9306,07/08/2024 19:55,FIXTURE Danforth / Fixture Ave,F005,Annual Member
+900390,1380,9303,07/08/2024 20:33,FIXTURE Bloor St W / Fixture St,9306,07/08/2024 20:56,FIXTURE Danforth / Fixture Ave,F006,Annual Member
+900391,1380,9303,07/09/2024 11:39,FIXTURE Bloor St W / Fixture St,9306,07/09/2024 12:02,FIXTURE Danforth / Fixture Ave,F007,Annual Member
+900392,1860,9303,07/09/2024 12:49,FIXTURE Bloor St W / Fixture St,9303,07/09/2024 13:20,FIXTURE Bloor St W / Fixture St,F008,Annual Member
+900393,1620,9305,07/09/2024 14:09,FIXTURE Harbourfront Fixture Quay,9303,07/09/2024 14:36,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900394,900,9301,07/09/2024 18:46,FIXTURE Queen St W / Fixture Ave,9302,07/09/2024 19:01,FIXTURE Union Fixture Station,F010,Annual Member
+900395,540,9301,07/10/2024 07:51,FIXTURE Queen St W / Fixture Ave,9303,07/10/2024 08:00,FIXTURE Bloor St W / Fixture St,F011,Annual Member
+900396,420,9303,07/10/2024 11:08,FIXTURE Bloor St W / Fixture St,9302,07/10/2024 11:15,FIXTURE Union Fixture Station,F012,Annual Member
+900397,660,9303,07/10/2024 20:35,FIXTURE Bloor St W / Fixture St,9304,07/10/2024 20:46,FIXTURE College St / Fixture Rd,F001,Annual Member
+900398,780,9301,07/11/2024 18:29,FIXTURE Queen St W / Fixture Ave,9304,07/11/2024 18:42,FIXTURE College St / Fixture Rd,F002,Casual Member
+900399,3060,9305,07/11/2024 20:30,FIXTURE Harbourfront Fixture Quay,9304,07/11/2024 21:21,FIXTURE College St / Fixture Rd,F003,Annual Member
+900400,780,9302,07/12/2024 14:20,FIXTURE Union Fixture Station,9301,07/12/2024 14:33,FIXTURE Queen St W / Fixture Ave,F004,Annual Member
+900401,780,9306,07/12/2024 16:23,FIXTURE Danforth / Fixture Ave,9304,07/12/2024 16:36,FIXTURE College St / Fixture Rd,F005,Annual Member
+900402,2220,9306,07/12/2024 17:03,FIXTURE Danforth / Fixture Ave,9302,07/12/2024 17:40,FIXTURE Union Fixture Station,F006,Annual Member
+900403,900,9306,07/13/2024 13:38,FIXTURE Danforth / Fixture Ave,9304,07/13/2024 13:53,FIXTURE College St / Fixture Rd,F007,Annual Member
+900404,660,9303,07/13/2024 15:11,FIXTURE Bloor St W / Fixture St,9302,07/13/2024 15:22,FIXTURE Union Fixture Station,F008,Annual Member
+900405,540,9303,07/13/2024 17:09,FIXTURE Bloor St W / Fixture St,9305,07/13/2024 17:18,FIXTURE Harbourfront Fixture Quay,F009,Annual Member
+900406,900,9302,07/14/2024 14:48,FIXTURE Union Fixture Station,9303,07/14/2024 15:03,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900407,1860,9303,07/14/2024 16:04,FIXTURE Bloor St W / Fixture St,9305,07/14/2024 16:35,FIXTURE Harbourfront Fixture Quay,F011,Annual Member
+900408,2580,9302,07/14/2024 18:36,FIXTURE Union Fixture Station,9306,07/14/2024 19:19,FIXTURE Danforth / Fixture Ave,F012,Casual Member
+900409,540,9304,07/14/2024 19:13,FIXTURE College St / Fixture Rd,9301,07/14/2024 19:22,FIXTURE Queen St W / Fixture Ave,F001,Annual Member
+900410,1380,9304,07/15/2024 08:56,FIXTURE College St / Fixture Rd,9301,07/15/2024 09:19,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900411,2580,9304,07/15/2024 18:40,FIXTURE College St / Fixture Rd,9302,07/15/2024 19:23,FIXTURE Union Fixture Station,F003,Annual Member
+900412,900,9301,07/15/2024 20:05,FIXTURE Queen St W / Fixture Ave,9306,07/15/2024 20:20,FIXTURE Danforth / Fixture Ave,F004,Annual Member
+900413,2580,9304,07/16/2024 06:07,FIXTURE College St / Fixture Rd,9301,07/16/2024 06:50,FIXTURE Queen St W / Fixture Ave,F005,Annual Member
+900414,2580,9302,07/16/2024 15:22,FIXTURE Union Fixture Station,9301,07/16/2024 16:05,FIXTURE Queen St W / Fixture Ave,F006,Annual Member
+900415,2580,9304,07/17/2024 09:36,FIXTURE College St / Fixture Rd,9306,07/17/2024 10:19,FIXTURE Danforth / Fixture Ave,F007,Annual Member
+900416,540,9302,07/17/2024 11:55,FIXTURE Union Fixture Station,9301,07/17/2024 12:04,FIXTURE Queen St W / Fixture Ave,F008,Casual Member
+900417,900,9305,07/17/2024 13:32,FIXTURE Harbourfront Fixture Quay,9304,07/17/2024 13:47,FIXTURE College St / Fixture Rd,F009,Annual Member
+900418,3060,9303,07/17/2024 18:17,FIXTURE Bloor St W / Fixture St,9305,07/17/2024 19:08,FIXTURE Harbourfront Fixture Quay,F010,Annual Member
+900419,1140,9305,07/18/2024 07:17,FIXTURE Harbourfront Fixture Quay,9301,07/18/2024 07:36,FIXTURE Queen St W / Fixture Ave,F011,Annual Member
+900420,780,9306,07/18/2024 15:44,FIXTURE Danforth / Fixture Ave,9305,07/18/2024 15:57,FIXTURE Harbourfront Fixture Quay,F012,Annual Member
+900421,540,9301,07/18/2024 17:11,FIXTURE Queen St W / Fixture Ave,9306,07/18/2024 17:20,FIXTURE Danforth / Fixture Ave,F001,Annual Member
+900422,1860,9301,07/19/2024 09:10,FIXTURE Queen St W / Fixture Ave,9306,07/19/2024 09:41,FIXTURE Danforth / Fixture Ave,F002,Annual Member
+900423,540,9302,07/19/2024 12:16,FIXTURE Union Fixture Station,9301,07/19/2024 12:25,FIXTURE Queen St W / Fixture Ave,F003,Annual Member
+900424,2220,9306,07/19/2024 16:26,FIXTURE Danforth / Fixture Ave,9304,07/19/2024 17:03,FIXTURE College St / Fixture Rd,F004,Annual Member
+900425,1620,9301,07/20/2024 09:57,FIXTURE Queen St W / Fixture Ave,9304,07/20/2024 10:24,FIXTURE College St / Fixture Rd,F005,Annual Member
+900426,1620,9301,07/20/2024 16:36,FIXTURE Queen St W / Fixture Ave,9303,07/20/2024 17:03,FIXTURE Bloor St W / Fixture St,F006,Casual Member
+900427,420,9306,07/20/2024 20:11,FIXTURE Danforth / Fixture Ave,9304,07/20/2024 20:18,FIXTURE College St / Fixture Rd,F007,Annual Member
+900428,1620,9301,07/21/2024 09:28,FIXTURE Queen St W / Fixture Ave,9303,07/21/2024 09:55,FIXTURE Bloor St W / Fixture St,F008,Annual Member
+900429,780,9304,07/21/2024 10:57,FIXTURE College St / Fixture Rd,9303,07/21/2024 11:10,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900430,1620,9305,07/22/2024 13:03,FIXTURE Harbourfront Fixture Quay,9306,07/22/2024 13:30,FIXTURE Danforth / Fixture Ave,F010,Annual Member
+900431,780,9301,07/22/2024 15:56,FIXTURE Queen St W / Fixture Ave,9302,07/22/2024 16:09,FIXTURE Union Fixture Station,F011,Annual Member
+900432,900,9305,07/22/2024 19:29,FIXTURE Harbourfront Fixture Quay,9301,07/22/2024 19:44,FIXTURE Queen St W / Fixture Ave,F012,Casual Member
+900433,1380,9306,07/23/2024 14:24,FIXTURE Danforth / Fixture Ave,9305,07/23/2024 14:47,FIXTURE Harbourfront Fixture Quay,F001,Annual Member
+900434,780,9306,07/23/2024 20:06,FIXTURE Danforth / Fixture Ave,9303,07/23/2024 20:19,FIXTURE Bloor St W / Fixture St,F002,Annual Member
+900435,900,9301,07/24/2024 13:08,FIXTURE Queen St W / Fixture Ave,9305,07/24/2024 13:23,FIXTURE Harbourfront Fixture Quay,F003,Casual Member
+900436,2580,9304,07/24/2024 14:26,FIXTURE College St / Fixture Rd,9304,07/24/2024 15:09,FIXTURE College St / Fixture Rd,F004,Annual Member
+900437,540,9304,07/24/2024 15:28,FIXTURE College St / Fixture Rd,9305,07/24/2024 15:37,FIXTURE Harbourfront Fixture Quay,F005,Casual Member
+900438,420,9303,07/24/2024 18:04,FIXTURE Bloor St W / Fixture St,9305,07/24/2024 18:11,FIXTURE Harbourfront Fixture Quay,F006,Annual Member
+900439,3060,9304,07/25/2024 08:16,FIXTURE College St / Fixture Rd,9301,07/25/2024 09:07,FIXTURE Queen St W / Fixture Ave,F007,Casual Member
+900440,1380,9303,07/25/2024 10:55,FIXTURE Bloor St W / Fixture St,9304,07/25/2024 11:18,FIXTURE College St / Fixture Rd,F008,Annual Member
+900441,1380,9303,07/25/2024 16:31,FIXTURE Bloor St W / Fixture St,9301,07/25/2024 16:54,FIXTURE Queen St W / Fixture Ave,F009,Annual Member
+900442,660,9306,07/26/2024 06:25,FIXTURE Danforth / Fixture Ave,9303,07/26/2024 06:36,FIXTURE Bloor St W / Fixture St,F010,Casual Member
+900443,660,9302,07/26/2024 07:42,FIXTURE Union Fixture Station,9303,07/26/2024 07:53,FIXTURE Bloor St W / Fixture St,F011,Annual Member
+900444,1860,9301,07/26/2024 17:48,FIXTURE Queen St W / Fixture Ave,9304,07/26/2024 18:19,FIXTURE College St / Fixture Rd,F012,Annual Member
+900445,2220,9305,07/27/2024 13:49,FIXTURE Harbourfront Fixture Quay,9303,07/27/2024 14:26,FIXTURE Bloor St W / Fixture St,F001,Annual Member
+900446,1860,9303,07/27/2024 16:51,FIXTURE Bloor St W / Fixture St,9304,07/27/2024 17:22,FIXTURE College St / Fixture Rd,F002,Annual Member
+900447,540,9305,07/27/2024 17:35,FIXTURE Harbourfront Fixture Quay,9301,07/27/2024 17:44,FIXTURE Queen St W / Fixture Ave,F003,Annual Member
+900448,660,9304,07/28/2024 06:55,FIXTURE College St / Fixture Rd,9305,07/28/2024 07:06,FIXTURE Harbourfront Fixture Quay,F004,Annual Member
+900449,2580,9305,07/28/2024 09:39,FIXTURE Harbourfront Fixture Quay,9303,07/28/2024 10:22,FIXTURE Bloor St W / Fixture St,F005,Annual Member
+900450,2580,9305,07/28/2024 16:19,FIXTURE Harbourfront Fixture Quay,9301,07/28/2024 17:02,FIXTURE Queen St W / Fixture Ave,F006,Annual Member
+900451,1860,9301,07/29/2024 15:59,FIXTURE Queen St W / Fixture Ave,9303,07/29/2024 16:30,FIXTURE Bloor St W / Fixture St,F007,Annual Member
+900452,1140,9304,07/29/2024 16:23,FIXTURE College St / Fixture Rd,9302,07/29/2024 16:42,FIXTURE Union Fixture Station,F008,Annual Member
+900453,1620,9301,07/29/2024 20:40,FIXTURE Queen St W / Fixture Ave,9306,07/29/2024 21:07,FIXTURE Danforth / Fixture Ave,F009,Annual Member
+900454,420,9303,07/30/2024 09:20,FIXTURE Bloor St W / Fixture St,9302,07/30/2024 09:27,FIXTURE Union Fixture Station,F010,Annual Member
+900455,1140,9303,07/30/2024 14:21,FIXTURE Bloor St W / Fixture St,9302,07/30/2024 14:40,FIXTURE Union Fixture Station,F011,Casual Member
+900456,1620,9304,07/31/2024 10:19,FIXTURE College St / Fixture Rd,9302,07/31/2024 10:46,FIXTURE Union Fixture Station,F012,Annual Member
+900457,420,9303,07/31/2024 15:36,FIXTURE Bloor St W / Fixture St,9304,07/31/2024 15:43,FIXTURE College St / Fixture Rd,F001,Annual Member
+900458,780,9304,07/31/2024 19:55,FIXTURE College St / Fixture Rd,9305,07/31/2024 20:08,FIXTURE Harbourfront Fixture Quay,F002,Annual Member
+900459,1620,9301,08/01/2024 12:14,FIXTURE Queen St W / Fixture Ave,9304,08/01/2024 12:41,FIXTURE College St / Fixture Rd,F003,Annual Member
+900460,660,9305,08/01/2024 14:13,FIXTURE Harbourfront Fixture Quay,9303,08/01/2024 14:24,FIXTURE Bloor St W / Fixture St,F004,Casual Member
+900461,2580,9303,08/01/2024 19:05,FIXTURE Bloor St W / Fixture St,9303,08/01/2024 19:48,FIXTURE Bloor St W / Fixture St,F005,Annual Member
+900462,420,9301,08/02/2024 15:07,FIXTURE Queen St W / Fixture Ave,9302,08/02/2024 15:14,FIXTURE Union Fixture Station,F006,Annual Member
+900463,540,9303,08/02/2024 17:16,FIXTURE Bloor St W / Fixture St,9302,08/02/2024 17:25,FIXTURE Union Fixture Station,F007,Annual Member
+900464,420,9302,08/03/2024 08:18,FIXTURE Union Fixture Station,9306,08/03/2024 08:25,FIXTURE Danforth / Fixture Ave,F008,Annual Member
+900465,1860,9306,08/03/2024 09:55,FIXTURE Danforth / Fixture Ave,9302,08/03/2024 10:26,FIXTURE Union Fixture Station,F009,Annual Member
+900466,1620,9302,08/03/2024 20:15,FIXTURE Union Fixture Station,9305,08/03/2024 20:42,FIXTURE Harbourfront Fixture Quay,F010,Casual Member
+900467,2220,9302,08/04/2024 10:01,FIXTURE Union Fixture Station,9306,08/04/2024 10:38,FIXTURE Danforth / Fixture Ave,F011,Annual Member
+900468,660,9302,08/04/2024 12:22,FIXTURE Union Fixture Station,9306,08/04/2024 12:33,FIXTURE Danforth / Fixture Ave,F012,Annual Member
+900469,780,9304,08/04/2024 13:01,FIXTURE College St / Fixture Rd,9302,08/04/2024 13:14,FIXTURE Union Fixture Station,F001,Annual Member
+900470,540,9305,08/04/2024 15:10,FIXTURE Harbourfront Fixture Quay,9303,08/04/2024 15:19,FIXTURE Bloor St W / Fixture St,F002,Annual Member
+900471,1860,9304,08/05/2024 12:36,FIXTURE College St / Fixture Rd,9301,08/05/2024 13:07,FIXTURE Queen St W / Fixture Ave,F003,Annual Member
+900472,540,9303,08/05/2024 13:27,FIXTURE Bloor St W / Fixture St,9302,08/05/2024 13:36,FIXTURE Union Fixture Station,F004,Annual Member
+900473,3060,9303,08/05/2024 17:48,FIXTURE Bloor St W / Fixture St,9306,08/05/2024 18:39,FIXTURE Danforth / Fixture Ave,F005,Casual Member
+900474,1380,9302,08/06/2024 07:11,FIXTURE Union Fixture Station,9306,08/06/2024 07:34,FIXTURE Danforth / Fixture Ave,F006,Casual Member
+900475,2580,9302,08/06/2024 08:22,FIXTURE Union Fixture Station,9305,08/06/2024 09:05,FIXTURE Harbourfront Fixture Quay,F007,Casual Member
+900476,1620,9306,08/07/2024 14:37,FIXTURE Danforth / Fixture Ave,9304,08/07/2024 15:04,FIXTURE College St / Fixture Rd,F008,Casual Member
+900477,900,9302,08/07/2024 20:34,FIXTURE Union Fixture Station,9305,08/07/2024 20:49,FIXTURE Harbourfront Fixture Quay,F009,Annual Member
+900478,420,9305,08/08/2024 11:12,FIXTURE Harbourfront Fixture Quay,9304,08/08/2024 11:19,FIXTURE College St / Fixture Rd,F010,Annual Member
+900479,2580,9306,08/08/2024 18:46,FIXTURE Danforth / Fixture Ave,9304,08/08/2024 19:29,FIXTURE College St / Fixture Rd,F011,Casual Member
+900480,540,9306,08/08/2024 20:00,FIXTURE Danforth / Fixture Ave,9304,08/08/2024 20:09,FIXTURE College St / Fixture Rd,F012,Annual Member
+900481,1140,9302,08/09/2024 11:08,FIXTURE Union Fixture Station,9304,08/09/2024 11:27,FIXTURE College St / Fixture Rd,F001,Annual Member
+900482,540,9303,08/09/2024 12:02,FIXTURE Bloor St W / Fixture St,9306,08/09/2024 12:11,FIXTURE Danforth / Fixture Ave,F002,Annual Member
+900483,1140,9301,08/09/2024 13:11,FIXTURE Queen St W / Fixture Ave,9305,08/09/2024 13:30,FIXTURE Harbourfront Fixture Quay,F003,Annual Member
+900484,540,9302,08/10/2024 07:19,FIXTURE Union Fixture Station,9306,08/10/2024 07:28,FIXTURE Danforth / Fixture Ave,F004,Annual Member
+900485,2220,9306,08/10/2024 08:09,FIXTURE Danforth / Fixture Ave,9303,08/10/2024 08:46,FIXTURE Bloor St W / Fixture St,F005,Annual Member
+900486,2580,9306,08/10/2024 11:36,FIXTURE Danforth / Fixture Ave,9306,08/10/2024 12:19,FIXTURE Danforth / Fixture Ave,F006,Annual Member
+900487,1860,9305,08/10/2024 14:51,FIXTURE Harbourfront Fixture Quay,9303,08/10/2024 15:22,FIXTURE Bloor St W / Fixture St,F007,Annual Member
+900488,540,9304,08/11/2024 06:23,FIXTURE College St / Fixture Rd,9305,08/11/2024 06:32,FIXTURE Harbourfront Fixture Quay,F008,Annual Member
+900489,1380,9305,08/11/2024 11:35,FIXTURE Harbourfront Fixture Quay,9302,08/11/2024 11:58,FIXTURE Union Fixture Station,F009,Annual Member
+900490,1860,9304,08/11/2024 17:53,FIXTURE College St / Fixture Rd,9303,08/11/2024 18:24,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900491,1140,9304,08/12/2024 06:54,FIXTURE College St / Fixture Rd,9303,08/12/2024 07:13,FIXTURE Bloor St W / Fixture St,F011,Annual Member
+900492,900,9304,08/12/2024 12:26,FIXTURE College St / Fixture Rd,9305,08/12/2024 12:41,FIXTURE Harbourfront Fixture Quay,F012,Annual Member
+900493,1620,9304,08/12/2024 18:36,FIXTURE College St / Fixture Rd,9306,08/12/2024 19:03,FIXTURE Danforth / Fixture Ave,F001,Casual Member
+900494,1620,9306,08/13/2024 07:40,FIXTURE Danforth / Fixture Ave,9306,08/13/2024 08:07,FIXTURE Danforth / Fixture Ave,F002,Annual Member
+900495,780,9305,08/13/2024 16:52,FIXTURE Harbourfront Fixture Quay,9303,08/13/2024 17:05,FIXTURE Bloor St W / Fixture St,F003,Casual Member
+900496,1380,9306,08/13/2024 20:44,FIXTURE Danforth / Fixture Ave,9303,08/13/2024 21:07,FIXTURE Bloor St W / Fixture St,F004,Annual Member
+900497,3060,9303,08/14/2024 07:01,FIXTURE Bloor St W / Fixture St,9301,08/14/2024 07:52,FIXTURE Queen St W / Fixture Ave,F005,Annual Member
+900498,1140,9306,08/14/2024 08:26,FIXTURE Danforth / Fixture Ave,9301,08/14/2024 08:45,FIXTURE Queen St W / Fixture Ave,F006,Annual Member
+900499,1860,9303,08/14/2024 12:20,FIXTURE Bloor St W / Fixture St,9303,08/14/2024 12:51,FIXTURE Bloor St W / Fixture St,F007,Annual Member
+900500,1140,9305,08/15/2024 14:57,FIXTURE Harbourfront Fixture Quay,9301,08/15/2024 15:16,FIXTURE Queen St W / Fixture Ave,F008,Annual Member
+900501,3060,9302,08/15/2024 18:43,FIXTURE Union Fixture Station,9303,08/15/2024 19:34,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900502,900,9303,08/15/2024 19:45,FIXTURE Bloor St W / Fixture St,9301,08/15/2024 20:00,FIXTURE Queen St W / Fixture Ave,F010,Annual Member
+900503,540,9303,08/16/2024 07:21,FIXTURE Bloor St W / Fixture St,9305,08/16/2024 07:30,FIXTURE Harbourfront Fixture Quay,F011,Annual Member
+900504,2580,9305,08/16/2024 15:33,FIXTURE Harbourfront Fixture Quay,9306,08/16/2024 16:16,FIXTURE Danforth / Fixture Ave,F012,Casual Member
+900505,1140,9306,08/17/2024 08:20,FIXTURE Danforth / Fixture Ave,9301,08/17/2024 08:39,FIXTURE Queen St W / Fixture Ave,F001,Casual Member
+900506,420,9306,08/17/2024 10:26,FIXTURE Danforth / Fixture Ave,9301,08/17/2024 10:33,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900507,660,9303,08/17/2024 13:42,FIXTURE Bloor St W / Fixture St,9305,08/17/2024 13:53,FIXTURE Harbourfront Fixture Quay,F003,Annual Member
+900508,1620,9303,08/17/2024 18:05,FIXTURE Bloor St W / Fixture St,9305,08/17/2024 18:32,FIXTURE Harbourfront Fixture Quay,F004,Annual Member
+900509,1860,9301,08/18/2024 09:26,FIXTURE Queen St W / Fixture Ave,9303,08/18/2024 09:57,FIXTURE Bloor St W / Fixture St,F005,Annual Member
+900510,1620,9301,08/18/2024 13:01,FIXTURE Queen St W / Fixture Ave,9306,08/18/2024 13:28,FIXTURE Danforth / Fixture Ave,F006,Annual Member
+900511,2220,9303,08/18/2024 15:49,FIXTURE Bloor St W / Fixture St,9306,08/18/2024 16:26,FIXTURE Danforth / Fixture Ave,F007,Annual Member
+900512,3060,9301,08/18/2024 20:21,FIXTURE Queen St W / Fixture Ave,9305,08/18/2024 21:12,FIXTURE Harbourfront Fixture Quay,F008,Annual Member
+900513,2220,9303,08/19/2024 08:31,FIXTURE Bloor St W / Fixture St,9302,08/19/2024 09:08,FIXTURE Union Fixture Station,F009,Annual Member
+900514,2580,9301,08/19/2024 13:39,FIXTURE Queen St W / Fixture Ave,9302,08/19/2024 14:22,FIXTURE Union Fixture Station,F010,Annual Member
+900515,660,9305,08/19/2024 14:05,FIXTURE Harbourfront Fixture Quay,9306,08/19/2024 14:16,FIXTURE Danforth / Fixture Ave,F011,Casual Member
+900516,2580,9306,08/19/2024 16:39,FIXTURE Danforth / Fixture Ave,9304,08/19/2024 17:22,FIXTURE College St / Fixture Rd,F012,Annual Member
+900517,2580,9301,08/20/2024 06:43,FIXTURE Queen St W / Fixture Ave,9303,08/20/2024 07:26,FIXTURE Bloor St W / Fixture St,F001,Casual Member
+900518,1620,9301,08/20/2024 10:27,FIXTURE Queen St W / Fixture Ave,9301,08/20/2024 10:54,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900519,1620,9305,08/20/2024 11:11,FIXTURE Harbourfront Fixture Quay,9303,08/20/2024 11:38,FIXTURE Bloor St W / Fixture St,F003,Annual Member
+900520,3060,9305,08/21/2024 07:12,FIXTURE Harbourfront Fixture Quay,9302,08/21/2024 08:03,FIXTURE Union Fixture Station,F004,Annual Member
+900521,3060,9303,08/21/2024 16:47,FIXTURE Bloor St W / Fixture St,9305,08/21/2024 17:38,FIXTURE Harbourfront Fixture Quay,F005,Annual Member
+900522,1380,9306,08/22/2024 10:23,FIXTURE Danforth / Fixture Ave,9304,08/22/2024 10:46,FIXTURE College St / Fixture Rd,F006,Annual Member
+900523,1860,9306,08/22/2024 14:46,FIXTURE Danforth / Fixture Ave,9301,08/22/2024 15:17,FIXTURE Queen St W / Fixture Ave,F007,Casual Member
+900524,1140,9305,08/22/2024 16:16,FIXTURE Harbourfront Fixture Quay,9302,08/22/2024 16:35,FIXTURE Union Fixture Station,F008,Annual Member
+900525,3060,9302,08/23/2024 06:23,FIXTURE Union Fixture Station,9303,08/23/2024 07:14,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900526,420,9302,08/23/2024 08:49,FIXTURE Union Fixture Station,9305,08/23/2024 08:56,FIXTURE Harbourfront Fixture Quay,F010,Annual Member
+900527,1860,9306,08/24/2024 07:42,FIXTURE Danforth / Fixture Ave,9302,08/24/2024 08:13,FIXTURE Union Fixture Station,F011,Annual Member
+900528,1620,9304,08/24/2024 10:18,FIXTURE College St / Fixture Rd,9303,08/24/2024 10:45,FIXTURE Bloor St W / Fixture St,F012,Annual Member
+900529,3060,9303,08/24/2024 13:57,FIXTURE Bloor St W / Fixture St,9301,08/24/2024 14:48,FIXTURE Queen St W / Fixture Ave,F001,Annual Member
+900530,2220,9301,08/24/2024 16:03,FIXTURE Queen St W / Fixture Ave,9301,08/24/2024 16:40,FIXTURE Queen St W / Fixture Ave,F002,Casual Member
+900531,2220,9303,08/25/2024 08:45,FIXTURE Bloor St W / Fixture St,9305,08/25/2024 09:22,FIXTURE Harbourfront Fixture Quay,F003,Annual Member
+900532,900,9302,08/25/2024 12:12,FIXTURE Union Fixture Station,9301,08/25/2024 12:27,FIXTURE Queen St W / Fixture Ave,F004,Annual Member
+900533,780,9305,08/25/2024 14:52,FIXTURE Harbourfront Fixture Quay,9306,08/25/2024 15:05,FIXTURE Danforth / Fixture Ave,F005,Casual Member
+900534,2220,9304,08/25/2024 16:49,FIXTURE College St / Fixture Rd,9301,08/25/2024 17:26,FIXTURE Queen St W / Fixture Ave,F006,Annual Member
+900535,3060,9301,08/26/2024 11:00,FIXTURE Queen St W / Fixture Ave,9304,08/26/2024 11:51,FIXTURE College St / Fixture Rd,F007,Casual Member
+900536,420,9302,08/26/2024 12:27,FIXTURE Union Fixture Station,9304,08/26/2024 12:34,FIXTURE College St / Fixture Rd,F008,Casual Member
+900537,540,9303,08/26/2024 17:24,FIXTURE Bloor St W / Fixture St,9303,08/26/2024 17:33,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900538,780,9305,08/27/2024 11:11,FIXTURE Harbourfront Fixture Quay,9303,08/27/2024 11:24,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900539,660,9302,08/27/2024 13:56,FIXTURE Union Fixture Station,9306,08/27/2024 14:07,FIXTURE Danforth / Fixture Ave,F011,Casual Member
+900540,780,9303,08/28/2024 09:24,FIXTURE Bloor St W / Fixture St,9306,08/28/2024 09:37,FIXTURE Danforth / Fixture Ave,F012,Annual Member
+900541,780,9301,08/28/2024 12:55,FIXTURE Queen St W / Fixture Ave,9306,08/28/2024 13:08,FIXTURE Danforth / Fixture Ave,F001,Casual Member
+900542,1860,9301,08/28/2024 19:14,FIXTURE Queen St W / Fixture Ave,9301,08/28/2024 19:45,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900543,780,9305,08/29/2024 11:54,FIXTURE Harbourfront Fixture Quay,9304,08/29/2024 12:07,FIXTURE College St / Fixture Rd,F003,Annual Member
+900544,660,9301,08/29/2024 14:17,FIXTURE Queen St W / Fixture Ave,9304,08/29/2024 14:28,FIXTURE College St / Fixture Rd,F004,Annual Member
+900545,1380,9306,08/29/2024 17:16,FIXTURE Danforth / Fixture Ave,9304,08/29/2024 17:39,FIXTURE College St / Fixture Rd,F005,Annual Member
+900546,1860,9301,08/30/2024 09:50,FIXTURE Queen St W / Fixture Ave,9302,08/30/2024 10:21,FIXTURE Union Fixture Station,F006,Annual Member
+900547,3060,9304,08/30/2024 10:22,FIXTURE College St / Fixture Rd,9304,08/30/2024 11:13,FIXTURE College St / Fixture Rd,F007,Casual Member
+900548,780,9304,08/30/2024 15:48,FIXTURE College St / Fixture Rd,9301,08/30/2024 16:01,FIXTURE Queen St W / Fixture Ave,F008,Annual Member
+900549,1380,9303,08/31/2024 06:58,FIXTURE Bloor St W / Fixture St,9302,08/31/2024 07:21,FIXTURE Union Fixture Station,F009,Annual Member
+900550,2220,9303,08/31/2024 13:31,FIXTURE Bloor St W / Fixture St,9305,08/31/2024 14:08,FIXTURE Harbourfront Fixture Quay,F010,Annual Member
+900551,1620,9306,09/01/2024 10:54,FIXTURE Danforth / Fixture Ave,9302,09/01/2024 11:21,FIXTURE Union Fixture Station,F011,Annual Member
+900552,2220,9306,09/01/2024 18:10,FIXTURE Danforth / Fixture Ave,9304,09/01/2024 18:47,FIXTURE College St / Fixture Rd,F012,Annual Member
+900553,3060,9306,09/02/2024 09:09,FIXTURE Danforth / Fixture Ave,9304,09/02/2024 10:00,FIXTURE College St / Fixture Rd,F001,Annual Member
+900554,540,9301,09/02/2024 16:25,FIXTURE Queen St W / Fixture Ave,9305,09/02/2024 16:34,FIXTURE Harbourfront Fixture Quay,F002,Annual Member
+900555,3060,9304,09/02/2024 17:35,FIXTURE College St / Fixture Rd,9302,09/02/2024 18:26,FIXTURE Union Fixture Station,F003,Annual Member
+900556,420,9304,09/03/2024 07:42,FIXTURE College St / Fixture Rd,9301,09/03/2024 07:49,FIXTURE Queen St W / Fixture Ave,F004,Annual Member
+900557,2580,9304,09/03/2024 08:24,FIXTURE College St / Fixture Rd,9305,09/03/2024 09:07,FIXTURE Harbourfront Fixture Quay,F005,Annual Member
+900558,2580,9302,09/03/2024 10:25,FIXTURE Union Fixture Station,9306,09/03/2024 11:08,FIXTURE Danforth / Fixture Ave,F006,Annual Member
+900559,1380,9304,09/04/2024 10:15,FIXTURE College St / Fixture Rd,9303,09/04/2024 10:38,FIXTURE Bloor St W / Fixture St,F007,Annual Member
+900560,1860,9301,09/04/2024 11:05,FIXTURE Queen St W / Fixture Ave,9306,09/04/2024 11:36,FIXTURE Danforth / Fixture Ave,F008,Annual Member
+900561,1380,9302,09/04/2024 15:59,FIXTURE Union Fixture Station,9303,09/04/2024 16:22,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900562,1620,9305,09/05/2024 07:14,FIXTURE Harbourfront Fixture Quay,9306,09/05/2024 07:41,FIXTURE Danforth / Fixture Ave,F010,Casual Member
+900563,2220,9302,09/05/2024 20:18,FIXTURE Union Fixture Station,9304,09/05/2024 20:55,FIXTURE College St / Fixture Rd,F011,Annual Member
+900564,660,9304,09/06/2024 08:48,FIXTURE College St / Fixture Rd,9303,09/06/2024 08:59,FIXTURE Bloor St W / Fixture St,F012,Casual Member
+900565,420,9304,09/06/2024 15:03,FIXTURE College St / Fixture Rd,9303,09/06/2024 15:10,FIXTURE Bloor St W / Fixture St,F001,Casual Member
+900566,2220,9305,09/06/2024 18:14,FIXTURE Harbourfront Fixture Quay,9303,09/06/2024 18:51,FIXTURE Bloor St W / Fixture St,F002,Casual Member
+900567,420,9302,09/07/2024 07:09,FIXTURE Union Fixture Station,9303,09/07/2024 07:16,FIXTURE Bloor St W / Fixture St,F003,Annual Member
+900568,660,9301,09/07/2024 13:52,FIXTURE Queen St W / Fixture Ave,9306,09/07/2024 14:03,FIXTURE Danforth / Fixture Ave,F004,Annual Member
+900569,900,9305,09/07/2024 17:29,FIXTURE Harbourfront Fixture Quay,9306,09/07/2024 17:44,FIXTURE Danforth / Fixture Ave,F005,Annual Member
+900570,900,9306,09/08/2024 06:49,FIXTURE Danforth / Fixture Ave,9304,09/08/2024 07:04,FIXTURE College St / Fixture Rd,F006,Annual Member
+900571,1380,9303,09/08/2024 10:47,FIXTURE Bloor St W / Fixture St,9306,09/08/2024 11:10,FIXTURE Danforth / Fixture Ave,F007,Casual Member
+900572,1860,9306,09/09/2024 09:14,FIXTURE Danforth / Fixture Ave,9301,09/09/2024 09:45,FIXTURE Queen St W / Fixture Ave,F008,Casual Member
+900573,1380,9303,09/09/2024 18:37,FIXTURE Bloor St W / Fixture St,9301,09/09/2024 19:00,FIXTURE Queen St W / Fixture Ave,F009,Annual Member
+900574,660,9306,09/10/2024 10:40,FIXTURE Danforth / Fixture Ave,9302,09/10/2024 10:51,FIXTURE Union Fixture Station,F010,Annual Member
+900575,1140,9304,09/10/2024 17:15,FIXTURE College St / Fixture Rd,9302,09/10/2024 17:34,FIXTURE Union Fixture Station,F011,Annual Member
+900576,780,9303,09/11/2024 16:12,FIXTURE Bloor St W / Fixture St,9302,09/11/2024 16:25,FIXTURE Union Fixture Station,F012,Annual Member
+900577,780,9303,09/11/2024 18:09,FIXTURE Bloor St W / Fixture St,9305,09/11/2024 18:22,FIXTURE Harbourfront Fixture Quay,F001,Casual Member
+900578,3060,9303,09/12/2024 08:14,FIXTURE Bloor St W / Fixture St,9304,09/12/2024 09:05,FIXTURE College St / Fixture Rd,F002,Annual Member
+900579,1140,9303,09/12/2024 10:33,FIXTURE Bloor St W / Fixture St,9301,09/12/2024 10:52,FIXTURE Queen St W / Fixture Ave,F003,Annual Member
+900580,420,9306,09/13/2024 13:18,FIXTURE Danforth / Fixture Ave,9304,09/13/2024 13:25,FIXTURE College St / Fixture Rd,F004,Annual Member
+900581,660,9306,09/13/2024 18:53,FIXTURE Danforth / Fixture Ave,9302,09/13/2024 19:04,FIXTURE Union Fixture Station,F005,Annual Member
+900582,780,9304,09/13/2024 20:46,FIXTURE College St / Fixture Rd,9305,09/13/2024 20:59,FIXTURE Harbourfront Fixture Quay,F006,Annual Member
+900583,1140,9306,09/14/2024 07:01,FIXTURE Danforth / Fixture Ave,9302,09/14/2024 07:20,FIXTURE Union Fixture Station,F007,Casual Member
+900584,1380,9301,09/14/2024 10:55,FIXTURE Queen St W / Fixture Ave,9302,09/14/2024 11:18,FIXTURE Union Fixture Station,F008,Casual Member
+900585,1380,9301,09/14/2024 19:30,FIXTURE Queen St W / Fixture Ave,9305,09/14/2024 19:53,FIXTURE Harbourfront Fixture Quay,F009,Annual Member
+900586,1140,9302,09/15/2024 07:57,FIXTURE Union Fixture Station,9302,09/15/2024 08:16,FIXTURE Union Fixture Station,F010,Annual Member
+900587,1380,9302,09/15/2024 08:27,FIXTURE Union Fixture Station,9303,09/15/2024 08:50,FIXTURE Bloor St W / Fixture St,F011,Casual Member
+900588,900,9302,09/15/2024 14:29,FIXTURE Union Fixture Station,9304,09/15/2024 14:44,FIXTURE College St / Fixture Rd,F012,Annual Member
+900589,540,9305,09/16/2024 09:06,FIXTURE Harbourfront Fixture Quay,9302,09/16/2024 09:15,FIXTURE Union Fixture Station,F001,Annual Member
+900590,3060,9304,09/16/2024 10:22,FIXTURE College St / Fixture Rd,9306,09/16/2024 11:13,FIXTURE Danforth / Fixture Ave,F002,Casual Member
+900591,3060,9301,09/16/2024 12:10,FIXTURE Queen St W / Fixture Ave,9306,09/16/2024 13:01,FIXTURE Danforth / Fixture Ave,F003,Annual Member
+900592,1140,9304,09/17/2024 06:44,FIXTURE College St / Fixture Rd,9302,09/17/2024 07:03,FIXTURE Union Fixture Station,F004,Annual Member
+900593,660,9302,09/17/2024 07:10,FIXTURE Union Fixture Station,9306,09/17/2024 07:21,FIXTURE Danforth / Fixture Ave,F005,Annual Member
+900594,1620,9305,09/17/2024 13:40,FIXTURE Harbourfront Fixture Quay,9304,09/17/2024 14:07,FIXTURE College St / Fixture Rd,F006,Annual Member
+900595,780,9302,09/18/2024 09:45,FIXTURE Union Fixture Station,9305,09/18/2024 09:58,FIXTURE Harbourfront Fixture Quay,F007,Annual Member
+900596,3060,9302,09/18/2024 14:22,FIXTURE Union Fixture Station,9303,09/18/2024 15:13,FIXTURE Bloor St W / Fixture St,F008,Annual Member
+900597,1140,9305,09/19/2024 11:34,FIXTURE Harbourfront Fixture Quay,9304,09/19/2024 11:53,FIXTURE College St / Fixture Rd,F009,Casual Member
+900598,1140,9302,09/19/2024 12:18,FIXTURE Union Fixture Station,9301,09/19/2024 12:37,FIXTURE Queen St W / Fixture Ave,F010,Annual Member
+900599,1620,9303,09/20/2024 10:00,FIXTURE Bloor St W / Fixture St,9303,09/20/2024 10:27,FIXTURE Bloor St W / Fixture St,F011,Annual Member
+900600,1620,9304,09/20/2024 12:49,FIXTURE College St / Fixture Rd,9301,09/20/2024 13:16,FIXTURE Queen St W / Fixture Ave,F012,Annual Member
+900601,1620,9302,09/21/2024 09:01,FIXTURE Union Fixture Station,9302,09/21/2024 09:28,FIXTURE Union Fixture Station,F001,Annual Member
+900602,1620,9306,09/21/2024 14:03,FIXTURE Danforth / Fixture Ave,9305,09/21/2024 14:30,FIXTURE Harbourfront Fixture Quay,F002,Annual Member
+900603,780,9306,09/21/2024 19:51,FIXTURE Danforth / Fixture Ave,9301,09/21/2024 20:04,FIXTURE Queen St W / Fixture Ave,F003,Annual Member
+900604,900,9302,09/22/2024 10:34,FIXTURE Union Fixture Station,9305,09/22/2024 10:49,FIXTURE Harbourfront Fixture Quay,F004,Annual Member
+900605,1380,9306,09/22/2024 11:08,FIXTURE Danforth / Fixture Ave,9303,09/22/2024 11:31,FIXTURE Bloor St W / Fixture St,F005,Annual Member
+900606,3060,9304,09/22/2024 18:50,FIXTURE College St / Fixture Rd,9301,09/22/2024 19:41,FIXTURE Queen St W / Fixture Ave,F006,Casual Member
+900607,1620,9305,09/23/2024 12:43,FIXTURE Harbourfront Fixture Quay,9303,09/23/2024 13:10,FIXTURE Bloor St W / Fixture St,F007,Annual Member
+900608,420,9303,09/23/2024 17:06,FIXTURE Bloor St W / Fixture St,9302,09/23/2024 17:13,FIXTURE Union Fixture Station,F008,Annual Member
+900609,1140,9304,09/23/2024 18:01,FIXTURE College St / Fixture Rd,9305,09/23/2024 18:20,FIXTURE Harbourfront Fixture Quay,F009,Annual Member
+900610,420,9301,09/24/2024 08:49,FIXTURE Queen St W / Fixture Ave,9305,09/24/2024 08:56,FIXTURE Harbourfront Fixture Quay,F010,Annual Member
+900611,1860,9303,09/24/2024 15:16,FIXTURE Bloor St W / Fixture St,9303,09/24/2024 15:47,FIXTURE Bloor St W / Fixture St,F011,Annual Member
+900612,1860,9301,09/25/2024 08:18,FIXTURE Queen St W / Fixture Ave,9303,09/25/2024 08:49,FIXTURE Bloor St W / Fixture St,F012,Annual Member
+900613,2580,9302,09/25/2024 15:12,FIXTURE Union Fixture Station,9302,09/25/2024 15:55,FIXTURE Union Fixture Station,F001,Annual Member
+900614,1620,9305,09/26/2024 10:30,FIXTURE Harbourfront Fixture Quay,9303,09/26/2024 10:57,FIXTURE Bloor St W / Fixture St,F002,Casual Member
+900615,420,9301,09/26/2024 11:46,FIXTURE Queen St W / Fixture Ave,9305,09/26/2024 11:53,FIXTURE Harbourfront Fixture Quay,F003,Annual Member
+900616,540,9305,09/26/2024 12:59,FIXTURE Harbourfront Fixture Quay,9303,09/26/2024 13:08,FIXTURE Bloor St W / Fixture St,F004,Annual Member
+900617,3060,9303,09/27/2024 07:08,FIXTURE Bloor St W / Fixture St,9304,09/27/2024 07:59,FIXTURE College St / Fixture Rd,F005,Annual Member
+900618,3060,9301,09/27/2024 13:21,FIXTURE Queen St W / Fixture Ave,9302,09/27/2024 14:12,FIXTURE Union Fixture Station,F006,Annual Member
+900619,540,9303,09/27/2024 19:11,FIXTURE Bloor St W / Fixture St,9306,09/27/2024 19:20,FIXTURE Danforth / Fixture Ave,F007,Annual Member
+900620,420,9302,09/28/2024 10:51,FIXTURE Union Fixture Station,9305,09/28/2024 10:58,FIXTURE Harbourfront Fixture Quay,F008,Casual Member
+900621,780,9305,09/28/2024 19:17,FIXTURE Harbourfront Fixture Quay,9301,09/28/2024 19:30,FIXTURE Queen St W / Fixture Ave,F009,Casual Member
+900622,540,9305,09/29/2024 13:41,FIXTURE Harbourfront Fixture Quay,9303,09/29/2024 13:50,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900623,1380,9303,09/29/2024 18:20,FIXTURE Bloor St W / Fixture St,9301,09/29/2024 18:43,FIXTURE Queen St W / Fixture Ave,F011,Annual Member
+900624,1140,9303,09/30/2024 13:37,FIXTURE Bloor St W / Fixture St,9301,09/30/2024 13:56,FIXTURE Queen St W / Fixture Ave,F012,Casual Member
+900625,1380,9302,09/30/2024 16:38,FIXTURE Union Fixture Station,9304,09/30/2024 17:01,FIXTURE College St / Fixture Rd,F001,Annual Member
+900626,2580,9303,09/30/2024 19:30,FIXTURE Bloor St W / Fixture St,9304,09/30/2024 20:13,FIXTURE College St / Fixture Rd,F002,Casual Member
+900627,540,9305,10/01/2024 09:23,FIXTURE Harbourfront Fixture Quay,9305,10/01/2024 09:32,FIXTURE Harbourfront Fixture Quay,F003,Casual Member
+900628,1620,9303,10/01/2024 14:43,FIXTURE Bloor St W / Fixture St,9302,10/01/2024 15:10,FIXTURE Union Fixture Station,F004,Annual Member
+900629,1620,9304,10/02/2024 17:07,FIXTURE College St / Fixture Rd,9301,10/02/2024 17:34,FIXTURE Queen St W / Fixture Ave,F005,Annual Member
+900630,660,9302,10/03/2024 07:22,FIXTURE Union Fixture Station,9305,10/03/2024 07:33,FIXTURE Harbourfront Fixture Quay,F006,Annual Member
+900631,1140,9306,10/03/2024 20:08,FIXTURE Danforth / Fixture Ave,9304,10/03/2024 20:27,FIXTURE College St / Fixture Rd,F007,Casual Member
+900632,420,9305,10/04/2024 13:25,FIXTURE Harbourfront Fixture Quay,9306,10/04/2024 13:32,FIXTURE Danforth / Fixture Ave,F008,Annual Member
+900633,660,9301,10/04/2024 20:36,FIXTURE Queen St W / Fixture Ave,9306,10/04/2024 20:47,FIXTURE Danforth / Fixture Ave,F009,Casual Member
+900634,1380,9303,10/05/2024 14:47,FIXTURE Bloor St W / Fixture St,9301,10/05/2024 15:10,FIXTURE Queen St W / Fixture Ave,F010,Annual Member
+900635,420,9301,10/05/2024 19:11,FIXTURE Queen St W / Fixture Ave,9301,10/05/2024 19:18,FIXTURE Queen St W / Fixture Ave,F011,Annual Member
+900636,1620,9301,10/06/2024 11:36,FIXTURE Queen St W / Fixture Ave,9301,10/06/2024 12:03,FIXTURE Queen St W / Fixture Ave,F012,Annual Member
+900637,900,9304,10/06/2024 17:32,FIXTURE College St / Fixture Rd,9302,10/06/2024 17:47,FIXTURE Union Fixture Station,F001,Annual Member
+900638,1140,9304,10/07/2024 08:37,FIXTURE College St / Fixture Rd,9302,10/07/2024 08:56,FIXTURE Union Fixture Station,F002,Annual Member
+900639,660,9305,10/07/2024 10:07,FIXTURE Harbourfront Fixture Quay,9305,10/07/2024 10:18,FIXTURE Harbourfront Fixture Quay,F003,Casual Member
+900640,3060,9302,10/08/2024 10:55,FIXTURE Union Fixture Station,9301,10/08/2024 11:46,FIXTURE Queen St W / Fixture Ave,F004,Annual Member
+900641,540,9301,10/08/2024 20:53,FIXTURE Queen St W / Fixture Ave,9305,10/08/2024 21:02,FIXTURE Harbourfront Fixture Quay,F005,Casual Member
+900642,1140,9305,10/09/2024 14:52,FIXTURE Harbourfront Fixture Quay,9302,10/09/2024 15:11,FIXTURE Union Fixture Station,F006,Casual Member
+900643,1860,9304,10/09/2024 19:19,FIXTURE College St / Fixture Rd,9302,10/09/2024 19:50,FIXTURE Union Fixture Station,F007,Annual Member
+900644,1380,9306,10/10/2024 06:31,FIXTURE Danforth / Fixture Ave,9301,10/10/2024 06:54,FIXTURE Queen St W / Fixture Ave,F008,Casual Member
+900645,900,9306,10/10/2024 19:51,FIXTURE Danforth / Fixture Ave,9302,10/10/2024 20:06,FIXTURE Union Fixture Station,F009,Annual Member
+900646,420,9301,10/11/2024 06:46,FIXTURE Queen St W / Fixture Ave,9303,10/11/2024 06:53,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900647,2580,9301,10/11/2024 12:39,FIXTURE Queen St W / Fixture Ave,9302,10/11/2024 13:22,FIXTURE Union Fixture Station,F011,Casual Member
+900648,660,9301,10/12/2024 11:12,FIXTURE Queen St W / Fixture Ave,9301,10/12/2024 11:23,FIXTURE Queen St W / Fixture Ave,F012,Casual Member
+900649,900,9302,10/12/2024 13:19,FIXTURE Union Fixture Station,9301,10/12/2024 13:34,FIXTURE Queen St W / Fixture Ave,F001,Annual Member
+900650,1380,9302,10/12/2024 19:59,FIXTURE Union Fixture Station,9304,10/12/2024 20:22,FIXTURE College St / Fixture Rd,F002,Casual Member
+900651,420,9305,10/13/2024 12:56,FIXTURE Harbourfront Fixture Quay,9303,10/13/2024 13:03,FIXTURE Bloor St W / Fixture St,F003,Casual Member
+900652,1140,9301,10/13/2024 18:23,FIXTURE Queen St W / Fixture Ave,9301,10/13/2024 18:42,FIXTURE Queen St W / Fixture Ave,F004,Annual Member
+900653,660,9305,10/14/2024 06:40,FIXTURE Harbourfront Fixture Quay,9301,10/14/2024 06:51,FIXTURE Queen St W / Fixture Ave,F005,Casual Member
+900654,2580,9302,10/14/2024 19:23,FIXTURE Union Fixture Station,9302,10/14/2024 20:06,FIXTURE Union Fixture Station,F006,Annual Member
+900655,540,9302,10/15/2024 13:20,FIXTURE Union Fixture Station,9301,10/15/2024 13:29,FIXTURE Queen St W / Fixture Ave,F007,Annual Member
+900656,660,9301,10/15/2024 14:00,FIXTURE Queen St W / Fixture Ave,9303,10/15/2024 14:11,FIXTURE Bloor St W / Fixture St,F008,Annual Member
+900657,660,9302,10/16/2024 07:16,FIXTURE Union Fixture Station,9304,10/16/2024 07:27,FIXTURE College St / Fixture Rd,F009,Annual Member
+900658,540,9303,10/16/2024 18:06,FIXTURE Bloor St W / Fixture St,9301,10/16/2024 18:15,FIXTURE Queen St W / Fixture Ave,F010,Annual Member
+900659,660,9302,10/17/2024 12:54,FIXTURE Union Fixture Station,9306,10/17/2024 13:05,FIXTURE Danforth / Fixture Ave,F011,Annual Member
+900660,2220,9301,10/17/2024 14:14,FIXTURE Queen St W / Fixture Ave,9303,10/17/2024 14:51,FIXTURE Bloor St W / Fixture St,F012,Annual Member
+900661,1620,9301,10/18/2024 09:42,FIXTURE Queen St W / Fixture Ave,9303,10/18/2024 10:09,FIXTURE Bloor St W / Fixture St,F001,Annual Member
+900662,420,9304,10/18/2024 10:03,FIXTURE College St / Fixture Rd,9301,10/18/2024 10:10,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900663,1140,9303,10/18/2024 19:46,FIXTURE Bloor St W / Fixture St,9306,10/18/2024 20:05,FIXTURE Danforth / Fixture Ave,F003,Casual Member
+900664,780,9301,10/19/2024 12:55,FIXTURE Queen St W / Fixture Ave,9304,10/19/2024 13:08,FIXTURE College St / Fixture Rd,F004,Annual Member
+900665,420,9301,10/19/2024 16:23,FIXTURE Queen St W / Fixture Ave,9304,10/19/2024 16:30,FIXTURE College St / Fixture Rd,F005,Annual Member
+900666,1380,9302,10/20/2024 08:58,FIXTURE Union Fixture Station,9305,10/20/2024 09:21,FIXTURE Harbourfront Fixture Quay,F006,Annual Member
+900667,540,9301,10/20/2024 15:07,FIXTURE Queen St W / Fixture Ave,9306,10/20/2024 15:16,FIXTURE Danforth / Fixture Ave,F007,Casual Member
+900668,1140,9303,10/21/2024 08:54,FIXTURE Bloor St W / Fixture St,9301,10/21/2024 09:13,FIXTURE Queen St W / Fixture Ave,F008,Annual Member
+900669,2220,9304,10/21/2024 17:33,FIXTURE College St / Fixture Rd,9303,10/21/2024 18:10,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900670,1380,9301,10/22/2024 12:35,FIXTURE Queen St W / Fixture Ave,9301,10/22/2024 12:58,FIXTURE Queen St W / Fixture Ave,F010,Annual Member
+900671,2220,9306,10/22/2024 14:48,FIXTURE Danforth / Fixture Ave,9305,10/22/2024 15:25,FIXTURE Harbourfront Fixture Quay,F011,Annual Member
+900672,900,9303,10/23/2024 16:27,FIXTURE Bloor St W / Fixture St,9306,10/23/2024 16:42,FIXTURE Danforth / Fixture Ave,F012,Annual Member
+900673,3060,9303,10/23/2024 17:38,FIXTURE Bloor St W / Fixture St,9306,10/23/2024 18:29,FIXTURE Danforth / Fixture Ave,F001,Annual Member
+900674,3060,9301,10/24/2024 17:41,FIXTURE Queen St W / Fixture Ave,9302,10/24/2024 18:32,FIXTURE Union Fixture Station,F002,Annual Member
+900675,900,9306,10/24/2024 19:13,FIXTURE Danforth / Fixture Ave,9304,10/24/2024 19:28,FIXTURE College St / Fixture Rd,F003,Annual Member
+900676,780,9304,10/25/2024 08:24,FIXTURE College St / Fixture Rd,9304,10/25/2024 08:37,FIXTURE College St / Fixture Rd,F004,Annual Member
+900677,420,9304,10/25/2024 13:00,FIXTURE College St / Fixture Rd,9304,10/25/2024 13:07,FIXTURE College St / Fixture Rd,F005,Casual Member
+900678,420,9305,10/26/2024 14:45,FIXTURE Harbourfront Fixture Quay,9302,10/26/2024 14:52,FIXTURE Union Fixture Station,F006,Annual Member
+900679,2220,9306,10/26/2024 15:41,FIXTURE Danforth / Fixture Ave,9303,10/26/2024 16:18,FIXTURE Bloor St W / Fixture St,F007,Annual Member
+900680,540,9301,10/27/2024 18:35,FIXTURE Queen St W / Fixture Ave,9302,10/27/2024 18:44,FIXTURE Union Fixture Station,F008,Annual Member
+900681,900,9303,10/27/2024 19:13,FIXTURE Bloor St W / Fixture St,9301,10/27/2024 19:28,FIXTURE Queen St W / Fixture Ave,F009,Annual Member
+900682,900,9301,10/28/2024 14:13,FIXTURE Queen St W / Fixture Ave,9302,10/28/2024 14:28,FIXTURE Union Fixture Station,F010,Annual Member
+900683,1860,9305,10/28/2024 15:02,FIXTURE Harbourfront Fixture Quay,9306,10/28/2024 15:33,FIXTURE Danforth / Fixture Ave,F011,Annual Member
+900684,2220,9306,10/29/2024 09:58,FIXTURE Danforth / Fixture Ave,9305,10/29/2024 10:35,FIXTURE Harbourfront Fixture Quay,F012,Annual Member
+900685,540,9306,10/29/2024 11:59,FIXTURE Danforth / Fixture Ave,9304,10/29/2024 12:08,FIXTURE College St / Fixture Rd,F001,Annual Member
+900686,660,9302,10/30/2024 06:03,FIXTURE Union Fixture Station,9305,10/30/2024 06:14,FIXTURE Harbourfront Fixture Quay,F002,Casual Member
+900687,3060,9304,10/31/2024 06:22,FIXTURE College St / Fixture Rd,9302,10/31/2024 07:13,FIXTURE Union Fixture Station,F003,Annual Member
+900688,900,9304,10/31/2024 13:44,FIXTURE College St / Fixture Rd,9302,10/31/2024 13:59,FIXTURE Union Fixture Station,F004,Annual Member
+900689,2580,9304,11/01/2024 06:24,FIXTURE College St / Fixture Rd,9301,11/01/2024 07:07,FIXTURE Queen St W / Fixture Ave,F005,Annual Member
+900690,1380,9302,11/02/2024 06:37,FIXTURE Union Fixture Station,9306,11/02/2024 07:00,FIXTURE Danforth / Fixture Ave,F006,Casual Member
+900691,1620,9303,11/02/2024 12:44,FIXTURE Bloor St W / Fixture St,9304,11/02/2024 13:11,FIXTURE College St / Fixture Rd,F007,Annual Member
+900692,420,9302,11/03/2024 13:49,FIXTURE Union Fixture Station,9301,11/03/2024 13:56,FIXTURE Queen St W / Fixture Ave,F008,Annual Member
+900693,900,9301,11/03/2024 20:16,FIXTURE Queen St W / Fixture Ave,9301,11/03/2024 20:31,FIXTURE Queen St W / Fixture Ave,F009,Annual Member
+900694,3060,9302,11/04/2024 07:42,FIXTURE Union Fixture Station,9303,11/04/2024 08:33,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900695,900,9306,11/04/2024 12:28,FIXTURE Danforth / Fixture Ave,9305,11/04/2024 12:43,FIXTURE Harbourfront Fixture Quay,F011,Annual Member
+900696,660,9305,11/05/2024 12:23,FIXTURE Harbourfront Fixture Quay,9305,11/05/2024 12:34,FIXTURE Harbourfront Fixture Quay,F012,Annual Member
+900697,1620,9304,11/05/2024 16:52,FIXTURE College St / Fixture Rd,9306,11/05/2024 17:19,FIXTURE Danforth / Fixture Ave,F001,Annual Member
+900698,2580,9305,11/06/2024 09:40,FIXTURE Harbourfront Fixture Quay,9306,11/06/2024 10:23,FIXTURE Danforth / Fixture Ave,F002,Casual Member
+900699,2220,9302,11/06/2024 13:54,FIXTURE Union Fixture Station,9301,11/06/2024 14:31,FIXTURE Queen St W / Fixture Ave,F003,Annual Member
+900700,420,9302,11/07/2024 12:54,FIXTURE Union Fixture Station,9306,11/07/2024 13:01,FIXTURE Danforth / Fixture Ave,F004,Annual Member
+900701,660,9301,11/08/2024 07:05,FIXTURE Queen St W / Fixture Ave,9302,11/08/2024 07:16,FIXTURE Union Fixture Station,F005,Casual Member
+900702,3060,9306,11/08/2024 17:33,FIXTURE Danforth / Fixture Ave,9303,11/08/2024 18:24,FIXTURE Bloor St W / Fixture St,F006,Annual Member
+900703,540,9304,11/09/2024 06:43,FIXTURE College St / Fixture Rd,9305,11/09/2024 06:52,FIXTURE Harbourfront Fixture Quay,F007,Casual Member
+900704,1620,9301,11/09/2024 07:17,FIXTURE Queen St W / Fixture Ave,9305,11/09/2024 07:44,FIXTURE Harbourfront Fixture Quay,F008,Annual Member
+900705,660,9301,11/10/2024 14:07,FIXTURE Queen St W / Fixture Ave,9302,11/10/2024 14:18,FIXTURE Union Fixture Station,F009,Annual Member
+900706,1860,9303,11/10/2024 15:04,FIXTURE Bloor St W / Fixture St,9302,11/10/2024 15:35,FIXTURE Union Fixture Station,F010,Annual Member
+900707,1140,9305,11/11/2024 20:43,FIXTURE Harbourfront Fixture Quay,9301,11/11/2024 21:02,FIXTURE Queen St W / Fixture Ave,F011,Annual Member
+900708,780,9305,11/12/2024 14:50,FIXTURE Harbourfront Fixture Quay,9304,11/12/2024 15:03,FIXTURE College St / Fixture Rd,F012,Annual Member
+900709,1380,9306,11/12/2024 20:56,FIXTURE Danforth / Fixture Ave,9301,11/12/2024 21:19,FIXTURE Queen St W / Fixture Ave,F001,Annual Member
+900710,1860,9306,11/13/2024 18:54,FIXTURE Danforth / Fixture Ave,9305,11/13/2024 19:25,FIXTURE Harbourfront Fixture Quay,F002,Casual Member
+900711,1380,9301,11/14/2024 13:11,FIXTURE Queen St W / Fixture Ave,9303,11/14/2024 13:34,FIXTURE Bloor St W / Fixture St,F003,Annual Member
+900712,2220,9306,11/14/2024 20:24,FIXTURE Danforth / Fixture Ave,9306,11/14/2024 21:01,FIXTURE Danforth / Fixture Ave,F004,Annual Member
+900713,780,9302,11/15/2024 17:10,FIXTURE Union Fixture Station,9302,11/15/2024 17:23,FIXTURE Union Fixture Station,F005,Annual Member
+900714,3060,9303,11/16/2024 06:02,FIXTURE Bloor St W / Fixture St,9303,11/16/2024 06:53,FIXTURE Bloor St W / Fixture St,F006,Annual Member
+900715,540,9305,11/16/2024 08:40,FIXTURE Harbourfront Fixture Quay,9306,11/16/2024 08:49,FIXTURE Danforth / Fixture Ave,F007,Annual Member
+900716,780,9305,11/17/2024 10:41,FIXTURE Harbourfront Fixture Quay,9302,11/17/2024 10:54,FIXTURE Union Fixture Station,F008,Annual Member
+900717,900,9302,11/17/2024 12:18,FIXTURE Union Fixture Station,9306,11/17/2024 12:33,FIXTURE Danforth / Fixture Ave,F009,Annual Member
+900718,2580,9302,11/18/2024 10:10,FIXTURE Union Fixture Station,9304,11/18/2024 10:53,FIXTURE College St / Fixture Rd,F010,Annual Member
+900719,1380,9301,11/18/2024 20:57,FIXTURE Queen St W / Fixture Ave,9302,11/18/2024 21:20,FIXTURE Union Fixture Station,F011,Annual Member
+900720,1380,9304,11/19/2024 11:52,FIXTURE College St / Fixture Rd,9305,11/19/2024 12:15,FIXTURE Harbourfront Fixture Quay,F012,Annual Member
+900721,420,9301,11/19/2024 20:20,FIXTURE Queen St W / Fixture Ave,9304,11/19/2024 20:27,FIXTURE College St / Fixture Rd,F001,Annual Member
+900722,540,9305,11/20/2024 07:03,FIXTURE Harbourfront Fixture Quay,9305,11/20/2024 07:12,FIXTURE Harbourfront Fixture Quay,F002,Annual Member
+900723,2220,9303,11/21/2024 19:58,FIXTURE Bloor St W / Fixture St,9301,11/21/2024 20:35,FIXTURE Queen St W / Fixture Ave,F003,Casual Member
+900724,2220,9306,11/22/2024 07:52,FIXTURE Danforth / Fixture Ave,9304,11/22/2024 08:29,FIXTURE College St / Fixture Rd,F004,Annual Member
+900725,420,9302,11/22/2024 17:47,FIXTURE Union Fixture Station,9304,11/22/2024 17:54,FIXTURE College St / Fixture Rd,F005,Casual Member
+900726,420,9303,11/23/2024 16:48,FIXTURE Bloor St W / Fixture St,9305,11/23/2024 16:55,FIXTURE Harbourfront Fixture Quay,F006,Annual Member
+900727,2580,9306,11/24/2024 10:04,FIXTURE Danforth / Fixture Ave,9306,11/24/2024 10:47,FIXTURE Danforth / Fixture Ave,F007,Casual Member
+900728,3060,9302,11/25/2024 15:54,FIXTURE Union Fixture Station,9305,11/25/2024 16:45,FIXTURE Harbourfront Fixture Quay,F008,Annual Member
+900729,900,9306,11/26/2024 17:12,FIXTURE Danforth / Fixture Ave,9302,11/26/2024 17:27,FIXTURE Union Fixture Station,F009,Casual Member
+900730,780,9304,11/27/2024 08:46,FIXTURE College St / Fixture Rd,9305,11/27/2024 08:59,FIXTURE Harbourfront Fixture Quay,F010,Annual Member
+900731,420,9302,11/28/2024 17:45,FIXTURE Union Fixture Station,9305,11/28/2024 17:52,FIXTURE Harbourfront Fixture Quay,F011,Annual Member
+900732,420,9305,11/29/2024 10:50,FIXTURE Harbourfront Fixture Quay,9303,11/29/2024 10:57,FIXTURE Bloor St W / Fixture St,F012,Annual Member
+900733,900,9304,11/29/2024 20:45,FIXTURE College St / Fixture Rd,9301,11/29/2024 21:00,FIXTURE Queen St W / Fixture Ave,F001,Annual Member
+900734,780,9305,11/30/2024 19:12,FIXTURE Harbourfront Fixture Quay,9301,11/30/2024 19:25,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900735,540,9301,12/01/2024 18:56,FIXTURE Queen St W / Fixture Ave,9305,12/01/2024 19:05,FIXTURE Harbourfront Fixture Quay,F003,Annual Member
+900736,900,9304,12/01/2024 19:09,FIXTURE College St / Fixture Rd,9301,12/01/2024 19:24,FIXTURE Queen St W / Fixture Ave,F004,Casual Member
+900737,660,9304,12/02/2024 10:52,FIXTURE College St / Fixture Rd,9305,12/02/2024 11:03,FIXTURE Harbourfront Fixture Quay,F005,Annual Member
+900738,780,9305,12/02/2024 18:29,FIXTURE Harbourfront Fixture Quay,9306,12/02/2024 18:42,FIXTURE Danforth / Fixture Ave,F006,Annual Member
+900739,1620,9306,12/03/2024 11:34,FIXTURE Danforth / Fixture Ave,9306,12/03/2024 12:01,FIXTURE Danforth / Fixture Ave,F007,Annual Member
+900740,1860,9305,12/04/2024 06:30,FIXTURE Harbourfront Fixture Quay,9306,12/04/2024 07:01,FIXTURE Danforth / Fixture Ave,F008,Annual Member
+900741,660,9302,12/04/2024 20:10,FIXTURE Union Fixture Station,9304,12/04/2024 20:21,FIXTURE College St / Fixture Rd,F009,Annual Member
+900742,3060,9305,12/05/2024 07:10,FIXTURE Harbourfront Fixture Quay,9303,12/05/2024 08:01,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900743,1380,9305,12/05/2024 16:05,FIXTURE Harbourfront Fixture Quay,9305,12/05/2024 16:28,FIXTURE Harbourfront Fixture Quay,F011,Annual Member
+900744,420,9303,12/06/2024 15:10,FIXTURE Bloor St W / Fixture St,9304,12/06/2024 15:17,FIXTURE College St / Fixture Rd,F012,Casual Member
+900745,3060,9301,12/07/2024 07:47,FIXTURE Queen St W / Fixture Ave,9302,12/07/2024 08:38,FIXTURE Union Fixture Station,F001,Annual Member
+900746,2220,9301,12/07/2024 18:47,FIXTURE Queen St W / Fixture Ave,9303,12/07/2024 19:24,FIXTURE Bloor St W / Fixture St,F002,Annual Member
+900747,420,9305,12/08/2024 14:51,FIXTURE Harbourfront Fixture Quay,9301,12/08/2024 14:58,FIXTURE Queen St W / Fixture Ave,F003,Annual Member
+900748,1380,9301,12/09/2024 20:15,FIXTURE Queen St W / Fixture Ave,9305,12/09/2024 20:38,FIXTURE Harbourfront Fixture Quay,F004,Casual Member
+900749,2220,9305,12/10/2024 20:59,FIXTURE Harbourfront Fixture Quay,9303,12/10/2024 21:36,FIXTURE Bloor St W / Fixture St,F005,Annual Member
+900750,1140,9306,12/11/2024 13:16,FIXTURE Danforth / Fixture Ave,9301,12/11/2024 13:35,FIXTURE Queen St W / Fixture Ave,F006,Annual Member
+900751,420,9306,12/12/2024 11:54,FIXTURE Danforth / Fixture Ave,9306,12/12/2024 12:01,FIXTURE Danforth / Fixture Ave,F007,Annual Member
+900752,660,9306,12/12/2024 17:15,FIXTURE Danforth / Fixture Ave,9303,12/12/2024 17:26,FIXTURE Bloor St W / Fixture St,F008,Annual Member
+900753,1620,9304,12/13/2024 11:37,FIXTURE College St / Fixture Rd,9303,12/13/2024 12:04,FIXTURE Bloor St W / Fixture St,F009,Annual Member
+900754,1860,9303,12/14/2024 18:49,FIXTURE Bloor St W / Fixture St,9303,12/14/2024 19:20,FIXTURE Bloor St W / Fixture St,F010,Annual Member
+900755,780,9305,12/15/2024 17:32,FIXTURE Harbourfront Fixture Quay,9303,12/15/2024 17:45,FIXTURE Bloor St W / Fixture St,F011,Casual Member
+900756,2220,9304,12/16/2024 08:22,FIXTURE College St / Fixture Rd,9301,12/16/2024 08:59,FIXTURE Queen St W / Fixture Ave,F012,Annual Member
+900757,1380,9302,12/17/2024 08:43,FIXTURE Union Fixture Station,9304,12/17/2024 09:06,FIXTURE College St / Fixture Rd,F001,Annual Member
+900758,1620,9303,12/18/2024 09:19,FIXTURE Bloor St W / Fixture St,9301,12/18/2024 09:46,FIXTURE Queen St W / Fixture Ave,F002,Annual Member
+900759,1380,9301,12/18/2024 20:45,FIXTURE Queen St W / Fixture Ave,9304,12/18/2024 21:08,FIXTURE College St / Fixture Rd,F003,Annual Member
+900760,2220,9305,12/19/2024 11:46,FIXTURE Harbourfront Fixture Quay,9303,12/19/2024 12:23,FIXTURE Bloor St W / Fixture St,F004,Annual Member
+900761,1380,9303,12/20/2024 13:14,FIXTURE Bloor St W / Fixture St,9301,12/20/2024 13:37,FIXTURE Queen St W / Fixture Ave,F005,Casual Member
+900762,1620,9301,12/21/2024 17:49,FIXTURE Queen St W / Fixture Ave,9303,12/21/2024 18:16,FIXTURE Bloor St W / Fixture St,F006,Annual Member
+900763,900,9306,12/22/2024 16:35,FIXTURE Danforth / Fixture Ave,9306,12/22/2024 16:50,FIXTURE Danforth / Fixture Ave,F007,Casual Member
+900764,900,9303,12/23/2024 10:53,FIXTURE Bloor St W / Fixture St,9301,12/23/2024 11:08,FIXTURE Queen St W / Fixture Ave,F008,Annual Member
+900765,1860,9303,12/23/2024 19:40,FIXTURE Bloor St W / Fixture St,9304,12/23/2024 20:11,FIXTURE College St / Fixture Rd,F009,Annual Member
+900766,2580,9303,12/24/2024 15:09,FIXTURE Bloor St W / Fixture St,9305,12/24/2024 15:52,FIXTURE Harbourfront Fixture Quay,F010,Annual Member
+900767,3060,9303,12/24/2024 16:04,FIXTURE Bloor St W / Fixture St,9304,12/24/2024 16:55,FIXTURE College St / Fixture Rd,F011,Annual Member
+900768,3060,9301,12/25/2024 19:10,FIXTURE Queen St W / Fixture Ave,9301,12/25/2024 20:01,FIXTURE Queen St W / Fixture Ave,F012,Annual Member
+900769,2580,9304,12/26/2024 07:57,FIXTURE College St / Fixture Rd,9301,12/26/2024 08:40,FIXTURE Queen St W / Fixture Ave,F001,Annual Member
+900770,1620,9301,12/26/2024 09:18,FIXTURE Queen St W / Fixture Ave,9303,12/26/2024 09:45,FIXTURE Bloor St W / Fixture St,F002,Casual Member
+900771,540,9304,12/27/2024 08:18,FIXTURE College St / Fixture Rd,9302,12/27/2024 08:27,FIXTURE Union Fixture Station,F003,Annual Member
+900772,540,9303,12/27/2024 18:27,FIXTURE Bloor St W / Fixture St,9305,12/27/2024 18:36,FIXTURE Harbourfront Fixture Quay,F004,Annual Member
+900773,1380,9301,12/28/2024 16:00,FIXTURE Queen St W / Fixture Ave,9305,12/28/2024 16:23,FIXTURE Harbourfront Fixture Quay,F005,Annual Member
+900774,3060,9303,12/29/2024 20:30,FIXTURE Bloor St W / Fixture St,9306,12/29/2024 21:21,FIXTURE Danforth / Fixture Ave,F006,Annual Member
+900775,420,9306,12/30/2024 16:01,FIXTURE Danforth / Fixture Ave,9305,12/30/2024 16:08,FIXTURE Harbourfront Fixture Quay,F007,Annual Member
+900776,3060,9301,12/31/2024 08:12,FIXTURE Queen St W / Fixture Ave,9302,12/31/2024 09:03,FIXTURE Union Fixture Station,F008,Annual Member
+900777,1380,9302,,FIXTURE Union Fixture Station,9302,07/07/2024 21:21,FIXTURE Union Fixture Station,F004,Annual Member

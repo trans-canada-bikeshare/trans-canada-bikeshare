@@ -1,0 +1,52 @@
+{
+ "last_updated": 1735689600,
+ "ttl": 60,
+ "version": "2.2",
+ "_note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence",
+ "data": {
+  "stations": [
+   {
+    "station_id": "9301",
+    "name": "FIXTURE Queen St W / Fixture Ave",
+    "lat": 43.64712,
+    "lon": -79.40011,
+    "capacity": 16
+   },
+   {
+    "station_id": "9302",
+    "name": "FIXTURE Union Fixture Station",
+    "lat": 43.64502,
+    "lon": -79.38055,
+    "capacity": 16
+   },
+   {
+    "station_id": "9303",
+    "name": "FIXTURE Bloor St W / Fixture St",
+    "lat": 43.66551,
+    "lon": -79.41003,
+    "capacity": 16
+   },
+   {
+    "station_id": "9304",
+    "name": "FIXTURE College St / Fixture Rd",
+    "lat": 43.65803,
+    "lon": -79.39504,
+    "capacity": 16
+   },
+   {
+    "station_id": "9305",
+    "name": "FIXTURE Harbourfront Fixture Quay",
+    "lat": 43.63902,
+    "lon": -79.38401,
+    "capacity": 16
+   },
+   {
+    "station_id": "9306",
+    "name": "FIXTURE Danforth / Fixture Ave",
+    "lat": 43.67704,
+    "lon": -79.34902,
+    "capacity": 16
+   }
+  ]
+ }
+}

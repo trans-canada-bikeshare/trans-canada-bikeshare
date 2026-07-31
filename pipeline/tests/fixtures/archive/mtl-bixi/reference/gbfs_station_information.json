@@ -1,0 +1,58 @@
+{
+ "last_updated": 1735689600,
+ "ttl": 60,
+ "version": "2.2",
+ "_note": "SYNTHETIC FIXTURE DATA — invented for testing, no source, no licence",
+ "data": {
+  "stations": [
+   {
+    "station_id": "9101",
+    "name": "FIXTURE Sherbrooke / Fixture",
+    "lat": 45.50412,
+    "lon": -73.57611,
+    "capacity": 16,
+    "short_name": "9901"
+   },
+   {
+    "station_id": "9102",
+    "name": "FIXTURE Rachel / Fixture",
+    "lat": 45.52618,
+    "lon": -73.58402,
+    "capacity": 16,
+    "short_name": "9902"
+   },
+   {
+    "station_id": "9103",
+    "name": "FIXTURE Peel / Fixture",
+    "lat": 45.49803,
+    "lon": -73.57221,
+    "capacity": 16,
+    "short_name": "9903"
+   },
+   {
+    "station_id": "9104",
+    "name": "FIXTURE Mont-Royal / Fixture",
+    "lat": 45.52411,
+    "lon": -73.59005,
+    "capacity": 16,
+    "short_name": "9904"
+   },
+   {
+    "station_id": "9105",
+    "name": "FIXTURE Berri / Fixture",
+    "lat": 45.51502,
+    "lon": -73.56304,
+    "capacity": 16,
+    "short_name": "9905"
+   },
+   {
+    "station_id": "9106",
+    "name": "FIXTURE Laurier / Fixture",
+    "lat": 45.53008,
+    "lon": -73.59902,
+    "capacity": 16,
+    "short_name": "9906"
+   }
+  ]
+ }
+}

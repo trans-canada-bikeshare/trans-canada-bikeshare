@@ -1,6 +1,16 @@
+# Direct dependencies and the lowest version each is known to work at.
+#
+# THIS IS NOT WHAT A REBUILD INSTALLS. It is what a dependency refresh resolves
+# FROM. Install `pipeline/requirements.lock` instead — exact versions, sha256
+# hashes, transitive packages included, Python 3.11:
+#
+#   .venv/bin/pip install --require-hashes -r pipeline/requirements.lock
+#
+# To move a bound: edit here, resolve into a fresh venv, run both test suites
+# and `make check`, then regenerate the lock by the recipe in its header.
+
 requests>=2.32
 openpyxl>=3.1
 duckdb>=1.2
 pytest>=8
-scikit-learn>=1.5
 numpy>=1.26

@@ -2,7 +2,7 @@
 
 ## Status
 
-Ready, with one owner decision required at load. Written 2026-07-31.
+Complete. Merged 2026-07-31; the owner decision (Path A, rename) is recorded below.
 
 ## Owner decision required at load
 
@@ -109,24 +109,24 @@ assignment forms that occur in this codebase are covered.
 
 ## Acceptance Criteria
 
-- [ ] The forecast section's name, copy, artifact self-description, and
+- [x] The forecast section's name, copy, artifact self-description, and
       validation method are mutually consistent under the chosen path.
-- [ ] Every completeness threshold lives in the central declaration; a
+- [x] Every completeness threshold lives in the central declaration; a
       planted rogue threshold in a publisher query fails a test.
-- [ ] Any month excluded or newly included by unification is enumerated in
+- [x] Any month excluded or newly included by unification is enumerated in
       the spec record with before/after counts.
-- [ ] Hourly surfaces say "rounded to the nearest hour" for Vancouver.
-- [ ] All artifacts validate against their schemas at publish and in CI;
+- [x] Hourly surfaces say "rounded to the nearest hour" for Vancouver.
+- [x] All artifacts validate against their schemas at publish and in CI;
       a planted shape drift fails.
 
 ## Data Integrity Checklist
 
 - ~~Manifest~~ — no new sources.
-- [ ] Metrics defined identically or labelled — the policy unification is
+- [x] Metrics defined identically or labelled — the policy unification is
       exactly this; verdicts per metric at review.
-- [ ] Committed artifacts reproduce byte-for-byte after regeneration.
-- [ ] Site copy derives from the data window.
-- [ ] Encodings explained — any changed forecast presentation re-checked.
+- [x] Committed artifacts reproduce byte-for-byte after regeneration.
+- [x] Site copy derives from the data window.
+- [x] Encodings explained — any changed forecast presentation re-checked.
 - ~~Attribution~~ / [ ] No raw data — standard.
 
 ## Testing

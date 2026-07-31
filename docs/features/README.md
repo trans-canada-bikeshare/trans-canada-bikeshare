@@ -54,7 +54,7 @@ to a reader and to anyone who wants to pick the work up.
 | 027 | [Deploy](027-deploy.md) | Complete — live at [bikeshare.adnanreza.com](https://bikeshare.adnanreza.com) |
 | 028 | [Trust release](028-trust-release.md) | Complete — report figures derived and gated, LICENSE reads MIT |
 | 029 | [Reproducibility release](029-reproducibility-release.md) | Complete — clean clone builds and CI proves it |
-| 030 | [Analytical integrity](030-analytical-integrity.md) | Ready — one owner decision at load (forecast naming) |
+| 030 | [Analytical integrity](030-analytical-integrity.md) | Complete — Weather scenario; one completeness declaration; 15 schema contracts |
 | 031 | [Open-source operations](031-open-source-operations.md) | Draft — firmed at load, shaped by 029's CI |
 | 032 | [Portfolio surface](032-portfolio-surface.md) | Draft — firmed at load against a fresh headed pass |
 

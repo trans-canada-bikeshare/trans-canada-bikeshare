@@ -32,7 +32,8 @@ unpacked archives.
 ```bash
 make check-manifest    # archive matches the manifests; pending vs corrupt
 make check-artifacts   # committed artifacts match a fresh publish run
-make check-metrics     # stub — spec 009 enforcement lives in publish.py today
+make check-metrics     # no cross-city series for a metric the registry does not
+                       #   support, and no system-keyed artifact left undeclared
 make check             # all three
 npm test && npm run typecheck && npm run build
 .venv/bin/python -m pytest pipeline/tests

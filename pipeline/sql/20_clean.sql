@@ -73,6 +73,31 @@ CREATE OR REPLACE MACRO parse_day_first(s) AS try_strptime(
   ['%d/%m/%Y %H:%M:%S', '%d/%m/%Y %H:%M', '%-d/%-m/%Y %-H:%M']
 );
 
+-- Station key normalisation lives HERE, one stage earlier than the identity it
+-- feeds, because the drop rule below has to ask the same question stage 30
+-- will: "does this row have a station at all?"
+--
+-- It did not, and five 2016 Toronto rows proved it. Their departure station
+-- name is the literal four-character string 'NULL' with no key beside it. The
+-- old predicate tested `nullif(trim(name), '')`, which 'NULL' passes, so the
+-- rows were KEPT — and stage 30 then nulled the token and produced no station
+-- identity for them. Kept rows with no departure station violate the rule this
+-- file states in its own header, and they were invisible to the funnel because
+-- nothing counted them under any reason.
+--
+-- Toronto's return-side ids also arrive float-formatted in some eras: '8160.0'
+-- beside '8160' for the same dock. Left alone they become two stations, which
+-- inflated the site's active-station count by roughly 2.3x. Only the exact
+-- 'NULL' token is nulled — scoped to the observed defect, nothing
+-- pattern-matched.
+CREATE OR REPLACE MACRO norm_key(s) AS
+  CASE WHEN upper(trim(cast(s AS VARCHAR))) = 'NULL' THEN NULL
+       ELSE nullif(regexp_replace(trim(cast(s AS VARCHAR)), '\.0+$', ''), '') END;
+
+CREATE OR REPLACE MACRO norm_name(s) AS
+  nullif(nullif(trim(regexp_replace(lower(cast(s AS VARCHAR)), '\s+', ' ', 'g')), 'null'),
+         '');
+
 -- Two-digit years. Mobi's 2019-04 file ships '4/20/19' and the whole of
 -- Toronto's 2017 Q4 uses M/D/YY. strptime's %Y cheerfully matches '19' and
 -- yields the year 19, so 421,805 rows landed in the first century — an entire
@@ -94,19 +119,17 @@ CREATE OR REPLACE MACRO parse_ts_ord(s, ord) AS fix_short_year(coalesce(
 -- not to hand. Do not use it inside clean_trips.
 CREATE OR REPLACE MACRO parse_ts(s) AS fix_short_year(coalesce(excel_ts(s), parse_month_first(s)));
 
-CREATE OR REPLACE TABLE clean_trips AS
-WITH
 -- Deduplication, scoped by measurement rather than applied blindly.
 --
 -- Measured rates over the full archive (pipeline/census + a hash count, ~10s):
---   van-mobi       2.812%  (252,772)  documented cross-file spillover
---   mtl-bixi       0.030%  ( 26,066)
---   tor-bikeshare  0.020%  (  7,773)
+--   van-mobi       2.812%  (documented cross-file spillover)
+--   mtl-bixi       0.030%
+--   tor-bikeshare  0.020%
 --
 -- Only Vancouver's rate changes a published figure — leaving it would overstate
 -- Vancouver's ridership by nearly 3%. So Vancouver is deduplicated exactly, and
--- the other two carry a measured, stated residual of ~0.02-0.03% reported in
--- the quality report.
+-- the other two carry a measured, stated residual reported in the quality
+-- report.
 --
 -- Why not dedupe all three: exact dedupe means grouping 135M rows into ~134.9M
 -- groups — nearly one group per row, the worst case for hash aggregation. It
@@ -117,7 +140,14 @@ WITH
 --
 -- This is a deliberate, quantified trade — not an oversight. Revisit if a
 -- future metric becomes sensitive at the 0.03% level.
-dedupe_keep AS (
+--
+-- MATERIALISED, not inlined as a CTE, so the row accounting can COUNT the rows
+-- this step removes against the very same keep set the table was built from.
+-- While it was a CTE the funnel had no way to count them, and the duplicate
+-- figure was landed-minus-kept-minus-everything-else — an identity that closes
+-- the funnel by construction and could not have detected a double-counted
+-- reason.
+CREATE OR REPLACE TABLE van_dedupe_keep AS
   SELECT min(rowid) AS keep_rid
   FROM raw_trips
   WHERE system_id = 'van-mobi'
@@ -125,8 +155,10 @@ dedupe_keep AS (
     departure_raw, departure_ms, return_raw, return_ms,
     departure_station_key, return_station_key,
     departure_station_name, return_station_name,
-    bike_id, duration_s
-),
+    bike_id, duration_s;
+
+CREATE OR REPLACE TABLE clean_trips AS
+WITH
 typed AS (
   SELECT
     r.rowid                                                     AS rid,
@@ -182,10 +214,13 @@ typed AS (
 SELECT * EXCLUDE (rid)
 FROM typed
 WHERE departure_ts IS NOT NULL
-  AND (departure_station_key IS NOT NULL OR departure_station_name IS NOT NULL)
+  -- The SAME question stage 30 asks. Testing the trimmed raw values here let
+  -- the literal token 'NULL' through as if it were a station name.
+  AND (norm_key(departure_station_key) IS NOT NULL
+       OR norm_name(departure_station_name) IS NOT NULL)
   -- Vancouver is deduplicated; the other two pass through with the measured
   -- residual recorded above and reported in docs/data-quality-report.md.
-  AND (system_id <> 'van-mobi' OR rid IN (SELECT keep_rid FROM dedupe_keep));
+  AND (system_id <> 'van-mobi' OR rid IN (SELECT keep_rid FROM van_dedupe_keep));
 
 -- Toronto's 2016.xlsx Q4 worksheet has a mixed-type date column that TORONTO'S
 -- OWN Excel corrupted before publishing. The sheet was built from D/M/Y text;

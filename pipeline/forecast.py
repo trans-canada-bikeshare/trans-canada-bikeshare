@@ -49,10 +49,20 @@ absent from `fact_trips`; it stays absent. Manufacturing a zero for it would
 teach the model that January in Montreal means no riding when what it means is
 no service, and would put a service decision inside a temperature coefficient.
 
-Fit statistics are IN-SAMPLE and labelled so everywhere they appear. There is
-no holdout: the artifact describes how ridership varied with weather over the
-observed window, which is a different and weaker claim than forecasting a
-future day, and the site makes that claim in those words.
+The headline fit statistics are IN-SAMPLE and labelled so everywhere they
+appear. A 5-fold **day-within-month** holdout is computed alongside them and
+published as `cv_folds`, `cv_held_out_days`, `cv_r2_log` and
+`cv_median_abs_pct_error`: each model is refitted five times with one day in
+five held out, every calendar month keeping its own level so no fold can leave
+a level unidentified. That is a real out-of-sample measurement of the five
+weather coefficients — it answers whether they generalise to days the fit never
+saw — and it is exactly the question the interactive section asks, since that
+section moves the weather inside a month the model has seen.
+
+It is NOT temporal validation, and nothing here should be read as one. No month
+and no year is ever held out, so the artifact still describes how ridership
+varied with weather over the observed window rather than forecasting a future
+day, and the site makes that weaker claim in those words.
 """
 
 from __future__ import annotations
@@ -608,8 +618,13 @@ def build(con, first_year: int = DEFAULT_FIRST_YEAR, trusted: str = "TRUE") -> d
                     "reference level and is absorbed into the intercept.",
         },
         "response": "ln(daily trips)",
-        "fit_basis": "in-sample: every statistic is computed on the same days "
-                     "the model was fitted to, with no holdout",
+        "fit_basis": "in-sample: every headline statistic is computed on the "
+                     "same days the model was fitted to. Published beside them "
+                     "are 5-fold day-within-month holdout figures (cv_folds, "
+                     "cv_held_out_days, cv_r2_log, cv_median_abs_pct_error), "
+                     "which validate the weather coefficients on days the fit "
+                     "never saw inside months it did — a within-month scenario "
+                     "check, not a forecast of an unseen month",
         "envelope_note": "The per-month range is what the model has actually "
                          "seen in that month of the year. Outside it the model "
                          "refuses rather than extrapolating.",

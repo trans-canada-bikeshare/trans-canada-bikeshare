@@ -177,7 +177,7 @@
     "van-mobi": {
      "supported": true,
      "qualified": true,
-     "note": "Mobi publishes departure and return times ON THE HOUR — 100% of rows in every era except 2019-04 and 2025-05. The hour buckets are therefore the source's own hour labels, whose phase within the hour is not stated; the daily figure is unaffected, since it aggregates by date. Measured, not assumed: the share of Vancouver trips whose return hour differs from their departure hour is 27.5%, against 25.8% predicted by its own published durations."
+     "note": "Mobi publishes departure and return times ON THE HOUR — 100% of rows in every era except 2019-04 and 2025-05. The source states these are rounded to the nearest hour as a privacy measure (mobibikes.ca/en/system-data, read 2026-07-31), so each label is within ±30 minutes of the true time; the daily figure is unaffected, since it aggregates by date. Measured, not assumed: the share of Vancouver trips whose return hour differs from their departure hour is 27.5%, against 25.8% predicted by its own published durations."
     },
     "mtl-bixi": {
      "supported": true
@@ -186,7 +186,7 @@
      "supported": true
     }
    },
-   "caveat": "A DERIVED LOWER BOUND, not an observed count of rebalancing. It assumes an overnight reset, ignores every move made inside the day, and excludes trips without both ends. Every surface showing it must say so beside the number."
+   "caveat": "A DERIVED LOWER BOUND, not an observed count of rebalancing. It assumes an overnight reset, ignores every move made inside the day, and excludes trips without both ends. Every surface showing it must say so beside the number. Vancouver's is narrower still: Mobi states that trips made by its operations team for rebalancing and maintenance have been removed before publication (mobibikes.ca/en/system-data, read 2026-07-31), so the bound there is derived from rider trips that no longer sit beside the real operations moves — it cannot be checked against them, and does not include them."
   },
   "bike_dwell": {
    "label": "Dwell at a dock",

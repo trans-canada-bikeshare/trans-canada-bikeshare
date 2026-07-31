@@ -76,13 +76,25 @@ LEFT JOIN mapped m
 -- Vancouver's distinct pair count by 44%, Toronto's by 5% and Montreal's not
 -- at all — which is precisely the "different amount each" failure the comment
 -- above warns is the worst kind for a side-by-side comparison.
+-- A raw label is source-faithful and stays on the fact exactly as published.
+-- It is not a NAME. Toronto's files carry the literal four-character string
+-- 'NULL' in the station-name column of 783,019 trips whose station ids are
+-- real and resolve normally, so identity is unaffected — but `arg_max` over
+-- those labels handed seven Toronto stations the display name "NULL". A
+-- station whose name the source did not publish is nameless, and every surface
+-- here already has a case for that; none of them has a case for a dock called
+-- NULL. Applied wherever a label becomes a name, never to the fact.
+CREATE OR REPLACE MACRO display_label(s) AS
+  CASE WHEN upper(trim(cast(s AS VARCHAR))) = 'NULL' THEN NULL ELSE s END;
+
 CREATE OR REPLACE TABLE station_identity AS
 WITH usage AS (
-  SELECT system_id, departure_station_id AS station_id, departure_label AS label,
+  SELECT system_id, departure_station_id AS station_id,
+         display_label(departure_label) AS label,
          departure_ts AS ts
   FROM conformed_trips WHERE departure_station_id IS NOT NULL
   UNION ALL
-  SELECT system_id, return_station_id, return_label, return_ts
+  SELECT system_id, return_station_id, display_label(return_label), return_ts
   FROM conformed_trips WHERE return_station_id IS NOT NULL
 ),
 -- Step 1: Montreal's era-local ids collapse to one canonical identity where
@@ -125,11 +137,12 @@ JOIN resolved_mid r ON r.system_id = s.system_id AND r.mid = s.mid;
 
 CREATE OR REPLACE TABLE dim_station AS
 WITH usage AS (
-  SELECT system_id, departure_station_id AS station_id, departure_label AS label,
+  SELECT system_id, departure_station_id AS station_id,
+         display_label(departure_label) AS label,
          departure_ts AS ts
   FROM conformed_trips WHERE departure_station_id IS NOT NULL
   UNION ALL
-  SELECT system_id, return_station_id, return_label, return_ts
+  SELECT system_id, return_station_id, display_label(return_label), return_ts
   FROM conformed_trips WHERE return_station_id IS NOT NULL
 ),
 resolved AS (

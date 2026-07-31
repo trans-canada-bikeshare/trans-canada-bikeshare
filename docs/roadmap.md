@@ -1,16 +1,17 @@
 # v1 Roadmap
 
-> **Status as of 2026-07-30.** Merged: **001–022, 025, 026** (004 folded into
-> 003; 009 completed by 009b). 135,598,303 trips over the full pinned archive;
-> the site renders trips, seasonality, stations, e-bikes, membership, maps and
-> flows from committed aggregates, all gates real.
+> **Status as of 2026-07-31.** Merged: **001–027** (004 folded into 003; 009
+> completed by 009b). 135,598,303 trips over the full pinned archive; the site
+> renders trips, seasonality, stations, e-bikes, membership, maps, flows,
+> forecast and operational signals from committed aggregates, all gates real,
+> live at bikeshare.adnanreza.com since 2026-07-30.
 >
-> **Not built: 023 forecast (unblocked — 013 weather is in), 024 signals
-> (reduced two-city scope agreed), 027 deploy (deliberate; three owner
-> decisions gate it).**
+> **In progress: 028**, the first hardening release — the trust instruments
+> themselves (quality report, licence files, self-descriptions) audited and
+> corrected. **029–032** follow it.
 >
-> This block is written by hand and has been stale twice; when it disagrees
-> with `git log` or `docs/features/README.md`, they win.
+> This block is written by hand and has been stale three times; when it
+> disagrees with `git log` or `docs/features/README.md`, they win.
 
 Full parity with the Vancouver project across three docked systems. Twenty-seven
 specs in eight phases, each one small enough to load, build, review, and merge on
@@ -207,11 +208,18 @@ the project's own principles are not yet fully met.
 - ~~`van-mobi` 2022-10 missing~~ — **recovered 2026-07-29** from the sister
   project's archive with an independently verified checksum, since Drive
   still 500s. 110,198 trips. Provenance recorded in the manifest.
-- ~~~31,000 rows discarded before landing~~ — **fixed 2026-07-29.** Line-level
-  UTF-8 repair recovered all 31,315.
+- ~~~31,000 rows discarded before landing~~ — **fixed 2026-07-29 by repair,
+  not by tolerance.** Line-level UTF-8 repair recovered all 31,315; nothing is
+  discarded on encoding any more. The committed quality report went on
+  describing this as an open gap until spec 028, because that paragraph was
+  hardcoded prose rather than a derived figure — the loss was fixed in the
+  code and left standing in the document that reports on the code.
 - ~~`rows_landed` not reconciled against source record counts~~ — **fixed
   2026-07-29.** `raw_file_audit` compares them per file and aborts on
-  mismatch.
+  mismatch. It runs inside extract, so a warehouse already built is not
+  re-checked by any `make` target; **promoting it to a standing gate is spec
+  029**, with the checksum-keyed caching that makes re-running extraction
+  cheap enough to be routine.
 - ~~Montreal station identity spans three key spaces~~ — **closed
   2026-07-29.** `pipeline/sql/35_bridge.sql` reconciles them through GBFS;
   identities 3,490 -> 1,776 against a live network of 1,107, with 88.1% of

@@ -86,6 +86,22 @@ Two things the download surfaced that the carried map does not capture:
    > (`2019-04`, `2025-05`). A precision claim needs the distinct-value count,
    > not a row that happens to look like the claim. `docs/decisions.md`,
    > 2026-07-30.
+   >
+   > **Extended 2026-07-31, spec 028, from the source page itself** — Mobi's
+   > system-data page (https://www.mobibikes.ca/en/system-data, fetched
+   > 2026-07-31) states that the times are rounded to the nearest hour for
+   > privacy, and that operations-team rebalancing and maintenance trips are
+   > removed:
+   >
+   > > Departure and Return times of trips have been rounded to the nearest hour to maintain the privacy of our users.
+   >
+   > > Trips made by our Operations team for purposes of rebalancing and maintenance have been removed.
+   >
+   > So the labels round rather than floor, the resolution is a deliberate
+   > privacy measure rather than an unexplained artifact, and any Vancouver
+   > operations metric is computed from data the publisher has already taken
+   > the real operations movements out of. Both statements are carried
+   > verbatim in `DATA-LICENSES.md`.
 2. **The period label is not the content month.** The file published as
    `2025-01` contains rows dated `2025-02-01`. The Vancouver project handles
    this by deriving a canonical departure month at conform rather than trusting
@@ -325,6 +341,9 @@ terms (attribution to BIXI Montreal)" — **is not supported by anything on the
 source page**. The CC BY-SA 4.0 seen elsewhere belongs to a third party's
 republication of the 2014–2021 files, not to BIXI. Resolve before any
 Montreal-derived artifact ships.
+
+> **Done 2026-07-28**, and moved 2026-07-31 (spec 028): every data term now
+> lives in `DATA-LICENSES.md`, and `LICENSE` is the MIT text alone.
 
 ---
 

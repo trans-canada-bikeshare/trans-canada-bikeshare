@@ -16,34 +16,40 @@ python3 -m venv .venv
 
 ## Commands
 
-Only the test suite exists today. Each line below arrives with its spec, and
-this list grows in the order the pipeline runs.
+The pipeline is built end to end. These run in this order; `docs/runbook.md` is
+the operational truth for a full rebuild or a monthly refresh.
 
 ```bash
 # Tests (no network)
 .venv/bin/python -m pytest pipeline/tests
 
-# spec 003  refresh manifests + download every pinned source, per system
-# spec 004  verify the archive: gaps, short files, checksum mismatches
-# spec 005  extract -> raw_trips, unified through per-city era maps
-# spec 006  clean: typing, timestamps, hard drops, dedupe
-# spec 007  conform: station identity, canonical month, quality flags
-# spec 008  model: fact_trips + dim_system/station/date/membership
-# spec 010  regenerate the committed data quality report
-# spec 013  Environment and Climate Change Canada daily weather, per city
-# spec 014  publish typed JSON aggregates under the size budget
+.venv/bin/python pipeline/discover.py        # refresh manifests from the source pages
+.venv/bin/python pipeline/weather.py         # derive the ECCC years from the trip window
+.venv/bin/python pipeline/download.py        # ~20 GB, resumable, checksum-pinned
+.venv/bin/python pipeline/inventory.py       # verify the archive: gaps, sizes, checksums
+.venv/bin/python pipeline/census.py          # header layouts, to maintain the era maps
+.venv/bin/python pipeline/etl.py --stage all # extract -> clean -> conform -> model
+.venv/bin/python pipeline/publish.py         # typed JSON aggregates to src/data/generated/
+.venv/bin/python pipeline/quality_report.py  # docs/data-quality-report.md
 ```
+
+`forecast.py` is a library, not a script: `publish.py` calls it to fit one
+weather-and-calendar model per system.
 
 ## Gates
 
 ```bash
 make check-manifest    # spec 003/004 — archive matches the manifests
-make check-metrics     # spec 009 — no cross-city series for an unsupported metric
-make check-artifacts   # spec 011 — committed artifacts match a fresh run
-make check             # all three
+make check-metrics     # spec 009/009b — no cross-city series for an unsupported
+                       #   metric, and no system-keyed artifact left undeclared
+make check-artifacts   # spec 011 — committed artifacts match a fresh publish run
+make check             # all of them
 ```
 
-These are stubs until their specs land, and each says so when run.
+All of these are real and exit non-zero on a violation. `check-metrics` printed
+"stub" and exited 0 until 2026-07-29 while `metric_support.json` claimed it was
+enforced; spec 009b closed that, and `pipeline/tests/` plants a violation per
+rule so a gate that cannot fail is caught by the suite.
 
 ## Systems
 

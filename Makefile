@@ -39,6 +39,16 @@ check-manifest:
 check-metrics:
 	$(PYTHON) pipeline/check_metrics.py
 
-check: check-manifest check-metrics check-artifacts
+# Spec 028. Regenerates docs/data-quality-report.md from the warehouse and fails
+# on any difference from the committed copy, excluding only the generation
+# timestamp. The report is the project's public row accounting and it sat
+# outside every gate until this target existed — long enough to publish a 0.0%
+# where the warehouse says 88.9%, and an encoding loss the pipeline had already
+# stopped taking. Generation itself refuses on a non-zero funnel residual or a
+# kept trip with no departure station, so this target is two gates in one.
+check-report:
+	$(PYTHON) pipeline/check_report.py
 
-.PHONY: check check-artifacts check-manifest check-metrics
+check: check-manifest check-metrics check-artifacts check-report
+
+.PHONY: check check-artifacts check-manifest check-metrics check-report

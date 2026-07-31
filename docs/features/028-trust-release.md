@@ -140,9 +140,13 @@ None. This is the first hardening release and blocks 029-032.
       Toronto as unaffiliated operators.
 - [ ] `pipeline/README.md` and the runbook describe the metric gate as it
       exists; roadmap's encoding-gap entry reflects the repair.
-- [ ] All artifacts except `forecast.json` and `rebalancing.json`
-      byte-match the previous publish; those two change only in the stated
-      fields.
+- [ ] All artifacts byte-match the previous publish except: `forecast.json`
+      (fit_basis only), any artifact carrying the `rebalancing_pressure`
+      caveat or the van-mobi hour-rounding note (those fields only — the
+      note now cites the source's stated rounding instead of calling the
+      phase unknown), and any artifact whose Toronto 2016 figures move by
+      exactly the five re-accounted rows — each diff enumerated at review
+      with before/after values.
 
 ## Data Integrity Checklist
 

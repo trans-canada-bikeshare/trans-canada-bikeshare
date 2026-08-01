@@ -1,3 +1,5 @@
+import { useId } from "react";
+
 import type { Series } from "@/components/charts/LineChart";
 
 interface Props {
@@ -45,6 +47,8 @@ export function SeriesTable({ series, xHeader, xLabel, yLabel, caption }: Props)
   );
   const byX = series.map((s) => new Map(s.points.map((p) => [p.x, p.y])));
 
+  const captionId = useId();
+
   if (xs.length === 0 || series.length === 0) return null;
 
   return (
@@ -52,9 +56,21 @@ export function SeriesTable({ series, xHeader, xLabel, yLabel, caption }: Props)
       <summary className="eyebrow cursor-pointer select-none marker:text-muted-foreground hover:text-foreground">
         Data table · {xs.length} {xs.length === 1 ? "row" : "rows"}
       </summary>
-      <div className="mt-3 max-h-[22rem] overflow-auto border border-border">
+      {/* tabIndex + region + a name: a max-height scroll container must be
+          keyboard-focusable (Safari never auto-focuses scrollable divs, and
+          axe flags scrollable-region-focusable as serious — found in review
+          with the tables OPEN, which the first audit never exercised). */}
+      <div
+        className="mt-3 max-h-[22rem] overflow-auto border border-border"
+        tabIndex={0}
+        role="region"
+        aria-labelledby={captionId}
+      >
         <table className="w-full border-collapse text-[12px]">
-          <caption className="border-b border-border px-3 py-2 text-left text-[12px] leading-snug text-muted-foreground">
+          <caption
+            id={captionId}
+            className="border-b border-border px-3 py-2 text-left text-[12px] leading-snug text-muted-foreground"
+          >
             {caption}
           </caption>
           <thead>

@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef, useState } from "react";
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 interface Props {
   /** The same `[anchor, label]` list the desktop nav renders. One source, so a
@@ -69,6 +68,21 @@ export function MobileNav({ items }: Props) {
     return () => {
       document.body.style.overflow = previous;
     };
+  }, [open]);
+
+  // Crossing to the desktop breakpoint with the menu open hid the wrapper via
+  // CSS while `open` (and the scroll lock) stayed true — an unscrollable page
+  // whose closing control is display:none. Found in review; the menu closes
+  // itself the moment the desktop nav takes over.
+  useEffect(() => {
+    if (!open) return;
+    const mq = window.matchMedia("(min-width: 1024px)");
+    const onChange = () => {
+      if (mq.matches) setOpen(false);
+    };
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
   }, [open]);
 
   /** Tab wraps around the button and the links, in both directions. */

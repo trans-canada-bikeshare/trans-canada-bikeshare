@@ -403,7 +403,7 @@ export default function App() {
               xHeader="Month"
               xLabel={(x) => MONTH_SHORT[Math.max(0, Math.min(11, Math.round(x) - 1))]}
               yLabel={(y) => `${y.toFixed(2)}%`}
-              caption={`Each month's share of that system's own year, ${seasonality.first_year} onward, whole months only.`}
+              caption={`Each month's share of that system's own year, ${seasonality.first_year} onward, whole months only. An em dash is a value the system has no whole-month data for.`}
             />
           </Section>
 
@@ -424,7 +424,7 @@ export default function App() {
               xHeader="Year"
               xLabel={(x) => String(Math.round(x))}
               yLabel={full}
-              caption="Distinct stations seen in each year's trips, by system."
+              caption="Distinct stations seen in each year's trips, by system. An em dash is a year that system published no trips for."
             />
           </Section>
 
@@ -484,7 +484,7 @@ export default function App() {
               xHeader="Month"
               xLabel={(x) => monthLabel(monthKeyFromIndex(Math.round(x)))}
               yLabel={(y) => `${y.toFixed(2)}%`}
-              caption="Member share of labelled trips, by month. The denominator is member plus casual: an unlabelled trip is unknown, not casual. Withheld months are absent from both the chart and this table, and are described below."
+              caption="Member share of labelled trips, by month. The denominator is member plus casual: an unlabelled trip is unknown, not casual. Withheld months keep their rows here with the member share left as an em dash — the value is unknown, not zero — and are described below."
             />
 
             {partialSeries.length > 0 && (
@@ -742,7 +742,7 @@ export default function App() {
                 site carries one (see components/DataTable.tsx); this section
                 has no chart. Its two surfaces are the maps — whose figures are
                 stated in each map's own sr-only paragraph and in the counts
-                above it, because a per-station table would be 2,334 rows of
+                above it, because a per-station table would be thousands of rows of
                 coordinates — and the busiest-pair lists below, which are
                 already text: name, direction and count, reachable in reading
                 order with no pointer. */}

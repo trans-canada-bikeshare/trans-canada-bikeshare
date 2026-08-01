@@ -111,11 +111,19 @@ All against the Pages preview deployment (branch preview-032), where
   links, focus moves in, scroll locks; Escape closes, returns focus,
   unlocks; tables open with artifact-faithful cells (Apr 2014 row: 108,264
   Montreal, em-dashes for systems not yet operating).
-- **DOM audit (axe-equivalent: names, labels, ids, heading order,
-  landmarks, table headers, aria integrity) at 1280px and 390px**: one
-  finding — the menu's aria-controls dangled when closed (conditional
-  render); fixed by keeping the panel in the DOM with hidden, and the nav
-  test now pins closed-means-hidden-never-absent. Zero findings after.
+- **DOM audit at 1280px and 390px**: the author's structural audit (names,
+  labels, ids, heading order, landmarks, table headers, aria integrity)
+  found one issue — the menu's aria-controls dangled when closed; fixed by
+  keeping the panel in the DOM with hidden, contract pinned in a test. Its
+  "zero findings after" claim was then corrected by review: real axe-core
+  4.10.3 with every table OPEN found scrollable-region-focusable (serious)
+  on the table scroll containers — a state the author's audit never
+  exercised, and a Safari keyboard user could not scroll 139 rows. Fixed
+  (tabIndex, role region, aria-labelledby to the caption); **axe re-run
+  with all eight tables open: zero violations at 1280 and at 390.** Review
+  also caught a scroll-lock leak when crossing to desktop with the menu
+  open (now closes itself on the breakpoint, verified) and three caption
+  wording nits (fixed).
 - **Social card**: served from the preview as image/png at exactly
   1200x630, byte-identical to the committed asset.
 - **CWV, same tool same machine (Playwright, 1280px)**:

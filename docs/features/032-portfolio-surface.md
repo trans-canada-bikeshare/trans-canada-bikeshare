@@ -139,3 +139,23 @@ All against the Pages preview deployment (branch preview-032), where
 - **Suites**: 199 vitest, typecheck, build; pipeline gates untouched by
   this spec's changes and green at branch (270 pytest, six-gate make
   check earlier in-branch).
+
+## Production verification (complete, 2026-07-31)
+
+Post-merge, against https://bikeshare.adnanreza.com (deployment source
+13337a3, main CI green, PR #7 merged):
+
+- All five security header classes on `/`; the CSP byte-identical to the
+  committed `_headers` line; worker files exactly
+  `public, max-age=0, must-revalidate`; **`/og-image` serves
+  `x-robots-tag: noindex`** — the rule no preview could prove.
+- All three maps drew their dots headed under the enforced CSP
+  (artifact-exact counts, OpenFreeMap basemaps, zero violations).
+- Served bytes hash-identical to the local build.
+- One platform observation, not a defect: the custom domain serves
+  `/og-image.png` with `max-age=14400` although the deployment itself
+  (preview and deployment-direct URLs) serves the rule's 3600 — the
+  adnanreza.com zone's Browser Cache TTL floors cacheable assets at four
+  hours. The consequence (a social card cached 4h instead of 1h) is
+  immaterial; changing the zone setting is the owner's call since it
+  spans every subdomain.

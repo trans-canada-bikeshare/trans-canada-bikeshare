@@ -67,7 +67,12 @@ describe("mobile section menu", () => {
     expect(b).toHaveAttribute("aria-expanded", "false");
     const controls = b.getAttribute("aria-controls");
     expect(controls).toBeTruthy();
-    expect(document.getElementById(controls!)).toBeNull();
+    // The referenced element must EXIST in every state — a conditional
+    // render left aria-controls dangling whenever the menu was shut (032
+    // DOM audit). Closed means hidden, never absent.
+    const panel = document.getElementById(controls!);
+    expect(panel).not.toBeNull();
+    expect(panel!.hidden).toBe(true);
   });
 
   it("opens the same section list the desktop nav carries", async () => {

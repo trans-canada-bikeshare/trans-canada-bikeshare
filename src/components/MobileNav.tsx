@@ -112,13 +112,16 @@ export function MobileNav({ items }: Props) {
         Sections
       </button>
 
-      {open && (
-        <div
-          id={panelId}
-          ref={panelRef}
-          // Anchored to the sticky header, which is a positioned ancestor.
-          className="absolute inset-x-0 top-full max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-border bg-background shadow-sm"
-        >
+      {/* Always in the DOM, `hidden` when closed: the button's aria-controls
+          must reference an id that exists, and a conditional render left it
+          dangling whenever the menu was shut — found by the 032 DOM audit. */}
+      <div
+        id={panelId}
+        ref={panelRef}
+        hidden={!open}
+        // Anchored to the sticky header, which is a positioned ancestor.
+        className="absolute inset-x-0 top-full max-h-[calc(100vh-3.5rem)] overflow-y-auto border-b border-border bg-background shadow-sm"
+      >
           <nav aria-label="Sections" className="container grid grid-cols-2 gap-x-6 py-4 sm:grid-cols-3">
             {items.map(([id, label]) => (
               <a
@@ -135,7 +138,6 @@ export function MobileNav({ items }: Props) {
             ))}
           </nav>
         </div>
-      )}
     </div>
   );
 }

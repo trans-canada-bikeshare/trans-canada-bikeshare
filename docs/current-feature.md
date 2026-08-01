@@ -1,24 +1,53 @@
-# Current Feature
+# Current Feature: 032 Portfolio surface
 
 ## Status
 
-_No feature in progress._
+In Progress
 
 ## Lifecycle
 
-- [ ] load
-- [ ] start
-- [ ] test
-- [ ] review
+- [x] load — 2026-07-31
+- [x] start — 2026-07-31
+- [x] test — 2026-07-31
+- [x] review — 2026-07-31
 
 ## Goals
 
-<!-- Filled by `/feature load` from the spec's Acceptance Criteria, verbatim. -->
+- On a phone-width viewport, every section is reachable through the menu
+  and by keyboard alone; the skip link is the first tab stop and works;
+  verified headed on the Pages preview, driven directly.
+- Axe (or equivalent DOM audit) reports no serious/critical violations on
+  desktop and phone widths.
+- Every chart section exposes its data to keyboard/AT users via a
+  focusable table derived from the same committed artifact; a test pins
+  one table's values to the artifact.
+- og:image + Twitter card meta present; the card fetches as image/png at
+  1200x630 from the deployed preview; asset provenance recorded.
+- Headers verified live on the Pages preview AND production after merge:
+  HSTS, Permissions-Policy, CSP present; hashed /assets/* immutable;
+  maplibre worker files still must-revalidate; all three maps draw dots
+  WITH CSP enforced (headed).
+- CWV (LCP, CLS, INP-proxy) measured headed on preview and production,
+  recorded in the spec; no regression attributable to headers/caching.
+- 173+ vitest, typecheck, build, and the full pipeline gate battery stay
+  green; committed artifacts untouched.
 
 ## Notes
 
-<!-- Dependencies, sources and cities touched, licence constraints, and
-     whether this feature changes any published artifact. -->
+- **Depends on:** 028 (truthful claims before promoting them), 030
+  (stable section naming). Both in History.
+- **Sources / cities / artifacts:** none; site and Pages config only.
+- **Verification model (firmed at load):** `_headers` does not apply
+  under `vite preview`, so CSP/HSTS/caching are proven on a Cloudflare
+  Pages preview deployment of the branch before merge, then re-verified
+  on production after. Maps-under-CSP is the highest-risk item (worker
+  from blob, OpenFreeMap origins).
+- **Deferred by decision at load:** the landing emphasis pass (owner
+  input on which findings lead).
+- **Implementation:** one Opus agent for the site/headers/meta work; the
+  og:image raster is composed via a prepared HTML file screenshot at
+  1200x630 in the orchestrator's headed browser; headed verification
+  loops in the orchestrating context.
 
 ## History
 

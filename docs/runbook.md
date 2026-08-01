@@ -407,6 +407,29 @@ and `rel=canonical` in `index.html` carry the same URL.
 A redeploy is the last two commands. The site serves static assets only — no
 Pages Functions — so traffic consumes nothing from the Workers plan.
 
+### Response headers
+
+They live in **`public/_headers`**, which Vite copies verbatim to
+`dist/_headers` for Pages to parse. The file explains itself; three things to
+know before touching it:
+
+- **`vite preview` does not read it.** These headers can only be observed on a
+  deployment, so a change to them is verified with `curl -sI` against a Pages
+  **preview** URL before production, never from local serving.
+- **Pages merges every matching rule** and comma-joins repeated header names —
+  there is no last-match-wins. That is why the two un-hashed MapLibre worker
+  files detach `Cache-Control` with `! Cache-Control` before setting their own;
+  without it they would inherit the immutable year meant for hashed assets, and
+  a stale worker means blank maps.
+- **The CSP names the tile provider explicitly.** `img-src` and `connect-src`
+  both carry `https://tiles.openfreemap.org`, taken from `STYLE` in
+  `src/components/StationMap.tsx` and confirmed against both style JSONs
+  (tiles, sprites and glyphs are all on that one origin). **Change the basemap
+  provider and the CSP has to move with it**, or the maps go blank with only a
+  console violation to say why. `script-src` pins `index.html`'s inline theme
+  script by sha256; `src/headers.test.ts` fails if that script is edited and
+  the hash is not recomputed (the command is in the file's own comments).
+
 The owner decisions that gated the first deploy, all settled 2026-07-30:
 
 - **The BIXI licence question** — proceed, publishing Montreal with its terms

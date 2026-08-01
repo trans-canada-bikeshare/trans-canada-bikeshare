@@ -51,12 +51,17 @@
 #                        No 'unsafe-eval': MapLibre v6 reaches `eval` only on
 #                        its non-module plugin-loading path, which is not used
 #                        here (maplibre-gl-worker.mjs takes the module branch).
-#   style-src            'unsafe-inline' because index.html's boot skeleton is
-#                        an inline <style>, and the charts, stat grid, flow
-#                        legend and forecast bars set `style=` attributes to
-#                        carry each system's series colour. Style ATTRIBUTES
-#                        cannot be hashed, so this is the honest value rather
-#                        than a hash that would silently drop the colours.
+#   style-src            'unsafe-inline' for two consumers: index.html's boot
+#                        skeleton is an inline <style> (hashable in principle),
+#                        and the served og-image page carries literal style=""
+#                        attributes. React's style PROPS go through CSSOM,
+#                        which style-src does not govern, so the SPA itself
+#                        would run under a hash + CSP3 'unsafe-hashes'; that
+#                        tightening is available if the og-image page ever
+#                        gets its own detached CSP. (Comment corrected in
+#                        review — the first draft blamed the chart style
+#                        props, a false premise a future tightening would
+#                        have been argued against.)
 #   img-src data:        maplibre-gl.css draws its zoom controls from
 #                        `url("data:image/svg+xml…")`.
 #   img-src blob:        maplibre-gl-shared.mjs decodes tile and sprite images
@@ -65,10 +70,14 @@
 #                        vector tiles, raster shading, sprites and glyphs all
 #                        resolve to that one origin — verified against both the
 #                        positron and dark styles StationMap.tsx names.
-#   font-src data:       public/og-image.html embeds its typeface as a data:
-#                        URI so the social card renders identically wherever it
-#                        is screenshotted. The site's own fonts are same-origin
-#                        files from @fontsource-variable.
+#   font-src data:       a site-wide LOOSENING whose only consumer is the
+#                        served og-image page (its typeface is a data: URI so
+#                        the card renders identically wherever screenshotted).
+#                        The site's own fonts are same-origin files from
+#                        @fontsource-variable and need only 'self'. Kept
+#                        because a data: font is marginal risk; the tighter
+#                        alternative is a detached per-path CSP for the
+#                        og-image page.
 #   worker-src blob:     MapLibre spawns its tile-parsing worker from a Blob
 #                        that imports /assets/maplibre-gl-worker.mjs; child-src
 #                        repeats it for browsers that predate worker-src.
@@ -113,5 +122,12 @@
 # Its source composition ships because `public/` ships whole. It is a build
 # input, not a page of this site, and it says so in its own <meta> too.
 
+# Pages' clean URLs serve this page at /og-image (the .html path answers
+# 308) — found in review, where the rule was keyed to the redirect and the
+# only working noindex was the page's own <meta>. Both paths carry the
+# header now; verifiable on production only, because every *.pages.dev
+# preview response gets a platform x-robots-tag regardless.
+/og-image
+  X-Robots-Tag: noindex
 /og-image.html
   X-Robots-Tag: noindex

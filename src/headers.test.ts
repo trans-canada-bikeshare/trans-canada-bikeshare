@@ -119,7 +119,11 @@ describe("public/_headers", () => {
 
     expect(csp).not.toContain("unsafe-eval");
     // A wildcard source would make every other line of this test decorative.
+    // Review widened this: the first regex caught only a bare `*`, not
+    // `https://*` or `*.example.com`, where the star abuts `/` or `.`.
     expect(csp).not.toMatch(/(^|[ ;])\*([ ;]|$)/);
+    expect(csp).not.toMatch(/:\/\/\*/);
+    expect(csp).not.toMatch(/(^|[ ;])\*\./);
     expect(directive("script-src")).not.toContain("unsafe-inline");
   });
 
@@ -169,5 +173,48 @@ describe("public/_headers", () => {
     const cache = header("/og-image.png", "Cache-Control") ?? "";
     expect(cache).toMatch(/max-age=3600/);
     expect(cache).not.toContain("immutable");
+  });
+});
+
+
+// Review hardening: the detach discipline held for the two FILES-derived
+// rules but nothing enforced it generally — a future narrow rule re-stating
+// a header an earlier glob already sets would ship a comma-joined value
+// with the suite green. Pages merges; every re-statement must detach first.
+describe("_headers merge discipline, generally", () => {
+  const globToRegex = (glob: string) =>
+    new RegExp(
+      "^" +
+        glob
+          .split("*")
+          .map((s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+          .join(".*") +
+        "$",
+    );
+
+  it("every rule shadowed by an earlier glob detaches before re-setting its headers", () => {
+    const rules = parse(read("public/_headers"));
+    for (let i = 0; i < rules.length; i++) {
+      for (let j = i + 1; j < rules.length; j++) {
+        const broad = rules[i];
+        const narrow = rules[j];
+        if (!broad.path.includes("*")) continue;
+        if (!globToRegex(broad.path).test(narrow.path.replace(/\*/g, "x"))) continue;
+        const broadSets = new Set(
+          broad.headers.filter(([, v]) => v !== DETACH).map(([n]) => n.toLowerCase()),
+        );
+        for (const [name, value] of narrow.headers) {
+          if (value === DETACH) continue;
+          if (!broadSets.has(name.toLowerCase())) continue;
+          const detached = narrow.headers.some(
+            ([n, v]) => n.toLowerCase() === name.toLowerCase() && v === DETACH,
+          );
+          expect(
+            detached,
+            `${narrow.path} re-states ${name}, set by ${broad.path}, without detaching — Pages would comma-join both values`,
+          ).toBe(true);
+        }
+      }
+    }
   });
 });

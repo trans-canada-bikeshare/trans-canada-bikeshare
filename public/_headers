@@ -1,0 +1,117 @@
+# Response headers for Cloudflare Pages.
+#
+# `public/` is copied into `dist/` verbatim, so this file ships as
+# `dist/_headers` and Pages parses it rather than serving it. `vite preview`
+# does NOT read it — the only place these headers can be observed is a
+# deployment, which is why spec 032 proves them on a Pages preview before
+# production. A header asserted from local serving is not a verified header.
+#
+# Comments and blank lines sit at column 0 only. An indented line inside a rule
+# block is parsed as a header, so the commentary lives here rather than beside
+# the directives it explains.
+#
+# ---------------------------------------------------------------- precedence
+#
+# Cloudflare Pages MERGES every rule whose pattern matches, and joins repeated
+# header names with a comma. Quoting the docs: "An incoming request which
+# matches multiple rules' URL patterns will inherit all rules' headers", and
+# "If a header is applied twice in the _headers file, the values are joined
+# with a comma separator."
+#
+# There is no last-match-wins and no most-specific-wins. A narrower rule that
+# simply re-stated `Cache-Control` would be SERVED ALONGSIDE the broad one —
+# `public, max-age=31536000, immutable, public, max-age=0, must-revalidate` —
+# and which half a given cache honours is not something to find out in
+# production. So the two un-hashed files below detach the inherited value with
+# `! Cache-Control` before setting their own, which is the documented way to
+# "remove ... a header which has been added by a more pervasive rule". The
+# detaching rules come after the rule they detach from, as in Cloudflare's own
+# example.
+#
+# This is the one behaviour here that cannot be proven from the repository.
+# Verify it live, on the preview, before merging:
+#
+#   curl -sI https://<preview>/assets/maplibre-gl-worker.mjs | grep -i cache-
+#     -> cache-control: public, max-age=0, must-revalidate    (exactly this)
+#
+# `src/headers.test.ts` holds the structure — which rules exist, in which
+# order, carrying which directives — so this file cannot drift silently.
+#
+# ------------------------------------------------------------------- the CSP
+#
+# Every source is derived from code in this repository, not from a template:
+#
+#   default-src 'self'   everything unnamed is same-origin.
+#   script-src           the hashed bundle, plus ONE inline script: the
+#                        pre-paint theme setter in index.html. The hash covers
+#                        that script's exact text, so editing it without
+#                        recomputing breaks it — visibly but harmlessly, as a
+#                        light flash on a dark reload. Recompute with:
+#                          python3 -c "import re,hashlib,base64;s=re.search(r'<script(?![^>]*src=)[^>]*>(.*?)</script>',open('index.html').read(),re.S).group(1);print('sha256-'+base64.b64encode(hashlib.sha256(s.encode()).digest()).decode())"
+#                        No 'unsafe-eval': MapLibre v6 reaches `eval` only on
+#                        its non-module plugin-loading path, which is not used
+#                        here (maplibre-gl-worker.mjs takes the module branch).
+#   style-src            'unsafe-inline' because index.html's boot skeleton is
+#                        an inline <style>, and the charts, stat grid, flow
+#                        legend and forecast bars set `style=` attributes to
+#                        carry each system's series colour. Style ATTRIBUTES
+#                        cannot be hashed, so this is the honest value rather
+#                        than a hash that would silently drop the colours.
+#   img-src data:        maplibre-gl.css draws its zoom controls from
+#                        `url("data:image/svg+xml…")`.
+#   img-src blob:        maplibre-gl-shared.mjs decodes tile and sprite images
+#                        through `URL.createObjectURL(blob)`.
+#   tiles.openfreemap.org  the basemap, in img-src and connect-src: style JSON,
+#                        vector tiles, raster shading, sprites and glyphs all
+#                        resolve to that one origin — verified against both the
+#                        positron and dark styles StationMap.tsx names.
+#   font-src data:       public/og-image.html embeds its typeface as a data:
+#                        URI so the social card renders identically wherever it
+#                        is screenshotted. The site's own fonts are same-origin
+#                        files from @fontsource-variable.
+#   worker-src blob:     MapLibre spawns its tile-parsing worker from a Blob
+#                        that imports /assets/maplibre-gl-worker.mjs; child-src
+#                        repeats it for browsers that predate worker-src.
+#   frame-ancestors      nothing embeds this site.
+#   form-action 'self'   there are no forms; a form submitting anywhere is an
+#                        injection, not a feature.
+
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'sha256-hHg0jcnC383GhRP1+/aWHqYMomwqyngDodKphzQfk+U='; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org; font-src 'self' data:; connect-src 'self' https://tiles.openfreemap.org; worker-src 'self' blob:; child-src blob:; manifest-src 'self'
+
+# Vite content-addresses everything in /assets/ except the two files below, so
+# a change to any of them changes its name. A year, immutable.
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# The exceptions, and the reason this file needs the detach syntax at all.
+# MapLibre resolves `maplibre-gl-worker.mjs` against `import.meta.url` inside a
+# template string at runtime, so Rollup cannot see it and cannot hash it —
+# vite.config.ts emits both files verbatim under their literal names. An
+# immutable year on an un-hashed file is a year of blank maps after an upgrade.
+
+/assets/maplibre-gl-worker.mjs
+  ! Cache-Control
+  Cache-Control: public, max-age=0, must-revalidate
+
+/assets/maplibre-gl-shared.mjs
+  ! Cache-Control
+  Cache-Control: public, max-age=0, must-revalidate
+
+# The social card. Short, not immutable: its name is fixed by index.html's
+# `og:image`, so it is re-uploaded under the same path whenever it is redrawn,
+# and the crawlers that fetch it do so rarely.
+
+/og-image.png
+  Cache-Control: public, max-age=3600
+
+# Its source composition ships because `public/` ships whole. It is a build
+# input, not a page of this site, and it says so in its own <meta> too.
+
+/og-image.html
+  X-Robots-Tag: noindex

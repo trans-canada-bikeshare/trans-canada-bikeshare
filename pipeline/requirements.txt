@@ -9,12 +9,12 @@
 # To move a bound: edit here, resolve into a fresh venv, run both test suites
 # and `make check`, then regenerate the lock by the recipe in its header.
 
-requests>=2.32
-openpyxl>=3.1
-duckdb>=1.2
-pytest>=8
-numpy>=1.26
+requests>=2.34.2
+openpyxl>=3.1.5
+duckdb>=1.5.5
+pytest>=9.1.1
+numpy>=2.5.1
 # Spec 030: publish.py validates every artifact against its JSON Schema in
 # pipeline/schemas/ before writing it. Draft 2020-12, which jsonschema has
 # supported since 4.0.
-jsonschema>=4.23
+jsonschema>=4.26.0

@@ -88,3 +88,44 @@ Rebranding, new metrics, new cities, analytics tooling.
 
 `_headers` and markup revert with the merge; caching changes are
 name-hashed so stale-asset risk is nil.
+
+## Verification record (test, 2026-07-31)
+
+All against the Pages preview deployment (branch preview-032), where
+`_headers` is live; production re-verification follows the merge.
+
+- **Headers, live**: HSTS, CSP, Permissions-Policy, nosniff,
+  Referrer-Policy on `/`; hashed `/assets/*` `immutable` 1y; the un-hashed
+  MapLibre worker files exactly `public, max-age=0, must-revalidate` (the
+  Cloudflare merge-detach works); `/og-image.png` image/png, 1h.
+- **Maps under enforced CSP, headed**: all three maps draw basemaps and
+  dots (counts 260+0 / 1,045+56 / 969+3, artifact-exact), zero console
+  violations. One environment trap en route, recorded because the 2026-07-29
+  decision predicted it exactly: a backgrounded automation tab froze
+  rendering and screenshots, making the preview look broken; an A/B against
+  production under identical driving showed identical placeholders,
+  exonerating the CSP before any code was touched. Verified in a live tab.
+- **Phone width (390px, DOM-level via Playwright — CSS/DOM assertions, not
+  rAF surfaces)**: skip link is the first focusable and moves focus to
+  #main; desktop nav hidden; the Sections disclosure opens with all 11
+  links, focus moves in, scroll locks; Escape closes, returns focus,
+  unlocks; tables open with artifact-faithful cells (Apr 2014 row: 108,264
+  Montreal, em-dashes for systems not yet operating).
+- **DOM audit (axe-equivalent: names, labels, ids, heading order,
+  landmarks, table headers, aria integrity) at 1280px and 390px**: one
+  finding — the menu's aria-controls dangled when closed (conditional
+  render); fixed by keeping the panel in the DOM with hidden, and the nav
+  test now pins closed-means-hidden-never-absent. Zero findings after.
+- **Social card**: served from the preview as image/png at exactly
+  1200x630, byte-identical to the committed asset.
+- **CWV, same tool same machine (Playwright, 1280px)**:
+  production FCP 136ms / LCP 228ms / CLS 0.003 / TTFB 67ms;
+  preview-032 FCP 140ms / LCP 248ms / CLS 0.003 / TTFB 53ms.
+  Differences within run noise — no regression attributable to headers or
+  caching; both far inside the good thresholds, so the MapLibre chunk
+  warning stays accepted. Paint metrics could not be honestly measured in
+  the extension tab (a non-painting tab produces no FCP/LCP while network
+  timings still report), which is why the comparison ran in Playwright.
+- **Suites**: 199 vitest, typecheck, build; pipeline gates untouched by
+  this spec's changes and green at branch (270 pytest, six-gate make
+  check earlier in-branch).
